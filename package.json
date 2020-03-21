@@ -28,7 +28,12 @@
     "express-basic-auth": "^1.2.0",
     "mysql": "^2.18.1"
   },
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "supertest": "^4.0.2"
+  },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest"
   }
 }
