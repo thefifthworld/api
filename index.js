@@ -1,5 +1,7 @@
 const express = require('express')
 const db = require('./db')
+const config = require('./config')
+
 const app = express()
 const router = express.Router()
 
@@ -8,7 +10,7 @@ router.get('/', async (req, res) => {
   res.json({ pages: query[0].count })
 })
 
-const port = 8081
+const { port } = config
 app.use('/', router)
 app.listen(port, () => {
   console.log(`The Fifth World API is listening on port ${port}`)
