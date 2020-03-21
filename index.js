@@ -24,11 +24,11 @@ const secure = basicAuth({
 
 router.get('/', async (req, res) => {
   const query = await db.run('SELECT COUNT(id) AS count FROM pages;')
-  res.json({ pages: query[0].count })
+  res.status(200).json({ pages: query[0].count })
 })
 
 router.get('/secure', secure, (req, res) => {
-  res.json('hello world')
+  res.status(200).json('hello world')
 })
 
 const { port } = config
