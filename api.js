@@ -2,6 +2,7 @@ const express = require('express')
 const basicAuth = require('express-basic-auth')
 
 const db = require('./db')
+const members = require('./routes/members')
 
 const api = express()
 const router = express.Router()
@@ -36,4 +37,5 @@ router.get('/secure', secure, (req, res) => {
 })
 
 api.use('/', router)
+api.use('/', members)
 module.exports = api
