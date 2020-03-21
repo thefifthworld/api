@@ -16,15 +16,19 @@ const authorizer = async (email, key, cb) => {
   }
 }
 
-app.use(basicAuth( {
+const secure = basicAuth({
   authorizer,
   authorizeAsync: true,
   challenge: true
-}))
+})
 
 router.get('/', async (req, res) => {
   const query = await db.run('SELECT COUNT(id) AS count FROM pages;')
   res.json({ pages: query[0].count })
+})
+
+router.get('/secure', secure, (req, res) => {
+  res.json('hello world')
 })
 
 const { port } = config
