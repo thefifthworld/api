@@ -16,8 +16,13 @@ const authorizer = async (email, key, cb) => {
   }
 }
 
+const unauthorizedResponse = () => {
+  return { err: 'Unauthorized' }
+}
+
 const secure = basicAuth({
   authorizer,
+  unauthorizedResponse,
   authorizeAsync: true,
   challenge: true
 })
