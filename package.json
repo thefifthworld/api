@@ -1,0 +1,29 @@
+{
+  "name": "thefifthworld-api",
+  "description": "The Fifth World API",
+  "version": "1.0.0",
+  "license": "CC-BY-SA-4.0",
+  "homepage": "https://api.thefifthworld.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thefifthworld/api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thefifthworld/api/issues"
+  },
+  "author": {
+    "name": "The Fifth World",
+    "email": "dev@thefifthworld.com",
+    "url": "https://thefifthworld.com"
+  },
+  "contributors": [
+    {
+      "name": "Jason Godesky",
+      "email": "jason@thefifthworld.com"
+    }
+  ],
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
