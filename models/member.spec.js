@@ -1,4 +1,7 @@
-/* global describe, it, expect */
+/* global describe, it, expect, afterAll */
+
+const db = require('../db')
+const testUtils = require('../test-utils')
 
 const Member = require('./member')
 
@@ -171,4 +174,21 @@ describe('Member', () => {
       expect(actual.invitations).toEqual(0)
     })
   })
+
+  describe('load', () => {
+    it('loads an instance from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load(1, db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
+    })
+  })
+})
+
+afterAll(() => {
+  db.end()
 })
