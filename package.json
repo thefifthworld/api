@@ -25,6 +25,7 @@
   "main": "index.js",
   "dependencies": {
     "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
     "mysql": "^2.18.1"
   },
   "scripts": {
