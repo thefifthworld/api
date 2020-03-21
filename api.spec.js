@@ -1,4 +1,4 @@
-/* global describe, it, expect */
+/* global describe, it, expect, afterAll */
 
 const request = require('supertest')
 const db = require('./db')
@@ -38,4 +38,8 @@ describe('API', () => {
       await testUtils.resetTables(db, 'members')
     })
   })
+})
+
+afterAll(() => {
+  db.end()
 })
