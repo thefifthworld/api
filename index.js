@@ -1,9 +1,11 @@
 const express = require('express')
+const db = require('./db')
 const app = express()
 const router = express.Router()
 
-router.get('/', (req, res) => {
-  res.json({ v: '1.0.0' })
+router.get('/', async (req, res) => {
+  const query = await db.run('SELECT COUNT(id) AS count FROM pages;')
+  res.json({ pages: query[0].count })
 })
 
 const port = 8081
