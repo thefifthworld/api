@@ -246,6 +246,32 @@ describe('Member', () => {
     })
   })
 
+  describe('authenticate', () => {
+    it('resolves with false if the email is not associated with a record', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.authenticate('heckin@nope.com', 'password', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(false)
+    })
+
+    it('resolves with false if the password is incorrect', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.authenticate('normal@thefifthworld.com', 'nope', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(false)
+    })
+
+    it('resolves with the ID if the password is correct', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.authenticate('normal@thefifthworld.com', 'password', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(2)
+    })
+  })
+
   describe('canEdit', () => {
     it('returns false if not given a Member object for the subject', async () => {
       expect.assertions(1)
