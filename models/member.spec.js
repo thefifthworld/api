@@ -1,5 +1,6 @@
 /* global describe, it, expect, afterAll */
 
+const bcrypt = require('bcrypt')
 const db = require('../db')
 const testUtils = require('../test-utils')
 
@@ -237,6 +238,14 @@ describe('Member', () => {
       const actual = Member.canEdit(subject, editor)
       await testUtils.resetTables(db, 'members')
       expect(actual).toEqual(true)
+    })
+  })
+
+  describe('hash', () => {
+    it('returns an encrypted hash', () => {
+      const orig = 'password'
+      const hash = Member.hash(orig)
+      expect(bcrypt.compareSync(orig, hash)).toEqual(true)
     })
   })
 })

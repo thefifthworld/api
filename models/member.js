@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt')
+
 class Member {
   constructor (obj) {
     const keys = [ 'id', 'name', 'password', 'apikey', 'email', 'bio' ]
@@ -49,6 +51,16 @@ class Member {
     const editorIsMember = editor instanceof Member
     const editorIsSubject = subject.id === editor.id
     return subjectIsMember && editorIsMember && (editorIsSubject || Boolean(editor.admin))
+  }
+
+  /**
+   * Returns an encrypted hash of a string.
+   * @param orig {string} - The string to hash.
+   * @returns {string} - The encrypted hash of the original string.
+   */
+
+  static hash (orig) {
+    return bcrypt.hashSync(orig, bcrypt.genSaltSync(8), null)
   }
 }
 
