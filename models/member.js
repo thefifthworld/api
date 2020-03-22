@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt')
+const sqlstring = require('sqlstring')
+const { escape } = sqlstring
 
 class Member {
   constructor (obj) {
@@ -72,6 +74,27 @@ class Member {
     } else {
       return undefined
     }
+  }
+
+  /**
+   * Checks if a member with the given email and password exists. If she does,
+   * it returns her ID. If not — either because the email is not associated
+   * with any member account, or it is associated with a member account but the
+   * password provided does not match that account — it returns `false`.
+   * @param email {string} - The member's email.
+   * @param password {string} - The member's password (unencrypted).
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<boolean|number>} - A Promise that resolves, either with
+   *   the member's ID if she could be authenticated, or `false` if she could
+   *   not be.
+   */
+
+  static async authenticate (email, password, db) {
+    const row = await db.run(`SELECT id, password FROM members WHERE email=${escape(email)};`)
+    if (row.length > 0) {
+      if (bcrypt.compareSync(password, row[0].password)) return row[0].id
+    }
+    return false
   }
 
   /**
