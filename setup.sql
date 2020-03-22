@@ -82,7 +82,6 @@ CREATE TABLE `members` (
   `name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `password` char(60) DEFAULT NULL,
-  `apikey` char(60) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `bio` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
   `facebook` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `twitter` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,

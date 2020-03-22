@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt')
 
 class Member {
   constructor (obj) {
-    const keys = [ 'id', 'name', 'password', 'apikey', 'email', 'bio' ]
+    const keys = [ 'id', 'name', 'password', 'email', 'bio' ]
     keys.forEach(key => {
       if (obj && obj[key]) this[key] = obj[key]
     })

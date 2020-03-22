@@ -41,17 +41,6 @@ describe('Member', () => {
       expect(actual.password).toEqual(password)
     })
 
-    it('doesn\'t set an API key if none is given', () => {
-      const actual = new Member()
-      expect(actual.apikey).toEqual(undefined)
-    })
-
-    it('sets an API key if one is given', () => {
-      const apikey = 'apikey123'
-      const actual = new Member({ apikey })
-      expect(actual.apikey).toEqual(apikey)
-    })
-
     it('doesn\'t set an email if none is given', () => {
       const actual = new Member()
       expect(actual.email).toEqual(undefined)

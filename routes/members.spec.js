@@ -23,10 +23,9 @@ describe('/members', () => {
     })
 
     it('doesn\'t show private fields', async () => {
-      expect.assertions(5)
+      expect.assertions(4)
       const res = await request(api).get('/members/1')
       expect(res.password).not.toBeDefined()
-      expect(res.apikey).not.toBeDefined()
       expect(res.email).not.toBeDefined()
       expect(res.invitations).not.toBeDefined()
       expect(res.active).not.toBeDefined()
