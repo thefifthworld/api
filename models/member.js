@@ -33,6 +33,23 @@ class Member {
       return undefined
     }
   }
+
+  /**
+   * Checks if the `editor` has permission to edit the member account of
+   * `subject`.
+   * @param subject {Member} - A member account to be edited.
+   * @param editor {Member} - A member who would like to edit the account of
+   *   `subject`.
+   * @returns {boolean} - `true` if `editor` has permission to edit the member
+   *   account of `subject`, or `false` if she does not.
+   */
+
+  static canEdit (subject, editor) {
+    const subjectIsMember = subject instanceof Member
+    const editorIsMember = editor instanceof Member
+    const editorIsSubject = subject.id === editor.id
+    return subjectIsMember && editorIsMember && (editorIsSubject || Boolean(editor.admin))
+  }
 }
 
 module.exports = Member

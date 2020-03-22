@@ -187,6 +187,58 @@ describe('Member', () => {
       expect(actual.admin).toEqual(true)
     })
   })
+
+  describe('canEdit', () => {
+    it('returns false if not given a Member object for the subject', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = 'Not a member'
+      const editor = await Member.load(3, db)
+      const actual = Member.canEdit(subject, editor)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(false)
+    })
+
+    it('returns false if not given a Member object for the editor', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = await Member.load(2, db)
+      const editor = 'Not a member'
+      const actual = Member.canEdit(subject, editor)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(false)
+    })
+
+    it('returns false if you try to edit someone else\'s account', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = await Member.load(2, db)
+      const editor = await Member.load(3, db)
+      const actual = Member.canEdit(subject, editor)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(false)
+    })
+
+    it('returns true if you try to edit your own account', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = await Member.load(2, db)
+      const editor = await Member.load(2, db)
+      const actual = Member.canEdit(subject, editor)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(true)
+    })
+
+    it('returns true if an admin tries to edit an account', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = await Member.load(2, db)
+      const editor = await Member.load(1, db)
+      const actual = Member.canEdit(subject, editor)
+      await testUtils.resetTables(db, 'members')
+      expect(actual).toEqual(true)
+    })
+  })
 })
 
 afterAll(() => {
