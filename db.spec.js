@@ -16,7 +16,7 @@ describe('Database', () => {
     it('updates the database', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const fields = [ { name: 'bio', type: 'string' } ]
+      const fields = [{ name: 'bio', type: 'string' }]
       const updates = { bio: 'This is my updated bio.' }
       await db.update(fields, updates, 'members', 1)
       const check = await db.run('SELECT bio FROM members WHERE id=1;')
@@ -27,7 +27,7 @@ describe('Database', () => {
     it('escapes input', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const fields = [ { name: 'bio', type: 'string' } ]
+      const fields = [{ name: 'bio', type: 'string' }]
       const updates = { bio: 'This is my updated bio and it\'s "tricky content."' }
       await db.update(fields, updates, 'members', 1)
       const check = await db.run('SELECT bio FROM members WHERE id=1;')
@@ -38,7 +38,7 @@ describe('Database', () => {
     it('sets empty strings to null', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const fields = [ { name: 'bio', type: 'string' } ]
+      const fields = [{ name: 'bio', type: 'string' }]
       const updates = { bio: '' }
       await db.update(fields, updates, 'members', 1)
       const check = await db.run('SELECT bio FROM members WHERE id=1;')
@@ -49,7 +49,7 @@ describe('Database', () => {
     it('handles null values', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const fields = [ { name: 'bio', type: 'string' } ]
+      const fields = [{ name: 'bio', type: 'string' }]
       const updates = { bio: null }
       await db.update(fields, updates, 'members', 1)
       const check = await db.run('SELECT bio FROM members WHERE id=1;')
