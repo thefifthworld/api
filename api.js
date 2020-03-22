@@ -14,4 +14,8 @@ router.get('/', async (req, res) => {
   res.status(200).json({ pages: query[0].count })
 })
 
+api.close = () => {
+  db.end()
+}
+
 module.exports = api
