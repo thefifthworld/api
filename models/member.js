@@ -19,6 +19,44 @@ class Member {
   }
 
   /**
+   * Update a member record.
+   * @param updates {Object} - An object providing the updates to be made as
+   *   key-value pairs.
+   * @param editor {Member} - The person making the update.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<boolean>} - A Promise that returns with `true` if the
+   *   update could be made, or `false` if not.
+   */
+
+  async update (updates, editor, db) {
+    if (Member.canEdit(this, editor)) {
+      const fields = [
+        { name: 'name', type: 'string' },
+        { name: 'email', type: 'string' },
+        { name: 'bio', type: 'string' },
+        { name: 'facebook', type: 'string' },
+        { name: 'twitter', type: 'string' },
+        { name: 'github', type: 'string' },
+        { name: 'patreon', type: 'string' },
+        { name: 'web', type: 'string' }
+      ]
+
+      if (updates.password) {
+        updates.password = Member.hash(updates.password)
+        fields.push({ name: 'password', type: 'string' })
+      }
+
+      Object.keys(updates).forEach(update => {
+        this[update] = updates[update]
+      })
+
+      await db.update(fields, updates, 'members', this.id)
+      return true
+    }
+    return false
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number} - The primary key for the member account to load.
    * @param db {Pool} - The database connection.

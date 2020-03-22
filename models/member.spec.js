@@ -176,6 +176,74 @@ describe('Member', () => {
     })
   })
 
+  describe('update', () => {
+    it('won\'t let you update someone else\'s account', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const before = await Member.load(3, db)
+      const val = await before.update({ bio: 'New bio' }, editor, db)
+      const after = await Member.load(3, db)
+      await testUtils.resetTables(db, 'members')
+      expect(val).toEqual(false)
+      expect(before.bio).toEqual(after.bio)
+    })
+
+    it('will let you update your own account', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const before = await Member.load(2, db)
+      const val = await before.update({ bio: 'New bio' }, before, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(val).toEqual(true)
+      expect(after.bio).toEqual('New bio')
+    })
+
+    it('will let an admin update your own account', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const before = await Member.load(2, db)
+      const val = await before.update({ bio: 'New bio' }, admin, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(val).toEqual(true)
+      expect(after.bio).toEqual('New bio')
+    })
+
+    it('updates the Member instance', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const subject = await Member.load(2, db)
+      await subject.update({ bio: 'New bio' }, subject, db)
+      await testUtils.resetTables(db, 'members')
+      expect(subject.bio).toEqual('New bio')
+    })
+
+    it('hashes passwords', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const password = 'password'
+      const subject = await Member.load(2, db)
+      await subject.update({ password }, subject, db)
+      await testUtils.resetTables(db, 'members')
+      expect(bcrypt.compareSync(password, subject.password)).toEqual(true)
+    })
+
+    it('doesn\'t reset password if there\'s no updated password', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const password = 'password'
+      const before = await Member.load(2, db)
+      await before.update({ password }, before, db)
+      await before.update({ bio: 'New bio' }, before, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(bcrypt.compareSync(password, after.password)).toEqual(true)
+    })
+  })
+
   describe('load', () => {
     it('loads an instance from the database', async () => {
       expect.assertions(4)
