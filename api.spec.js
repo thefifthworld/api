@@ -1,13 +1,20 @@
-/* global describe, it, expect, afterAll */
+/* global describe, it, expect, beforeAll, beforeEach, afterAll */
 
 const supertest = require('supertest')
 const api = require('./api')
-const request = supertest(api)
 
 describe('API', () => {
-  afterAll(() => {
-    api.close()
-    request.close()
+  let server = {}
+  let request = {}
+
+  beforeAll(async () => { server = await api.listen(8888) })
+  beforeEach(() => { request = supertest(server) })
+  afterAll(done => {
+    server.close(() => {
+      api.closeDB(() => {
+        api.close(done)
+      })
+    })
   })
 
   describe('GET /', () => {

@@ -1,9 +1,8 @@
 const mysql = require('mysql')
-const sqlstring = require('sqlstring')
+const { escape } = require('sqlstring')
 const config = require('./config')
 
 const db = mysql.createPool(config.db)
-const { escape } = sqlstring
 
 /**
  * We add a new method to our instance that allows us to query the database
