@@ -1,31 +1,41 @@
 /* global describe, it, expect, afterAll */
 
+const bcrypt = require('bcrypt')
 const db = require('./db')
 const utils = require('./test-utils')
 
 describe('populateMembers', () => {
   it('adds an administrator', async () => {
-    expect.assertions(1)
+    expect.assertions(4)
     await utils.populateMembers(db)
-    const actual = await db.run('SELECT admin FROM members WHERE email=\'admin@thefifthworld.com\';')
+    const actual = await db.run('SELECT * FROM members WHERE email=\'admin@thefifthworld.com\';')
     await utils.resetTables(db, 'members')
+    expect(actual[0].name).toEqual('Admin')
+    expect(actual[0].email).toEqual('admin@thefifthworld.com')
+    expect(bcrypt.compareSync('password', actual[0].password)).toEqual(true)
     expect(actual[0].admin).toEqual(1)
   })
 
   it('adds a normal member', async () => {
-    expect.assertions(1)
+    expect.assertions(4)
     await utils.populateMembers(db)
-    const actual = await db.run('SELECT admin FROM members WHERE email=\'normal@thefifthworld.com\';')
+    const actual = await db.run('SELECT * FROM members WHERE email=\'normal@thefifthworld.com\';')
     await utils.resetTables(db, 'members')
-    expect(actual[0].admin).not.toEqual(1)
+    expect(actual[0].name).toEqual('Normal')
+    expect(actual[0].email).toEqual('normal@thefifthworld.com')
+    expect(bcrypt.compareSync('password', actual[0].password)).toEqual(true)
+    expect(actual[0].admin).toEqual(0)
   })
 
   it('adds another member', async () => {
-    expect.assertions(1)
+    expect.assertions(4)
     await utils.populateMembers(db)
-    const actual = await db.run('SELECT admin FROM members WHERE email=\'other@thefifthworld.com\';')
+    const actual = await db.run('SELECT * FROM members WHERE email=\'other@thefifthworld.com\';')
     await utils.resetTables(db, 'members')
-    expect(actual[0].admin).not.toEqual(1)
+    expect(actual[0].name).toEqual('Other')
+    expect(actual[0].email).toEqual('other@thefifthworld.com')
+    expect(bcrypt.compareSync('password', actual[0].password)).toEqual(true)
+    expect(actual[0].admin).toEqual(0)
   })
 })
 

@@ -1,3 +1,7 @@
+const Member = require('./models/member')
+const sqlstring = require('sqlstring')
+const { escape } = sqlstring
+
 /**
  * Populates the database with member accounts for use in tests.
  * @param db {Pool} - The database connection.
@@ -6,9 +10,10 @@
  */
 
 const populateMembers = async (db) => {
-  await db.run('INSERT INTO members (name, email, apikey, admin) VALUES (\'Admin\', \'admin@thefifthworld.com\', \'adminapikey000\', 1);')
-  await db.run('INSERT INTO members (name, email, apikey) VALUES (\'Normal\', \'normal@thefifthworld.com\', \'normalapikey111\');')
-  await db.run('INSERT INTO members (name, email, apikey) VALUES (\'Other\', \'other@thefifthworld.com\', \'otherapikey222\');')
+  const password = Member.hash('password')
+  await db.run(`INSERT INTO members (name, email, password, admin) VALUES ('Admin', 'admin@thefifthworld.com', ${escape(password)}, 1);`)
+  await db.run(`INSERT INTO members (name, email, password) VALUES ('Normal', 'normal@thefifthworld.com', ${escape(password)});`)
+  await db.run(`INSERT INTO members (name, email, password) VALUES ('Other', 'other@thefifthworld.com', ${escape(password)});`)
 }
 
 /**
