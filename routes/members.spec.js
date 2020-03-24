@@ -1,53 +1,66 @@
-/* global describe, it, expect, beforeEach, afterEach, afterAll */
+/* global describe, it, expect, beforeAll, beforeEach, afterEach, afterAll */
 
 const supertest = require('supertest')
 const db = require('../db')
 const api = require('../api')
-const request = supertest(api)
 const testUtils = require('../test-utils')
 
-describe('/members', () => {
-  beforeEach(async () => {
+describe('Members API', () => {
+  let server = {}
+  let request = {}
+
+  beforeAll(async () => { server = await api.listen(8888) })
+  beforeEach(async done => {
+    request = supertest(server)
     await testUtils.populateMembers(db)
+    done()
   })
 
-  afterEach(async () => {
+  afterEach(async done => {
     await testUtils.resetTables(db, 'members')
+    done()
   })
 
-  afterAll(() => {
-    db.end()
-    api.close()
-    request.close()
+  afterAll(done => {
+    server.close(() => {
+      api.closeDB(() => {
+        api.close(() => {
+          db.close(done)
+        })
+      })
+    })
   })
 
   describe('GET /members/:id', () => {
-    it('returns data on a given member', async () => {
-      expect.assertions(5)
-      const res = await request.get('/members/1')
+    it('returns 200', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/2')
       expect(res.status).toEqual(200)
-      expect(res.body.id).toEqual(1)
-      expect(res.body.name).toEqual('Admin')
-      expect(res.body.links).toEqual({})
-      expect(res.body.admin).toEqual(true)
     })
 
-    it('doesn\'t show private fields', async () => {
+    it('returns member data', async () => {
+      expect.assertions(2)
+      const res = await request.get('/members/2')
+      expect(res.body.id).toEqual(2)
+      expect(res.body.name).toEqual('Normal')
+    })
+
+    it('doesn\'t provide hidden fields', async () => {
       expect.assertions(4)
-      const res = await request.get('/members/1')
-      expect(res.password).not.toBeDefined()
-      expect(res.email).not.toBeDefined()
-      expect(res.invitations).not.toBeDefined()
-      expect(res.active).not.toBeDefined()
+      const res = await request.get('/members/2')
+      expect(res.body.email).not.toBeDefined()
+      expect(res.body.password).not.toBeDefined()
+      expect(res.body.invitations).not.toBeDefined()
+      expect(res.body.active).not.toBeDefined()
     })
 
-    it('returns 404 if member does not exist', async () => {
+    it('returns 404 for a member that does not exist', async () => {
       expect.assertions(1)
       const res = await request.get('/members/404')
       expect(res.status).toEqual(404)
     })
 
-    it('returns 404 if member is not active', async () => {
+    it('returns 404 for an inactive member', async () => {
       expect.assertions(1)
       await db.run('UPDATE members SET active=0 WHERE id=2;')
       const res = await request.get('/members/2')
