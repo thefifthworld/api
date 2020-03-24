@@ -1,10 +1,14 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 
 const db = require('./db')
 const members = require('./routes/members')
 
 const api = express()
 const router = express.Router()
+
+api.use(bodyParser.urlencoded({ extended: true }))
+api.use(bodyParser.json())
 
 api.use('/', router)
 api.use('/', members)
