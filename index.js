@@ -1,13 +1,7 @@
-const express = require('express')
-const app = express()
-const router = express.Router()
+const api = require('./api')
+const config = require('./config')
 
-router.get('/', (req, res) => {
-  res.json({ v: '1.0.0' })
-})
-
-const port = 8081
-app.use('/', router)
-app.listen(port, () => {
+const { port } = config
+api.listen(port, () => {
   console.log(`The Fifth World API is listening on port ${port}`)
 })
