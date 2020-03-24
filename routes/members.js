@@ -1,7 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
 const security = require('../security')
-const { secure } = security
+const { secure, getLoggedIn } = security
 const db = require('../db')
 const members = express.Router()
 
@@ -19,12 +19,20 @@ members.get('/members/:id', async (req, res) => {
 })
 
 // PATCH /members/:id
-members.patch('/members/:id', secure, async (req, res) => {
-  const editor = await Member.load(req.user, db)
-  console.log({
-    editor,
-    body: req.body
-  })
+members.patch('/members/:id', secure, getLoggedIn, async (req, res) => {
+  let subject = false
+  let updated = false
+  if (req && req.user && req.user instanceof Member) {
+    subject = await Member.load(req.params.id, db)
+    updated = await subject.update(req.body, req.user, db)
+    delete subject.password
+  }
+
+  if (subject && updated) {
+    res.status(200).json(subject)
+  } else {
+    res.status(401).json({ err: 'Unauthorized' })
+  }
 })
 
 module.exports = members

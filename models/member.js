@@ -52,7 +52,7 @@ class Member {
         this[update] = updates[update]
       })
 
-      await db.update(fields, updates, 'members', this.id)
+      if (updates !== {}) await db.update(fields, updates, 'members', this.id)
       return true
     }
     return false

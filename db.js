@@ -58,8 +58,10 @@ db.update = (fields, updates, table, id) => {
     }
   })
 
-  const query = `UPDATE ${table} SET ${statements.join(', ')} WHERE id=${id};`
-  return db.run(query)
+  if (statements.length > 0) {
+    const query = `UPDATE ${table} SET ${statements.join(', ')} WHERE id=${id};`
+    return db.run(query)
+  }
 }
 
 module.exports = db

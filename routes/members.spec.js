@@ -1,6 +1,7 @@
 /* global describe, it, expect, beforeAll, beforeEach, afterEach, afterAll */
 
 const supertest = require('supertest')
+const Member = require('../models/member')
 const db = require('../db')
 const api = require('../api')
 const testUtils = require('../test-utils')
@@ -65,6 +66,45 @@ describe('Members API', () => {
       await db.run('UPDATE members SET active=0 WHERE id=2;')
       const res = await request.get('/members/2')
       expect(res.status).toEqual(404)
+    })
+  })
+
+  describe('PATCH /members/:id', () => {
+    it('returns 200', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+    })
+
+    it('updates the member\'s data', async () => {
+      expect.assertions(1)
+      const updates = { bio: 'New bio' }
+      await request.patch('/members/2').auth('normal@thefifthworld.com', 'password').send(updates)
+      const acct = await Member.load(2, db)
+      expect(acct.bio).toEqual(updates.bio)
+    })
+
+    it('returns the member\'s data', async () => {
+      expect.assertions(5)
+      const updates = { bio: 'New bio' }
+      const res = await request.patch('/members/2').auth('normal@thefifthworld.com', 'password').send(updates)
+      expect(res.body.id).toEqual(2)
+      expect(res.body.email).toEqual('normal@thefifthworld.com')
+      expect(res.body.active).toEqual(true)
+      expect(res.body.admin).toEqual(false)
+      expect(res.body.bio).toEqual(updates.bio)
+    })
+
+    it('won\'t let you update someone else\'s account', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2').auth('other@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+    })
+
+    it('lets an admin update someone else\'s account', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2').auth('admin@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
     })
   })
 })
