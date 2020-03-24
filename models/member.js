@@ -59,6 +59,22 @@ class Member {
   }
 
   /**
+   * Deactivates a member.
+   * @param editor {Member} - The member requesting the deactivation. Only an
+   *   administrator can do this.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<any>} - A Promise that resolves when the update has been
+   *   saved to the database.
+   */
+
+  async deactivate (editor, db) {
+    if (editor && editor instanceof Member && editor.admin) {
+      this.active = false
+      return db.update([ { name: 'active', type: 'number' } ], { active: 0 }, 'members', this.id)
+    }
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number} - The primary key for the member account to load.
    * @param db {Pool} - The database connection.
