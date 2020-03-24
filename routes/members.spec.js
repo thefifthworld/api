@@ -107,4 +107,31 @@ describe('Members API', () => {
       expect(res.status).toEqual(200)
     })
   })
+
+  describe('PATCH /members/:id/deactivate', () => {
+    it('returns 200', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2/deactivate').auth('admin@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+    })
+
+    it('sets the user\'s active flag to false', async () => {
+      expect.assertions(1)
+      await request.patch('/members/2/deactivate').auth('admin@thefifthworld.com', 'password')
+      const acct = await Member.load(2, db)
+      expect(acct.active).toEqual(false)
+    })
+
+    it('returns 401 if you\'re not an admin', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2/deactivate').auth('other@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns 401 even if you try to deactivate yourself', async () => {
+      expect.assertions(1)
+      const res = await request.patch('/members/2/deactivate').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+    })
+  })
 })

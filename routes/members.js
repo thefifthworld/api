@@ -35,4 +35,20 @@ members.patch('/members/:id', secure, getLoggedIn, async (req, res) => {
   }
 })
 
+// PATCH /members/:id/deactivate
+members.patch('/members/:id/deactivate', secure, getLoggedIn, async (req, res) => {
+  let done = false
+  let subject = false
+  if (req && req.user && req.user.admin) {
+    subject = await Member.load(req.params.id, db)
+    if (subject) done = await subject.deactivate(req.user, db)
+  }
+
+  if (done && subject) {
+    res.status(200).json(subject)
+  } else {
+    res.status(401).json({ err: 'Unauthorized' })
+  }
+})
+
 module.exports = members
