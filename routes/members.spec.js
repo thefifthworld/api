@@ -134,4 +134,47 @@ describe('Members API', () => {
       expect(res.status).toEqual(401)
     })
   })
+
+  describe('PATCH /members/:id/reactivate', () => {
+    it('returns 200', async () => {
+      expect.assertions(1)
+      const admin = await Member.load(1, db)
+      const normal = await Member.load(2, db)
+      await normal.deactivate(admin, db)
+
+      const res = await request.patch('/members/2/reactivate').auth('admin@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+    })
+
+    it('sets the user\'s active flag to true', async () => {
+      expect.assertions(1)
+      const admin = await Member.load(1, db)
+      const normal = await Member.load(2, db)
+      await normal.deactivate(admin, db)
+
+      await request.patch('/members/2/reactivate').auth('admin@thefifthworld.com', 'password')
+      const acct = await Member.load(2, db)
+      expect(acct.active).toEqual(true)
+    })
+
+    it('returns 401 if you\'re not an admin', async () => {
+      expect.assertions(1)
+      const admin = await Member.load(1, db)
+      const normal = await Member.load(2, db)
+      await normal.deactivate(admin, db)
+
+      const res = await request.patch('/members/2/reactivate').auth('other@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns 401 even if you try to deactivate yourself', async () => {
+      expect.assertions(1)
+      const admin = await Member.load(1, db)
+      const normal = await Member.load(2, db)
+      await normal.deactivate(admin, db)
+
+      const res = await request.patch('/members/2/reactivate').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+    })
+  })
 })
