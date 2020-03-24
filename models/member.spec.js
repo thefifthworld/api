@@ -280,6 +280,45 @@ describe('Member', () => {
     })
   })
 
+  describe('reactivate', () => {
+    it('lets an admin reactivate a member', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const before = await Member.load(2, db)
+      await before.deactivate(admin, db)
+      await before.reactivate(admin, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(after.active).toEqual(true)
+    })
+
+    it('won\'t let you deactivate someone else', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const other = await Member.load(3, db)
+      const before = await Member.load(2, db)
+      await before.deactivate(admin, db)
+      await before.reactivate(other, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(after.active).toEqual(false)
+    })
+
+    it('won\'t let you deactivate yourself', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const before = await Member.load(2, db)
+      await before.deactivate(admin, db)
+      await before.reactivate(before, db)
+      const after = await Member.load(2, db)
+      await testUtils.resetTables(db, 'members')
+      expect(after.active).toEqual(false)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)

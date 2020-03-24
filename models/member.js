@@ -75,6 +75,22 @@ class Member {
   }
 
   /**
+   * Reactivates a member.
+   * @param editor {Member} - The member requesting the reactivation. Only an
+   *   administrator can do this.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<any>} - A Promise that resolves when the update has been
+   *   saved to the database.
+   */
+
+  async reactivate (editor, db) {
+    if (editor && editor instanceof Member && editor.admin) {
+      this.active = true
+      return db.update([ { name: 'active', type: 'number' } ], { active: 1 }, 'members', this.id)
+    }
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number} - The primary key for the member account to load.
    * @param db {Pool} - The database connection.
