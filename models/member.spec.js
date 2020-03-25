@@ -404,6 +404,22 @@ describe('Member', () => {
       expect(bcrypt.compareSync(orig, hash)).toEqual(true)
     })
   })
+
+  describe('generateInvitationCode', () => {
+    it('returns a string that is at least 10 characters long', async () => {
+      expect.assertions(2)
+      const code = await Member.generateInvitationCode(db)
+      expect(typeof code).toEqual('string')
+      expect(code.length).toBeGreaterThanOrEqual(10)
+    })
+
+    it('returns a string that is not in use', async () => {
+      expect.assertions(1)
+      const code = await Member.generateInvitationCode(db)
+      const check = await db.run(`SELECT id FROM invitations WHERE inviteCode = '${code}';`)
+      expect(check).toHaveLength(0)
+    })
+  })
 })
 
 afterAll(() => {

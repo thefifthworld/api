@@ -155,6 +155,22 @@ class Member {
   static hash (orig) {
     return bcrypt.hashSync(orig, bcrypt.genSaltSync(8), null)
   }
+
+  /**
+   * Generates a random code that isn't already in use.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<string>} - A Promise that resolves with a random code.
+   */
+
+  static async generateInvitationCode (db) {
+    let code = ''
+    while (code === '') {
+      code = Math.random().toString(36).replace('0.', '')
+      const check = await db.run(`SELECT id FROM invitations WHERE inviteCode='${code}';`)
+      if (check.length > 0) code = ''
+    }
+    return code
+  }
 }
 
 module.exports = Member
