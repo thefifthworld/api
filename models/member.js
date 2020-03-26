@@ -132,7 +132,8 @@ class Member {
 
   /**
    * Load a Member instance from the database.
-   * @param id {number} - The primary key for the member account to load.
+   * @param id {number|string} - Either the primary key or the email address of
+   *   the member to load.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Member|undefined>} - a Member instance loaded with the
    *   information from the database matching the primary key provided if the
@@ -140,7 +141,10 @@ class Member {
    */
 
   static async load (id, db) {
-    const row = await db.run(`SELECT * FROM members WHERE id=${id};`)
+    const query = typeof id === 'string'
+      ? `SELECT * FROM members WHERE email=${escape(id)};`
+      : `SELECT * FROM members WHERE id=${id};`
+    const row = await db.run(query)
     if (row.length > 0) {
       return new Member(row[0])
     } else {

@@ -244,6 +244,17 @@ describe('Member', () => {
       expect(actual.email).toEqual('admin@thefifthworld.com')
       expect(actual.admin).toEqual(true)
     })
+
+    it('loads by email address', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load('admin@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
+    })
   })
 
   describe('deactivate', () => {
