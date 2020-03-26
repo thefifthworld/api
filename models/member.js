@@ -131,6 +131,32 @@ class Member {
   }
 
   /**
+   * Creates a new invitation.
+   * @param addr {string} - The email address to invite.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connectionn.
+   * @returns {Promise} - A promise that resolves when the invitation is sent.
+   */
+
+  async createInvitation (addr, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    const name = this.name ? this.name : this.email ? this.email : `Member #${this.id}`
+    const code = await Member.generateInvitationCode(db)
+    const account = await db.run(`INSERT INTO members (email) VALUES ('${addr}');`)
+    await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (${this.id}, ${account.insertId}, '${code}');`)
+    if (!this.admin) {
+      this.invitations = Math.max(this.invitations - 1, 0)
+      await db.run(`UPDATE members SET invitations=${this.invitations} WHERE id=${this.id}`)
+    }
+    await emailer({
+      to: addr,
+      subject: 'Welcome to the Fifth World',
+      body: `${name} has invited you to join the Fifth World. Click here to begin:\n\nhttps://thefifthworld.com/join/${code}`
+    })
+    await this.logMessage(msgTypes.confirm, `Invitation sent to **${addr}**.`, db)
+  }
+
+  /**
    * Sends a reminder email to someone who has received an invitation but has
    * not yet accepted it.
    * @param member {Member} - The member who has not yet accepted her
