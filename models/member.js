@@ -227,6 +227,25 @@ class Member {
   }
 
   /**
+   * Returns an array of the members that this member invited.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Object[]>} - A Promise that resolves with an array of
+   *   the people that the member has invited.
+   */
+
+  async getInvited (db) {
+    const accounts = []
+    const rows = await db.run(`SELECT inviteTo, accepted FROM invitations WHERE inviteFrom=${this.id};`)
+    if (rows) {
+      for (const row of rows) {
+        const member = await Member.load(row.inviteTo, db)
+        accounts.push(Object.assign({}, member, { accepted: Boolean(row.accepted) }))
+      }
+    }
+    return accounts
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number|string} - Either the primary key or the email address of
    *   the member to load.

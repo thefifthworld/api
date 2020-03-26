@@ -1,6 +1,7 @@
 /* global describe, it, expect, afterAll */
 
 const bcrypt = require('bcrypt')
+const { escape } = require('sqlstring')
 const db = require('../db')
 const testUtils = require('../test-utils')
 
@@ -574,6 +575,46 @@ describe('Member', () => {
       expect(check1).toHaveLength(1)
       expect(check2).toHaveLength(1)
       expect(messages.warning).toHaveLength(1)
+    })
+  })
+
+  describe('getInvited', () => {
+    it('returns an array', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(Array.isArray(actual)).toEqual(true)
+    })
+
+    it('returns an array of people you\'ve invited', async () => {
+      expect.assertions(4)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toHaveLength(addrs.length)
+      expect(actual[0].email).toEqual(addrs[0])
+      expect(actual[1].email).toEqual(addrs[1])
+      expect(actual[2].email).toEqual(addrs[2])
+    })
+
+    it('returns the acceptance status of each person', async () => {
+      expect.assertions(3)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load('invited1@thefifthworld.com', db)
+      await db.run(`UPDATE invitations SET accepted=1 WHERE inviteTo=${invited1.id};`)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual[0].accepted).toEqual(true)
+      expect(actual[1].accepted).toEqual(false)
+      expect(actual[2].accepted).toEqual(false)
     })
   })
 
