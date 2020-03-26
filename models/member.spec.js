@@ -449,6 +449,87 @@ describe('Member', () => {
     })
   })
 
+  describe('sendInvitation', () => {
+    it('creates a new account', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited).toBeInstanceOf(Member)
+      expect(invited.email).toEqual('invited@thefifthworld.com')
+    })
+
+    it('creates an invitation', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      const actual = await db.run(`SELECT inviteCode FROM invitations WHERE inviteTo=${invited.id} AND inviteFrom=${inviter.id} AND accepted=0;`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toHaveLength(1)
+      expect(typeof actual[0].inviteCode).toEqual('string')
+      expect(actual[0].inviteCode.length).toBeGreaterThanOrEqual(10)
+    })
+
+    it('doesn\'t create an invitation if you\'re out of invitations', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 0
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      const check = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id};`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited).not.toBeDefined()
+      expect(check).toHaveLength(0)
+    })
+
+    it('logs a message when you\'re out of invitations', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 0
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.warning).toHaveLength(1)
+    })
+
+    it('sends a reminder if that address already has a pending invitation', async () => {
+      expect.assertions(3)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', emailer, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(messages.confirmation).toHaveLength(2)
+      expect(actual.to).toEqual('invited@thefifthworld.com')
+      expect(actual.subject).toEqual('Your invitation to the Fifth World is waiting')
+    })
+
+    it('tells you if she\'s already a member', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('other@thefifthworld.com', () => {}, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.info).toHaveLength(1)
+    })
+  })
+
   describe('load', () => {
     it('loads an instance from the database', async () => {
       expect.assertions(4)

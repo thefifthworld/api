@@ -183,6 +183,35 @@ class Member {
   }
 
   /**
+   * Send an invitation.
+   * @param email {string} - The email address to send an invitation to.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves once the request has been
+   *   evaluated and handled.
+   */
+
+  async sendInvitation (addr, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    if (this.invitations > 0) {
+      const existing = await Member.load(addr, db)
+      if (existing) {
+        const hasPendingInvitation = await db.run(`SELECT id FROM invitations WHERE inviteTo=${existing.id} AND accepted=0;`)
+        if (hasPendingInvitation.length > 0) {
+          await this.sendReminder(existing, emailer, db)
+        } else {
+          const name = existing.name ? existing.name : existing.email ? existing.email : `Member #${existing.id}`
+          await this.logMessage(msgTypes.info, `[${name}](/member/${existing.id}) is already a member.`, db)
+        }
+      } else {
+        await this.createInvitation(addr, emailer, db)
+      }
+    } else {
+      await this.logMessage(msgTypes.warning, `Sorry, you’ve run out of invitations. No invitation sent to **${addr}**.`, db)
+    }
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number|string} - Either the primary key or the email address of
    *   the member to load.
