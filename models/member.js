@@ -131,6 +131,32 @@ class Member {
   }
 
   /**
+   * Sends a reminder email to someone who has received an invitation but has
+   * not yet accepted it.
+   * @param member {Member} - The member who has not yet accepted her
+   *   invitation.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves when the reminder email has
+   *   been sent.
+   */
+
+  async sendReminder (member, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    const name = this.name ? this.name : this.email ? this.email : `Fifth World Member #${this.id}`
+    const invitation = await db.run(`SELECT inviteCode FROM invitations WHERE inviteTo=${member.id} AND accepted=0;`)
+    if (invitation.length > 0) {
+      const { inviteCode } = invitation[0]
+      await emailer({
+        to: member.email,
+        subject: 'Your invitation to the Fifth World is waiting',
+        body: `${name} wants to remind you that you’ve been invited to join the Fifth World. Click here to begin:\n\nhttps://thefifthworld.com/join/${inviteCode}`
+      })
+      await this.logMessage(msgTypes.confirm, `**${member.email}** already had an invitation, so we sent a reminder.`, db)
+    }
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number|string} - Either the primary key or the email address of
    *   the member to load.

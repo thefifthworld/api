@@ -233,30 +233,6 @@ describe('Member', () => {
     })
   })
 
-  describe('load', () => {
-    it('loads an instance from the database', async () => {
-      expect.assertions(4)
-      await testUtils.populateMembers(db)
-      const actual = await Member.load(1, db)
-      await testUtils.resetTables(db, 'members')
-      expect(actual.id).toEqual(1)
-      expect(actual.name).toEqual('Admin')
-      expect(actual.email).toEqual('admin@thefifthworld.com')
-      expect(actual.admin).toEqual(true)
-    })
-
-    it('loads by email address', async () => {
-      expect.assertions(4)
-      await testUtils.populateMembers(db)
-      const actual = await Member.load('admin@thefifthworld.com', db)
-      await testUtils.resetTables(db, 'members')
-      expect(actual.id).toEqual(1)
-      expect(actual.name).toEqual('Admin')
-      expect(actual.email).toEqual('admin@thefifthworld.com')
-      expect(actual.admin).toEqual(true)
-    })
-  })
-
   describe('deactivate', () => {
     it('lets an admin deactivate a member', async () => {
       expect.assertions(1)
@@ -371,6 +347,73 @@ describe('Member', () => {
       const res = await member.getMessages(db)
       await testUtils.resetTables(db, 'messages', 'members')
       expect(res).toEqual({})
+    })
+  })
+
+  describe('sendReminder', () => {
+    it('sends an email', async () => {
+      expect.assertions(5)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (2, 3, 'helloworld');`)
+      await member.sendReminder(other, emailer, db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual.to).toEqual('other@thefifthworld.com')
+      expect(actual.subject).toBeDefined()
+      expect(typeof actual.subject).toEqual('string')
+      expect(actual.body).toBeDefined()
+      expect(typeof actual.body).toEqual('string')
+    })
+
+    it('logs a message', async () => {
+      expect.assertions(1)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (2, 3, 'helloworld');`)
+      await member.sendReminder(other, emailer, db)
+      const messages = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.confirmation).toHaveLength(1)
+    })
+  })
+
+  describe('load', () => {
+    it('loads an instance from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load(1, db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
+    })
+
+    it('loads by email address', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load('admin@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
     })
   })
 
