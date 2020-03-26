@@ -627,6 +627,42 @@ describe('Member', () => {
     })
   })
 
+  describe('acceptInvitation', () => {
+    it('accepts the invitation', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      const actual = await Member.acceptInvitation(row[0].inviteCode, db)
+      const check = await db.run(`SELECT accepted FROM invitations WHERE inviteCode=${escape(row[0].inviteCode)};`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toBeInstanceOf(Member)
+      expect(check).toHaveLength(1)
+      expect(check[0].accepted).toEqual(1)
+    })
+
+    it('returns member even if it\'s already been accepted', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      await Member.acceptInvitation(row[0].inviteCode, db)
+      const actual = await Member.acceptInvitation(row[0].inviteCode, db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toBeInstanceOf(Member)
+    })
+
+    it('returns undefined if no code can be found', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.acceptInvitation('hello world', db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).not.toBeDefined()
+    })
+  })
+
   describe('canEdit', () => {
     it('returns false if not given a Member object for the subject', async () => {
       expect.assertions(1)

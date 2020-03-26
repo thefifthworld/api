@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt')
-const sqlstring = require('sqlstring')
-const { escape } = sqlstring
+const { escape } = require('sqlstring')
 
 class Member {
   constructor (obj) {
@@ -268,6 +267,27 @@ class Member {
       if (bcrypt.compareSync(password, row[0].password)) return row[0].id
     }
     return false
+  }
+
+  /**
+   * Accepts an invitation.
+   * @param code {string} - The invitation code for the invitation being
+   *   accepted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member>} - A Promise that resolves with the Member
+   *   instance of the account associated with the invitation that has been
+   *   accepted.
+   */
+
+  static async acceptInvitation (code, db) {
+    const check = await db.run(`SELECT inviteTo FROM invitations WHERE inviteCode=${escape(code)};`)
+    if (check.length > 0) {
+      await db.run(`UPDATE invitations SET accepted=1 WHERE inviteCode=${escape(code)};`)
+      const member = await Member.load(check[0].inviteTo, db)
+      return member
+    } else {
+      return undefined
+    }
   }
 
   /**
