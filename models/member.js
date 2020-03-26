@@ -91,6 +91,22 @@ class Member {
   }
 
   /**
+   * Logs a message to the database.
+   * @param type {string} - The type of the message. Valid types are defined by
+   *   the keys of the object returned by `Member.getMessageTypes`
+   * @param msg {string} - The message to log.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves once the message has
+   *   been logged to the database.
+   */
+
+  async logMessage (type, msg, db) {
+    const valid = Member.getMessageTypes()
+    const checked = Object.values(valid).includes(type) ? type : valid.info
+    await db.run(`INSERT INTO messages (member, type, message) VALUES (${this.id}, ${escape(checked)}, ${escape(msg)});`)
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number} - The primary key for the member account to load.
    * @param db {Pool} - The database connection.
@@ -154,6 +170,21 @@ class Member {
 
   static hash (orig) {
     return bcrypt.hashSync(orig, bcrypt.genSaltSync(8), null)
+  }
+
+  /**
+   * Return an object defining the types of messages that a member account can
+   * log to the database.
+   * @returns {{confirm: string, warning: string, error: string, info: string}}
+   */
+
+  static getMessageTypes () {
+    return {
+      confirm: 'confirmation',
+      error: 'error',
+      warning: 'warning',
+      info: 'info'
+    }
   }
 
   /**

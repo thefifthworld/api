@@ -319,6 +319,18 @@ describe('Member', () => {
     })
   })
 
+  describe('logMessage', () => {
+    it('saves a message to the database', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      const check = await db.run(`SELECT id FROM messages WHERE member = ${member.id};`)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(check).toHaveLength(1)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)
