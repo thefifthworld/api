@@ -107,6 +107,30 @@ class Member {
   }
 
   /**
+   * Fetches the member's messages and deletes them.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves with an object
+   *   containing the member's messages. The keys are the types of messages,
+   *   and each is an array of strings, being the messages of that type.
+   */
+
+  async getMessages (db) {
+    const res = {}
+    const messages = await db.run(`SELECT * FROM messages WHERE member=${this.id}`)
+    if (messages.length > 0) {
+      for (const msg of messages) {
+        if (res[msg.type]) {
+          res[msg.type] = [ ...res[msg.type], msg.message ]
+        } else {
+          res[msg.type] = [ msg.message ]
+        }
+        await db.run(`DELETE FROM messages WHERE id=${msg.id};`)
+      }
+    }
+    return res
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number} - The primary key for the member account to load.
    * @param db {Pool} - The database connection.

@@ -331,6 +331,38 @@ describe('Member', () => {
     })
   })
 
+  describe('getMessages', () => {
+    it('fetches the member\'s messages', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      await member.logMessage('error', 'Error message', db)
+      await member.logMessage('warning', 'Warning!', db)
+      await member.logMessage('info', 'Did you know?', db)
+      const res = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(res.confirmation).toHaveLength(1)
+      expect(res.error).toHaveLength(1)
+      expect(res.warning).toHaveLength(1)
+      expect(res.info).toHaveLength(1)
+    })
+
+    it('removes the member\'s messages from the database', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      await member.logMessage('error', 'Error message', db)
+      await member.logMessage('warning', 'Warning!', db)
+      await member.logMessage('info', 'Did you know?', db)
+      await member.getMessages(db)
+      const res = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(res).toEqual({})
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)
