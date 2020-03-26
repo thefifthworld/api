@@ -530,6 +530,53 @@ describe('Member', () => {
     })
   })
 
+  describe('sendInvitations', () => {
+    it('sends invitations to several email addresses', async () => {
+      expect.assertions(6)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load(addrs[0], db)
+      const invited2 = await Member.load(addrs[1], db)
+      const invited3 = await Member.load(addrs[2], db)
+      const check1 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited1.id} AND accepted=0;`)
+      const check2 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited2.id} AND accepted=0;`)
+      const check3 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited3.id} AND accepted=0;`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited1).toBeInstanceOf(Member)
+      expect(invited2).toBeInstanceOf(Member)
+      expect(invited3).toBeInstanceOf(Member)
+      expect(check1).toHaveLength(1)
+      expect(check2).toHaveLength(1)
+      expect(check3).toHaveLength(1)
+    })
+
+    it('doesn\'t exceed the invitations you have left', async () => {
+      expect.assertions(6)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 2
+
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load(addrs[0], db)
+      const invited2 = await Member.load(addrs[1], db)
+      const invited3 = await Member.load(addrs[2], db)
+      const check1 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited1.id} AND accepted=0;`)
+      const check2 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited2.id} AND accepted=0;`)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(invited1).toBeInstanceOf(Member)
+      expect(invited2).toBeInstanceOf(Member)
+      expect(invited3).not.toBeDefined()
+      expect(check1).toHaveLength(1)
+      expect(check2).toHaveLength(1)
+      expect(messages.warning).toHaveLength(1)
+    })
+  })
+
   describe('load', () => {
     it('loads an instance from the database', async () => {
       expect.assertions(4)

@@ -212,6 +212,22 @@ class Member {
   }
 
   /**
+   * Send several invitations at once.
+   * @param addrs {string[]} - An array of email addresses to send invitations
+   *   to.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise<void>} - A Promise that resolves once invitations have
+   *   been processed for each email address in the given array.
+   */
+
+  async sendInvitations (addrs, emailer, db) {
+    for (const addr of addrs) {
+      await this.sendInvitation(addr, emailer, db)
+    }
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {number|string} - Either the primary key or the email address of
    *   the member to load.
