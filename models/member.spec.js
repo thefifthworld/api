@@ -423,6 +423,7 @@ describe('Member', () => {
       await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (2, 3, 'helloworld');`)
       await member.sendReminder(other, emailer, db)
       await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
       expect(actual.to).toEqual('other@thefifthworld.com')
       expect(actual.subject).toBeDefined()
       expect(typeof actual.subject).toEqual('string')

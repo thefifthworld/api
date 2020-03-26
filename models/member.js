@@ -337,21 +337,6 @@ class Member {
   }
 
   /**
-   * Return an object defining the types of messages that a member account can
-   * log to the database.
-   * @returns {{confirm: string, warning: string, error: string, info: string}}
-   */
-
-  static getMessageTypes () {
-    return {
-      confirm: 'confirmation',
-      error: 'error',
-      warning: 'warning',
-      info: 'info'
-    }
-  }
-
-  /**
    * Generates a random code that isn't already in use.
    * @param db {Pool} - The database connection.
    * @returns {Promise<string>} - A Promise that resolves with a random code.
@@ -365,6 +350,21 @@ class Member {
       if (check.length > 0) code = ''
     }
     return code
+  }
+
+  /**
+   * Return an object defining the types of messages that a member account can
+   * log to the database.
+   * @returns {{confirm: string, warning: string, error: string, info: string}}
+   */
+
+  static getMessageTypes () {
+    return {
+      confirm: 'confirmation',
+      error: 'error',
+      warning: 'warning',
+      info: 'info'
+    }
   }
 }
 
