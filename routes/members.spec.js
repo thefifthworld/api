@@ -177,4 +177,20 @@ describe('Members API', () => {
       expect(res.status).toEqual(401)
     })
   })
+
+  describe('POST /invitations/send', () => {
+    it('returns 401 if you\'re not logged in', async () => {
+      const res = await request.post('/invitations/send')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns the emails you tried to invite and your messages', async () => {
+      expect.assertions(3)
+      const invites = { emails: [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com' ], test: true }
+      const res = await request.post('/invitations/send').auth('normal@thefifthworld.com', 'password').send(invites)
+      expect(res.status).toEqual(200)
+      expect(res.body.emails).toEqual(invites.emails)
+      expect(res.body.messages.confirmation).toHaveLength(2)
+    })
+  })
 })

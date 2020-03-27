@@ -1,6 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
 const security = require('../security')
+const sendEmail = require('../emailer')
 const { secure, getLoggedIn } = security
 const db = require('../db')
 const members = express.Router()
@@ -62,6 +63,20 @@ members.patch('/members/:id/reactivate', secure, getLoggedIn, async (req, res) =
 
   if (done && subject) {
     res.status(200).json(subject)
+  } else {
+    res.status(401).json({ err: 'Unauthorized' })
+  }
+})
+
+// POST /invitations/send
+members.post('/invitations/send', secure, getLoggedIn, async (req, res) => {
+  if (req && req.user) {
+    const { emails, test } = req.body
+    const addrs = Array.isArray(emails) ? emails : [ emails ]
+    const emailer = test ? () => {} : sendEmail
+    await req.user.sendInvitations(addrs, emailer, db)
+    const messages = await req.user.getMessages(db)
+    res.status(200).json({ messages, emails: addrs })
   } else {
     res.status(401).json({ err: 'Unauthorized' })
   }
