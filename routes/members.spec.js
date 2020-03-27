@@ -108,6 +108,24 @@ describe('Members API', () => {
     })
   })
 
+  describe('GET /members/:id/messages', () => {
+    it('returns a 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/2/messages')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns your messages', async () => {
+      expect.assertions(2)
+      const msg = 'Test message'
+      const normal = await Member.load(2, db)
+      await normal.logMessage('info', msg, db)
+      const res = await request.get('/members/2/messages').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+      expect(res.body.info).toEqual([ msg ])
+    })
+  })
+
   describe('PATCH /members/:id/deactivate', () => {
     it('returns 200', async () => {
       expect.assertions(1)

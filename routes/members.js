@@ -35,6 +35,12 @@ members.patch('/members/:id', requireLogIn, async (req, res) => {
   }
 })
 
+// GET /members/:id/messages
+members.get('/members/:id/messages', requireLogIn, async (req, res) => {
+  const messages = await req.user.getMessages(db)
+  res.status(200).json(messages)
+})
+
 // PATCH /members/:id/deactivate
 members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
   let done = false
