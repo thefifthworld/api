@@ -3,7 +3,7 @@ const parseTags = require('../parser/tags')
 
 class Page {
   constructor (page = {}, changes = []) {
-    const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'type' ]
+    const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'type', 'depth' ]
     toCopy.forEach(key => {
       this[key] = page[key]
     })
@@ -45,8 +45,9 @@ class Page {
 
     const title = data.title || ''
     const slug = data.slug || Page.slugify(title)
-    const pid = null // TODO: Get the parent
-    const depth = 0 // TODO: Actual depth is parent's depth +1
+    const parent = data.parent ? await Page.get(data.parent, db) : null
+    const pid = parent ? parent.id : 0
+    const depth = parent ? parent.depth + 1 : 0
     const path = data.path || `/${slug}` // TODO: When you get the parent, use it here
     const description = data.description || '' // TODO: Parse a better description
     const image = data.image

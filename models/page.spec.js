@@ -79,6 +79,20 @@ describe('Page', () => {
       await testUtils.resetTables(db, 'changes', 'pages', 'members')
       expect(page.type).toEqual('Test')
     })
+
+    it('can create a child', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is the parent.' }
+      const cdata = { title: 'Child', body: 'This is the child.' }
+      const parent = await Page.create(pdata, editor, 'Initial text', db)
+      cdata.parent = parent.path
+      const child = await Page.create(cdata, editor, 'Initial text', db)
+      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      expect(child.parent).toEqual(parent.id)
+      expect(child.depth).toEqual(1)
+    })
   })
 
   describe('get', () => {
