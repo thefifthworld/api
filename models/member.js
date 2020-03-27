@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt')
-const sqlstring = require('sqlstring')
-const { escape } = sqlstring
+const { escape } = require('sqlstring')
 
 class Member {
   constructor (obj) {
@@ -91,8 +90,165 @@ class Member {
   }
 
   /**
+   * Logs a message to the database.
+   * @param type {string} - The type of the message. Valid types are defined by
+   *   the keys of the object returned by `Member.getMessageTypes`
+   * @param msg {string} - The message to log.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves once the message has
+   *   been logged to the database.
+   */
+
+  async logMessage (type, msg, db) {
+    const valid = Member.getMessageTypes()
+    const checked = Object.values(valid).includes(type) ? type : valid.info
+    await db.run(`INSERT INTO messages (member, type, message) VALUES (${this.id}, ${escape(checked)}, ${escape(msg)});`)
+  }
+
+  /**
+   * Fetches the member's messages and deletes them.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves with an object
+   *   containing the member's messages. The keys are the types of messages,
+   *   and each is an array of strings, being the messages of that type.
+   */
+
+  async getMessages (db) {
+    const res = {}
+    const messages = await db.run(`SELECT * FROM messages WHERE member=${this.id}`)
+    if (messages.length > 0) {
+      for (const msg of messages) {
+        if (res[msg.type]) {
+          res[msg.type] = [ ...res[msg.type], msg.message ]
+        } else {
+          res[msg.type] = [ msg.message ]
+        }
+        await db.run(`DELETE FROM messages WHERE id=${msg.id};`)
+      }
+    }
+    return res
+  }
+
+  /**
+   * Creates a new invitation.
+   * @param addr {string} - The email address to invite.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connectionn.
+   * @returns {Promise} - A promise that resolves when the invitation is sent.
+   */
+
+  async createInvitation (addr, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    const name = this.name ? this.name : this.email ? this.email : `Member #${this.id}`
+    const code = await Member.generateInvitationCode(db)
+    const account = await db.run(`INSERT INTO members (email) VALUES ('${addr}');`)
+    await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (${this.id}, ${account.insertId}, '${code}');`)
+    if (!this.admin) {
+      this.invitations = Math.max(this.invitations - 1, 0)
+      await db.run(`UPDATE members SET invitations=${this.invitations} WHERE id=${this.id}`)
+    }
+    await emailer({
+      to: addr,
+      subject: 'Welcome to the Fifth World',
+      body: `${name} has invited you to join the Fifth World. Click here to begin:\n\nhttps://thefifthworld.com/join/${code}`
+    })
+    await this.logMessage(msgTypes.confirm, `Invitation sent to **${addr}**.`, db)
+  }
+
+  /**
+   * Sends a reminder email to someone who has received an invitation but has
+   * not yet accepted it.
+   * @param member {Member} - The member who has not yet accepted her
+   *   invitation.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves when the reminder email has
+   *   been sent.
+   */
+
+  async sendReminder (member, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    const name = this.name ? this.name : this.email ? this.email : `Fifth World Member #${this.id}`
+    const invitation = await db.run(`SELECT inviteCode FROM invitations WHERE inviteTo=${member.id} AND accepted=0;`)
+    if (invitation.length > 0) {
+      const { inviteCode } = invitation[0]
+      await emailer({
+        to: member.email,
+        subject: 'Your invitation to the Fifth World is waiting',
+        body: `${name} wants to remind you that you’ve been invited to join the Fifth World. Click here to begin:\n\nhttps://thefifthworld.com/join/${inviteCode}`
+      })
+      await this.logMessage(msgTypes.confirm, `**${member.email}** already had an invitation, so we sent a reminder.`, db)
+    }
+  }
+
+  /**
+   * Send an invitation.
+   * @param email {string} - The email address to send an invitation to.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves once the request has been
+   *   evaluated and handled.
+   */
+
+  async sendInvitation (addr, emailer, db) {
+    const msgTypes = Member.getMessageTypes()
+    if (this.invitations > 0) {
+      const existing = await Member.load(addr, db)
+      if (existing) {
+        const hasPendingInvitation = await db.run(`SELECT id FROM invitations WHERE inviteTo=${existing.id} AND accepted=0;`)
+        if (hasPendingInvitation.length > 0) {
+          await this.sendReminder(existing, emailer, db)
+        } else {
+          const name = existing.name ? existing.name : existing.email ? existing.email : `Member #${existing.id}`
+          await this.logMessage(msgTypes.info, `[${name}](/member/${existing.id}) is already a member.`, db)
+        }
+      } else {
+        await this.createInvitation(addr, emailer, db)
+      }
+    } else {
+      await this.logMessage(msgTypes.warning, `Sorry, you’ve run out of invitations. No invitation sent to **${addr}**.`, db)
+    }
+  }
+
+  /**
+   * Send several invitations at once.
+   * @param addrs {string[]} - An array of email addresses to send invitations
+   *   to.
+   * @param emailer {func} - A function that can send an email.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise<void>} - A Promise that resolves once invitations have
+   *   been processed for each email address in the given array.
+   */
+
+  async sendInvitations (addrs, emailer, db) {
+    for (const addr of addrs) {
+      await this.sendInvitation(addr, emailer, db)
+    }
+  }
+
+  /**
+   * Returns an array of the members that this member invited.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Object[]>} - A Promise that resolves with an array of
+   *   the people that the member has invited.
+   */
+
+  async getInvited (db) {
+    const accounts = []
+    const rows = await db.run(`SELECT inviteTo, accepted FROM invitations WHERE inviteFrom=${this.id};`)
+    if (rows) {
+      for (const row of rows) {
+        const member = await Member.load(row.inviteTo, db)
+        accounts.push(Object.assign({}, member, { accepted: Boolean(row.accepted) }))
+      }
+    }
+    return accounts
+  }
+
+  /**
    * Load a Member instance from the database.
-   * @param id {number} - The primary key for the member account to load.
+   * @param id {number|string} - Either the primary key or the email address of
+   *   the member to load.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Member|undefined>} - a Member instance loaded with the
    *   information from the database matching the primary key provided if the
@@ -100,7 +256,10 @@ class Member {
    */
 
   static async load (id, db) {
-    const row = await db.run(`SELECT * FROM members WHERE id=${id};`)
+    const query = typeof id === 'string'
+      ? `SELECT * FROM members WHERE email=${escape(id)};`
+      : `SELECT * FROM members WHERE id=${id};`
+    const row = await db.run(query)
     if (row.length > 0) {
       return new Member(row[0])
     } else {
@@ -130,6 +289,27 @@ class Member {
   }
 
   /**
+   * Accepts an invitation.
+   * @param code {string} - The invitation code for the invitation being
+   *   accepted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member>} - A Promise that resolves with the Member
+   *   instance of the account associated with the invitation that has been
+   *   accepted.
+   */
+
+  static async acceptInvitation (code, db) {
+    const check = await db.run(`SELECT inviteTo FROM invitations WHERE inviteCode=${escape(code)};`)
+    if (check.length > 0) {
+      await db.run(`UPDATE invitations SET accepted=1 WHERE inviteCode=${escape(code)};`)
+      const member = await Member.load(check[0].inviteTo, db)
+      return member
+    } else {
+      return undefined
+    }
+  }
+
+  /**
    * Checks if the `editor` has permission to edit the member account of
    * `subject`.
    * @param subject {Member} - A member account to be edited.
@@ -154,6 +334,37 @@ class Member {
 
   static hash (orig) {
     return bcrypt.hashSync(orig, bcrypt.genSaltSync(8), null)
+  }
+
+  /**
+   * Generates a random code that isn't already in use.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<string>} - A Promise that resolves with a random code.
+   */
+
+  static async generateInvitationCode (db) {
+    let code = ''
+    while (code === '') {
+      code = Math.random().toString(36).replace('0.', '')
+      const check = await db.run(`SELECT id FROM invitations WHERE inviteCode='${code}';`)
+      if (check.length > 0) code = ''
+    }
+    return code
+  }
+
+  /**
+   * Return an object defining the types of messages that a member account can
+   * log to the database.
+   * @returns {{confirm: string, warning: string, error: string, info: string}}
+   */
+
+  static getMessageTypes () {
+    return {
+      confirm: 'confirmation',
+      error: 'error',
+      warning: 'warning',
+      info: 'info'
+    }
   }
 }
 
