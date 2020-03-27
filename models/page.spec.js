@@ -27,4 +27,12 @@ describe('Page', () => {
       expect(actual.changes[1].id).toEqual(1)
     })
   })
+
+  describe('slugify', () => {
+    it('slugifies a string', async () => {
+      const actual = Page.slugify('Csíkszentmihályi’s name includes some diacritics!')
+      const expected = 'csikszentmihalyis-name-includes-some-diacritics'
+      expect(actual).toEqual(expected)
+    })
+  })
 })
