@@ -53,6 +53,12 @@ members.get('/members/:id/messages', requireLogIn, async (req, res) => {
   res.status(200).json(messages)
 })
 
+// GET /members/:id/invited
+members.get('/members/:id/invited', requireLogIn, async (req, res) => {
+  const invited = await req.user.getInvited(db)
+  res.status(200).json(invited.map(member => privatize(member)))
+})
+
 // PATCH /members/:id/deactivate
 members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
   let done = false
