@@ -1,8 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
-const security = require('../security')
+const { requireLogIn } = require('../security')
 const sendEmail = require('../emailer')
-const { secure, getLoggedIn } = security
 const db = require('../db')
 const members = express.Router()
 
@@ -20,7 +19,7 @@ members.get('/members/:id', async (req, res) => {
 })
 
 // PATCH /members/:id
-members.patch('/members/:id', secure, getLoggedIn, async (req, res) => {
+members.patch('/members/:id', requireLogIn, async (req, res) => {
   let subject = false
   let updated = false
   if (req && req.user && req.user instanceof Member) {
@@ -37,7 +36,7 @@ members.patch('/members/:id', secure, getLoggedIn, async (req, res) => {
 })
 
 // PATCH /members/:id/deactivate
-members.patch('/members/:id/deactivate', secure, getLoggedIn, async (req, res) => {
+members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
   let done = false
   let subject = false
   if (req && req.user && req.user.admin) {
@@ -53,7 +52,7 @@ members.patch('/members/:id/deactivate', secure, getLoggedIn, async (req, res) =
 })
 
 // PATCH /members/:id/reactivate
-members.patch('/members/:id/reactivate', secure, getLoggedIn, async (req, res) => {
+members.patch('/members/:id/reactivate', requireLogIn, async (req, res) => {
   let done = false
   let subject = false
   if (req && req.user && req.user.admin) {
@@ -69,7 +68,7 @@ members.patch('/members/:id/reactivate', secure, getLoggedIn, async (req, res) =
 })
 
 // POST /invitations/send
-members.post('/invitations/send', secure, getLoggedIn, async (req, res) => {
+members.post('/invitations/send', requireLogIn, async (req, res) => {
   if (req && req.user) {
     const { emails, test } = req.body
     const addrs = Array.isArray(emails) ? emails : [ emails ]
