@@ -52,6 +52,20 @@ describe('Page', () => {
       expect(pages[0].title).toEqual(data.title)
       expect(changes[0].page).toEqual(pages[0].id)
     })
+
+    it('returns the created page', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.'
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      expect(page).toBeInstanceOf(Page)
+      expect(page.title).toEqual(data.title)
+    })
   })
 
   describe('get', () => {
