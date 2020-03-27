@@ -1,8 +1,14 @@
 /* global describe, it, expect, afterAll */
 
+const db = require('../db')
+const testUtils = require('../test-utils')
+
+const Member = require('./member')
 const Page = require('./page')
 
 describe('Page', () => {
+  afterAll(() => { db.end() })
+
   describe('constructor', () => {
     it('copies specific fields', () => {
       const data = { id: 1, title: 'Test', description: 'test', slug: 'test', path: '/test', parent: null, type: 'Test' }
@@ -25,6 +31,26 @@ describe('Page', () => {
       const actual = new Page(data, changes)
       expect(actual.changes[0].id).toEqual(2)
       expect(actual.changes[1].id).toEqual(1)
+    })
+  })
+
+  describe('create', () => {
+    it('adds a page to the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.'
+      }
+      await Page.create(data, editor, 'Initial text', db)
+      const pages = await db.run(`SELECT id, title FROM pages;`)
+      const changes = await db.run(`SELECT page FROM changes;`)
+      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      expect(pages).toHaveLength(1)
+      expect(changes).toHaveLength(1)
+      expect(pages[0].title).toEqual(data.title)
+      expect(changes[0].page).toEqual(pages[0].id)
     })
   })
 

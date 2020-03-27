@@ -1,3 +1,5 @@
+const { escape } = require('sqlstring')
+
 class Page {
   constructor (page = {}, changes = []) {
     const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'type' ]
@@ -19,6 +21,50 @@ class Page {
         }
       })
     })
+  }
+
+  /**
+   * Creates a new page.
+   * @param data {Object} - An object defining the data for the page. Expected
+   *   properties include `path` (for the page's path), `title` (for the page's
+   *   title), and `body` (for the wikitext of the page's main content).
+   * @param editor {Member} - The member creating the page. This object must at
+   *   least include an `id` property specifying the editor's member ID.
+   * @param msg {string} - A commit message.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves with the newly created Page
+   *   instance once it has been added to the database.
+   */
+
+  static async create (data, editor, msg, db) {
+    const title = data.title || ''
+    const slug = data.slug || Page.slugify(title)
+    const pid = null // TODO: Get the parent
+    const depth = 0 // TODO: Actual depth is parent's depth +1
+    const path = data.path || `/${slug}` // TODO: When you get the parent, use it here
+    const description = data.description || '' // TODO: Parse a better description
+    const image = data.image
+    const header = data.header
+    const permissions = data.permissions || 774
+    const type = data.type || null // TODO: Parse type from body
+    // TODO: Parse location from body
+
+    if (Page.isReservedPath(path)) {
+      throw new Error(`We reserve ${path} for internal use.`)
+    } else if (Page.isReservedTemplate(type, title)) {
+      throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
+    } else {
+      try {
+        const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(slug)}, ${escape(path)}, ${pid}, ${escape(type)}, ${escape(title)}, ${escape(description)}, ${escape(image)}, ${escape(header)}, ${permissions}, ${editor.id}, ${depth});`)
+        const id = res.insertId
+        await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
+        // TODO: setPlace
+        // TODO: Save tags
+        // TODO: Page.get() the page you just created and return it.
+      } catch (err) {
+        throw err
+      }
+    }
   }
 
   /**
