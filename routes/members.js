@@ -5,14 +5,26 @@ const sendEmail = require('../emailer')
 const db = require('../db')
 const members = express.Router()
 
+/**
+ * Strip sensitive information from a Member instance.
+ * @param member {Member} - A Member instance to privatize.
+ * @returns {Object} - A copy of the Member instance with private information
+ *   stripped out.
+ */
+
+const privatize = member => {
+  const cpy = JSON.parse(JSON.stringify(member))
+  const priv = [ 'password', 'email', 'invitations', 'active' ]
+  priv.forEach(key => { delete cpy[key] })
+  return cpy
+}
+
 // GET /members/:id
 members.get('/members/:id', async (req, res) => {
   const id = parseInt(req.params.id)
   const member = id && !isNaN(id) ? await Member.load(id, db) : undefined
   if (member && member.active) {
-    const priv = [ 'password', 'email', 'invitations', 'active' ]
-    priv.forEach(key => { delete member[key] })
-    res.status(200).json(member)
+    res.status(200).json(privatize(member))
   } else {
     res.status(404).json({ err: 'Member not found' })
   }
