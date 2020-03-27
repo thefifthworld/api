@@ -1,32 +1,18 @@
-const basicAuth = require('express-basic-auth')
+const basicAuth = require('basic-auth')
 const Member = require('./models/member')
 const db = require('./db')
 
-const authorizer = async (email, password, cb) => {
-  const id = await Member.authenticate(email, password, db)
-  return cb(null, id !== false)
-}
-
-const unauthorizedResponse = () => {
-  return { err: 'Unauthorized' }
-}
-
-const secure = basicAuth({
-  authorizer,
-  unauthorizedResponse,
-  authorizeAsync: true,
-  challenge: true
-})
-
-const getLoggedIn = async (req, res, next) => {
-  if (req && req.auth && req.auth.user && req.auth.password) {
-    const id = await Member.authenticate(req.auth.user, req.auth.password, db)
+const requireLogIn = async (req, res, next) => {
+  const auth = basicAuth(req)
+  if (auth && auth.name && auth.pass) {
+    const id = await Member.authenticate(auth.name, auth.pass, db)
     if (id) req.user = await Member.load(id, db)
+    next()
+  } else {
+    res.sendStatus(401)
   }
-  next()
 }
 
 module.exports = {
-  secure,
-  getLoggedIn
+  requireLogIn
 }

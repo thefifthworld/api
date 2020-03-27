@@ -1,6 +1,7 @@
 /* global describe, it, expect, afterAll */
 
 const bcrypt = require('bcrypt')
+const { escape } = require('sqlstring')
 const db = require('../db')
 const testUtils = require('../test-utils')
 
@@ -233,19 +234,6 @@ describe('Member', () => {
     })
   })
 
-  describe('load', () => {
-    it('loads an instance from the database', async () => {
-      expect.assertions(4)
-      await testUtils.populateMembers(db)
-      const actual = await Member.load(1, db)
-      await testUtils.resetTables(db, 'members')
-      expect(actual.id).toEqual(1)
-      expect(actual.name).toEqual('Admin')
-      expect(actual.email).toEqual('admin@thefifthworld.com')
-      expect(actual.admin).toEqual(true)
-    })
-  })
-
   describe('deactivate', () => {
     it('lets an admin deactivate a member', async () => {
       expect.assertions(1)
@@ -319,6 +307,342 @@ describe('Member', () => {
     })
   })
 
+  describe('logMessage', () => {
+    it('saves a message to the database', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      const check = await db.run(`SELECT id FROM messages WHERE member = ${member.id};`)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(check).toHaveLength(1)
+    })
+  })
+
+  describe('getMessages', () => {
+    it('fetches the member\'s messages', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      await member.logMessage('error', 'Error message', db)
+      await member.logMessage('warning', 'Warning!', db)
+      await member.logMessage('info', 'Did you know?', db)
+      const res = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(res.confirmation).toHaveLength(1)
+      expect(res.error).toHaveLength(1)
+      expect(res.warning).toHaveLength(1)
+      expect(res.info).toHaveLength(1)
+    })
+
+    it('removes the member\'s messages from the database', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('confirmation', 'Confirmation message', db)
+      await member.logMessage('error', 'Error message', db)
+      await member.logMessage('warning', 'Warning!', db)
+      await member.logMessage('info', 'Did you know?', db)
+      await member.getMessages(db)
+      const res = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'members')
+      expect(res).toEqual({})
+    })
+  })
+
+  describe('createInvitation', () => {
+    it('adds a member to the database', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.createInvitation('invited@thefifthworld.com', () => {}, db)
+      const actual = await Member.load('invited@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toBeInstanceOf(Member)
+    })
+
+    it('adds an invitation', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.createInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      const actual = await db.run(`SELECT id, inviteCode FROM invitations WHERE inviteTo=${invited.id} AND accepted=0;`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toHaveLength(1)
+      expect(typeof actual[0].inviteCode).toEqual('string')
+      expect(actual[0].inviteCode.length).toBeGreaterThanOrEqual(10)
+    })
+
+    it('sends an email', async () => {
+      expect.assertions(5)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.createInvitation('invited@thefifthworld.com', emailer, db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(actual.to).toEqual('invited@thefifthworld.com')
+      expect(actual.subject).toBeDefined()
+      expect(typeof actual.subject).toEqual('string')
+      expect(actual.body).toBeDefined()
+      expect(typeof actual.body).toEqual('string')
+    })
+
+    it('logs a message', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.createInvitation('invited@thefifthworld.com', () => {}, db)
+      const actual = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual.confirmation).toHaveLength(1)
+    })
+  })
+
+  describe('sendReminder', () => {
+    it('sends an email', async () => {
+      expect.assertions(5)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (2, 3, 'helloworld');`)
+      await member.sendReminder(other, emailer, db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(actual.to).toEqual('other@thefifthworld.com')
+      expect(actual.subject).toBeDefined()
+      expect(typeof actual.subject).toEqual('string')
+      expect(actual.body).toBeDefined()
+      expect(typeof actual.body).toEqual('string')
+    })
+
+    it('logs a message', async () => {
+      expect.assertions(1)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      await db.run(`INSERT INTO invitations (inviteFrom, inviteTo, inviteCode) VALUES (2, 3, 'helloworld');`)
+      await member.sendReminder(other, emailer, db)
+      const messages = await member.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.confirmation).toHaveLength(1)
+    })
+  })
+
+  describe('sendInvitation', () => {
+    it('creates a new account', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited).toBeInstanceOf(Member)
+      expect(invited.email).toEqual('invited@thefifthworld.com')
+    })
+
+    it('creates an invitation', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      const actual = await db.run(`SELECT inviteCode FROM invitations WHERE inviteTo=${invited.id} AND inviteFrom=${inviter.id} AND accepted=0;`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toHaveLength(1)
+      expect(typeof actual[0].inviteCode).toEqual('string')
+      expect(actual[0].inviteCode.length).toBeGreaterThanOrEqual(10)
+    })
+
+    it('doesn\'t create an invitation if you\'re out of invitations', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 0
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const invited = await Member.load('invited@thefifthworld.com', db)
+      const check = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id};`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited).not.toBeDefined()
+      expect(check).toHaveLength(0)
+    })
+
+    it('logs a message when you\'re out of invitations', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 0
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.warning).toHaveLength(1)
+    })
+
+    it('sends a reminder if that address already has a pending invitation', async () => {
+      expect.assertions(3)
+      let actual = {}
+      const emailer = async props => {
+        Object.keys(props).forEach(key => {
+          actual[key] = props[key]
+        })
+      }
+
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', emailer, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(messages.confirmation).toHaveLength(2)
+      expect(actual.to).toEqual('invited@thefifthworld.com')
+      expect(actual.subject).toEqual('Your invitation to the Fifth World is waiting')
+    })
+
+    it('tells you if she\'s already a member', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('other@thefifthworld.com', () => {}, db)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(messages.info).toHaveLength(1)
+    })
+  })
+
+  describe('sendInvitations', () => {
+    it('sends invitations to several email addresses', async () => {
+      expect.assertions(6)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load(addrs[0], db)
+      const invited2 = await Member.load(addrs[1], db)
+      const invited3 = await Member.load(addrs[2], db)
+      const check1 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited1.id} AND accepted=0;`)
+      const check2 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited2.id} AND accepted=0;`)
+      const check3 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited3.id} AND accepted=0;`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(invited1).toBeInstanceOf(Member)
+      expect(invited2).toBeInstanceOf(Member)
+      expect(invited3).toBeInstanceOf(Member)
+      expect(check1).toHaveLength(1)
+      expect(check2).toHaveLength(1)
+      expect(check3).toHaveLength(1)
+    })
+
+    it('doesn\'t exceed the invitations you have left', async () => {
+      expect.assertions(6)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      inviter.invitations = 2
+
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load(addrs[0], db)
+      const invited2 = await Member.load(addrs[1], db)
+      const invited3 = await Member.load(addrs[2], db)
+      const check1 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited1.id} AND accepted=0;`)
+      const check2 = await db.run(`SELECT inviteCode FROM invitations WHERE inviteFrom=${inviter.id} AND inviteTo=${invited2.id} AND accepted=0;`)
+      const messages = await inviter.getMessages(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+
+      expect(invited1).toBeInstanceOf(Member)
+      expect(invited2).toBeInstanceOf(Member)
+      expect(invited3).not.toBeDefined()
+      expect(check1).toHaveLength(1)
+      expect(check2).toHaveLength(1)
+      expect(messages.warning).toHaveLength(1)
+    })
+  })
+
+  describe('getInvited', () => {
+    it('returns an array', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(Array.isArray(actual)).toEqual(true)
+    })
+
+    it('returns an array of people you\'ve invited', async () => {
+      expect.assertions(4)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toHaveLength(addrs.length)
+      expect(actual[0].email).toEqual(addrs[0])
+      expect(actual[1].email).toEqual(addrs[1])
+      expect(actual[2].email).toEqual(addrs[2])
+    })
+
+    it('returns the acceptance status of each person', async () => {
+      expect.assertions(3)
+      const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load('invited1@thefifthworld.com', db)
+      await db.run(`UPDATE invitations SET accepted=1 WHERE inviteTo=${invited1.id};`)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual[0].accepted).toEqual(true)
+      expect(actual[1].accepted).toEqual(false)
+      expect(actual[2].accepted).toEqual(false)
+    })
+  })
+
+  describe('load', () => {
+    it('loads an instance from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load(1, db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
+    })
+
+    it('loads by email address', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const actual = await Member.load('admin@thefifthworld.com', db)
+      await testUtils.resetTables(db, 'members')
+      expect(actual.id).toEqual(1)
+      expect(actual.name).toEqual('Admin')
+      expect(actual.email).toEqual('admin@thefifthworld.com')
+      expect(actual.admin).toEqual(true)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)
@@ -342,6 +666,42 @@ describe('Member', () => {
       const actual = await Member.authenticate('normal@thefifthworld.com', 'password', db)
       await testUtils.resetTables(db, 'members')
       expect(actual).toEqual(2)
+    })
+  })
+
+  describe('acceptInvitation', () => {
+    it('accepts the invitation', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      const actual = await Member.acceptInvitation(row[0].inviteCode, db)
+      const check = await db.run(`SELECT accepted FROM invitations WHERE inviteCode=${escape(row[0].inviteCode)};`)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toBeInstanceOf(Member)
+      expect(check).toHaveLength(1)
+      expect(check[0].accepted).toEqual(1)
+    })
+
+    it('returns member even if it\'s already been accepted', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      await Member.acceptInvitation(row[0].inviteCode, db)
+      const actual = await Member.acceptInvitation(row[0].inviteCode, db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).toBeInstanceOf(Member)
+    })
+
+    it('returns undefined if no code can be found', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.acceptInvitation('hello world', db)
+      await testUtils.resetTables(db, 'messages', 'invitations', 'members')
+      expect(actual).not.toBeDefined()
     })
   })
 
@@ -402,6 +762,22 @@ describe('Member', () => {
       const orig = 'password'
       const hash = Member.hash(orig)
       expect(bcrypt.compareSync(orig, hash)).toEqual(true)
+    })
+  })
+
+  describe('generateInvitationCode', () => {
+    it('returns a string that is at least 10 characters long', async () => {
+      expect.assertions(2)
+      const code = await Member.generateInvitationCode(db)
+      expect(typeof code).toEqual('string')
+      expect(code.length).toBeGreaterThanOrEqual(10)
+    })
+
+    it('returns a string that is not in use', async () => {
+      expect.assertions(1)
+      const code = await Member.generateInvitationCode(db)
+      const check = await db.run(`SELECT id FROM invitations WHERE inviteCode = '${code}';`)
+      expect(check).toHaveLength(0)
     })
   })
 })
