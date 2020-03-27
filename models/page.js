@@ -22,6 +22,24 @@ class Page {
   }
 
   /**
+   * If passed the type and title to be used when saving a page, this method
+   * returns `false` if the page is not a template or if it is a template with
+   * a valid name (one that is not the name of an internal template). It will
+   * return `true` if the type argument is equal to the string `'Template'` and
+   * the title argument is one of the reserved, internal template names
+   * (meaning that the page is not valid).
+   * @param type {string} - The type of the page.
+   * @param title {string} - The title of the page.
+   * @returns {boolean} - `true` if the given arguments indicate that the page
+   *   will conflict with reserved, internal templates, or `false` if not.
+   */
+
+  static isReservedTemplate (type, title) {
+    const reservedTemplates = [ 'Template', 'Children', 'Gallery', 'Artists', 'Art', 'Download' ]
+    return type === 'Template' && reservedTemplates.includes(title)
+  }
+
+  /**
    * Returns a "slugified" version of the original string.
    * @param str {string} - A string to "slugify."
    * @returns {string} - The "slugified" version of the original string.

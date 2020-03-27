@@ -28,6 +28,20 @@ describe('Page', () => {
     })
   })
 
+  describe('isReservedTemplate', () => {
+    it('returns false if the type is not a template', () => {
+      expect(Page.isReservedTemplate('NotTemplate', 'Test')).toEqual(false)
+    })
+
+    it('returns false if it\'s a template with a valid name', () => {
+      expect(Page.isReservedTemplate('Template', 'Test')).toEqual(false)
+    })
+
+    it('returns true if it\'s a template with a reserved name', () => {
+      expect(Page.isReservedTemplate('Template', 'Template')).toEqual(true)
+    })
+  })
+
   describe('slugify', () => {
     it('slugifies a string', async () => {
       const actual = Page.slugify('Csíkszentmihályi’s name includes some diacritics!')
