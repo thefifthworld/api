@@ -42,6 +42,16 @@ describe('Page', () => {
     })
   })
 
+  describe('isReservedPath', () => {
+    it('returns false if given a valid path', () => {
+      expect(Page.isReservedPath('/test')).toEqual(false)
+    })
+
+    it('returns true if given a reserved path', () => {
+      expect(Page.isReservedPath('/dashboard')).toEqual(true)
+    })
+  })
+
   describe('slugify', () => {
     it('slugifies a string', async () => {
       const actual = Page.slugify('Csíkszentmihályi’s name includes some diacritics!')

@@ -40,6 +40,39 @@ class Page {
   }
 
   /**
+   * Returns `true` if the path given matches the pattern for any of the
+   * reserved paths (paths that are used internally, and so cannot be used for
+   * any member-created pages). Returns `false` if the path does not match any
+   * of those patterns (meaning it's safe to use).
+   * @param path {string} - The path to check.
+   * @returns {boolean} - A boolean indicating if the path matches a reserved
+   *   pattern (`true`), or if it is safe to use (`false`).
+   */
+
+  static isReservedPath (path) {
+    const reservedPaths = [
+      /^\/login(\/(.*))?$/g,
+      /^\/login-route(\/(.*))?$/g,
+      /^\/logout(\/(.*))?$/g,
+      /^\/connect(\/(.*))?$/g,
+      /^\/disconnect(\/(.*))?$/g,
+      /^\/member(\/(.*))?$/g,
+      /^\/welcome(\/(.*))?$/g,
+      /^\/invite(\/(.*))?$/g,
+      /^\/join(\/(.*))?$/g,
+      /^\/forgot-passphrase(\/(.*))?$/g,
+      /^\/dashboard(\/(.*))?$/g,
+      /^\/new(\/(.*))?$/g,
+      /^\/upload(\/(.*))?$/g,
+      /^\/autocomplete(\/(.*))?$/g,
+      /^\/like(\/(.*))?$/g,
+      /^\/unlike(\/(.*))?$/g,
+      /^\/explore(\/(.*))?$/g
+    ]
+    return reservedPaths.reduce((acc, curr) => acc || (path.match(curr) !== null), false)
+  }
+
+  /**
    * Returns a "slugified" version of the original string.
    * @param str {string} - A string to "slugify."
    * @returns {string} - The "slugified" version of the original string.
