@@ -7,7 +7,7 @@ const members = express.Router()
 
 // GET /members/:id
 members.get('/members/:id', async (req, res) => {
-  const { id } = req.params
+  const id = parseInt(req.params.id)
   const member = id && !isNaN(id) ? await Member.load(id, db) : undefined
   if (member && member.active) {
     const priv = [ 'password', 'email', 'invitations', 'active' ]
@@ -23,7 +23,7 @@ members.patch('/members/:id', secure, getLoggedIn, async (req, res) => {
   let subject = false
   let updated = false
   if (req && req.user && req.user instanceof Member) {
-    subject = await Member.load(req.params.id, db)
+    subject = await Member.load(parseInt(req.params.id), db)
     updated = await subject.update(req.body, req.user, db)
     delete subject.password
   }
@@ -40,7 +40,7 @@ members.patch('/members/:id/deactivate', secure, getLoggedIn, async (req, res) =
   let done = false
   let subject = false
   if (req && req.user && req.user.admin) {
-    subject = await Member.load(req.params.id, db)
+    subject = await Member.load(parseInt(req.params.id), db)
     if (subject) done = await subject.deactivate(req.user, db)
   }
 
@@ -56,7 +56,7 @@ members.patch('/members/:id/reactivate', secure, getLoggedIn, async (req, res) =
   let done = false
   let subject = false
   if (req && req.user && req.user.admin) {
-    subject = await Member.load(req.params.id, db)
+    subject = await Member.load(parseInt(req.params.id), db)
     if (subject) done = await subject.reactivate(req.user, db)
   }
 
