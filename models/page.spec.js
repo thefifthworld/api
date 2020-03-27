@@ -54,6 +54,44 @@ describe('Page', () => {
     })
   })
 
+  describe('get', () => {
+    it('fetches a page from the database', async () => {
+      expect.assertions(7)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.'
+      }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+
+      expect(page).toBeInstanceOf(Page)
+      expect(page.title).toEqual(data.title)
+      expect(page.changes).toHaveLength(1)
+      expect(page.changes[0].editor.id).toEqual(2)
+      expect(page.changes[0].editor.name).toEqual('Normal')
+      expect(page.changes[0].msg).toEqual('Initial text')
+      expect(page.changes[0].content.body).toEqual(data.body)
+    })
+
+    it('can fetch by path', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.'
+      }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get('/test-page', db)
+      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      expect(page).toBeInstanceOf(Page)
+      expect(page.title).toEqual(data.title)
+    })
+  })
+
   describe('isReservedTemplate', () => {
     it('returns false if the type is not a template', () => {
       expect(Page.isReservedTemplate('NotTemplate', 'Test')).toEqual(false)

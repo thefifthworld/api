@@ -68,6 +68,36 @@ class Page {
   }
 
   /**
+   * Returns a page from the database.
+   * @param id {int|string|Page} - The ID or the path of a page, or a Page
+   *   instance (in which case, it simply returns the page). This allows the
+   *   method to take a wide range of identifiers and reliably return the
+   *   correct object.
+   * @param db {Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves with the Page object if it
+   *   can be found, or `undefined` if it could not be found.
+   */
+
+  static async get (id, db) {
+    if (id instanceof Page) return id
+    if (id) {
+      const column = typeof id === 'string' ? 'path' : 'id'
+      const pages = await db.run(`SELECT * FROM pages WHERE ${column}=${escape(id)};`)
+      const page = Array.isArray(pages) && pages.length > 0 ? pages[0] : undefined
+      if (page) {
+        const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${page.id} ORDER BY c.timestamp DESC;`)
+        changes.reverse()
+        // TODO: Fetch location data
+        // TODO: Fetch tags
+        // TODO: Fetch file data
+        // TODO: Fetch likes
+        return new Page(page, changes)
+      }
+    }
+    return undefined
+  }
+
+  /**
    * If passed the type and title to be used when saving a page, this method
    * returns `false` if the page is not a template or if it is a template with
    * a valid name (one that is not the name of an internal template). It will
