@@ -8,6 +8,8 @@ const testUtils = require('../test-utils')
 const Member = require('./member')
 
 describe('Member', () => {
+  afterAll(() => { db.end() })
+
   describe('constructor', () => {
     it('doesn\'t set an ID if none is given', () => {
       const actual = new Member()
@@ -780,8 +782,4 @@ describe('Member', () => {
       expect(check).toHaveLength(0)
     })
   })
-})
-
-afterAll(() => {
-  db.end()
 })
