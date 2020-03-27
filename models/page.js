@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const parseTags = require('../parser/tags')
 
 class Page {
   constructor (page = {}, changes = []) {
@@ -37,6 +38,11 @@ class Page {
    */
 
   static async create (data, editor, msg, db) {
+    const parsedTags = parseTags(data.body).tags
+    const parsedType = Array.isArray(parsedTags.type) && parsedTags.type.length > 0
+      ? parsedTags.type[parsedTags.type.length - 1]
+      : null
+
     const title = data.title || ''
     const slug = data.slug || Page.slugify(title)
     const pid = null // TODO: Get the parent
@@ -46,7 +52,7 @@ class Page {
     const image = data.image
     const header = data.header
     const permissions = data.permissions || 774
-    const type = data.type || null // TODO: Parse type from body
+    const type = data.type || parsedType
     // TODO: Parse location from body
 
     if (Page.isReservedPath(path)) {
