@@ -1,3 +1,5 @@
+const TagHandler = require('../models/taghandler')
+
 /**
  * Parse tags from string
  * @param str {string} - Markdown to parse.
@@ -11,7 +13,7 @@
  */
 
 const parseTags = str => {
-  const tags = {}
+  const tags = new TagHandler()
   let stripped = str
   const matches = str.match(/\[\[(.*?):(.*?)\]\]/gm)
   if (matches) {
@@ -19,12 +21,7 @@ const parseTags = str => {
       stripped = stripped.replace(match, '')
       const pair = match.substr(2, match.length - 4).split(':').map(el => el.trim())
       if (pair && pair.length > 1) {
-        const key = pair[0].toLowerCase()
-        if (tags[key]) {
-          tags[key].push(pair[1])
-        } else {
-          tags[key] = [ pair[1] ]
-        }
+        tags.add(...pair)
       }
     })
   }
