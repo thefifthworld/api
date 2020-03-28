@@ -18,8 +18,8 @@ const populateMembers = async (db) => {
 
 /**
  * Creates a test page.
- * @param Page {Class} - The Page class.
- * @param Member {Class} - The Member class.
+ * @param Page {ClassDeclaration} - The Page class.
+ * @param Member {ClassDeclaration} - The Member class.
  * @param db {Pool} - The database connection.
  * @returns {Promise<Page>} - A Promise that resolves with the test page that
  *   it has created.

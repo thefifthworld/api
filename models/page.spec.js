@@ -111,32 +111,26 @@ describe('Page', () => {
   describe('get', () => {
     it('fetches a page from the database', async () => {
       expect.assertions(7)
-      await testUtils.populateMembers(db)
-      const editor = await Member.load(2, db)
-      const data = { title: 'Test page',  body: 'This is a test.' }
-      await Page.create(data, editor, 'Initial text', db)
+      await testUtils.createTestPage(Page, Member, db)
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
 
       expect(page).toBeInstanceOf(Page)
-      expect(page.title).toEqual(data.title)
+      expect(page.title).toEqual('Test Page')
       expect(page.changes).toHaveLength(1)
       expect(page.changes[0].editor.id).toEqual(2)
       expect(page.changes[0].editor.name).toEqual('Normal')
       expect(page.changes[0].msg).toEqual('Initial text')
-      expect(page.changes[0].content.body).toEqual(data.body)
+      expect(page.changes[0].content.body).toEqual('This is a test page.')
     })
 
     it('can fetch by path', async () => {
       expect.assertions(2)
-      await testUtils.populateMembers(db)
-      const editor = await Member.load(2, db)
-      const data = { title: 'Test page',  body: 'This is a test.' }
-      await Page.create(data, editor, 'Initial text', db)
+      await testUtils.createTestPage(Page, Member, db)
       const page = await Page.get('/test-page', db)
       await testUtils.resetTables(db)
       expect(page).toBeInstanceOf(Page)
-      expect(page.title).toEqual(data.title)
+      expect(page.title).toEqual('Test Page')
     })
 
     it('loads the page\'s tags', async () => {
