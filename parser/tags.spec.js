@@ -1,4 +1,4 @@
-/* global describe, it, expect, afterAll */
+/* global describe, it, expect */
 
 const TagHandler = require('../models/taghandler')
 const parseTags = require('./tags')
