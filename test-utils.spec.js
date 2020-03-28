@@ -1,6 +1,8 @@
 /* global describe, it, expect, afterAll */
 
 const bcrypt = require('bcrypt')
+const Member = require('./models/member')
+const Page = require('./models/page')
 const db = require('./db')
 const utils = require('./test-utils')
 
@@ -39,11 +41,21 @@ describe('populateMembers', () => {
   })
 })
 
+describe('createTestPage', () => {
+  it('returns a test page', async () => {
+    expect.assertions(2)
+    const page = await utils.createTestPage(Page, Member, db)
+    await utils.resetTables(db)
+    expect(page).toBeInstanceOf(Page)
+    expect(page.title).toEqual('Test Page')
+  })
+})
+
 describe('resetTables', () => {
   it('removes all rows', async () => {
     expect.assertions(1)
     await utils.populateMembers(db)
-    await utils.resetTables(db, 'members')
+    await utils.resetTables(db)
     const actual = await db.run('SELECT * FROM members;')
     expect(actual).toHaveLength(0)
   })
@@ -51,24 +63,12 @@ describe('resetTables', () => {
   it('resets the auto-increment', async () => {
     expect.assertions(1)
     await utils.populateMembers(db)
-    await utils.resetTables(db, 'members')
+    await utils.resetTables(db)
     await utils.populateMembers(db)
     const actual = await db.run('SELECT id FROM members WHERE email=\'admin@thefifthworld.com\';')
-    await utils.resetTables(db, 'members')
+    await utils.resetTables(db)
     expect(actual[0].id).toEqual(1)
   })
-
-  it('can clear multiple tables', async () => {
-    expect.assertions(1)
-    await utils.populateMembers(db)
-    await db.run('INSERT INTO authorizations (member, provider, oauth2_id, oauth2_token) VALUES (1, \'test\', \'test\', \'test\');')
-    await utils.resetTables(db, 'authorizations', 'members')
-    const checkMembers = await db.run('SELECT * FROM members')
-    const checkAuth = await db.run('SELECT * FROM authorizations')
-    expect(checkMembers.length + checkAuth.length).toEqual(0)
-  })
 })
 
-afterAll(() => {
-  db.end()
-})
+afterAll(() => { db.end() })
