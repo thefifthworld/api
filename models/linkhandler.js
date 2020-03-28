@@ -27,6 +27,7 @@ class LinkHandler {
     const found = check && check.length > 0
     const link = {
       text: pair[pair.length - 1],
+      title: found ? check[0].title : pair[0],
       path: found ? check[0].path : `/new?title=${encodeURIComponent(pair[0])}`,
       isNew: !found
     }
