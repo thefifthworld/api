@@ -113,13 +113,10 @@ describe('Page', () => {
       expect.assertions(7)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const data = {
-        title: 'Test page',
-        body: 'This is a test.'
-      }
+      const data = { title: 'Test page',  body: 'This is a test.' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get(1, db)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
 
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual(data.title)
@@ -134,15 +131,23 @@ describe('Page', () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const data = {
-        title: 'Test page',
-        body: 'This is a test.'
-      }
+      const data = { title: 'Test page',  body: 'This is a test.' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get('/test-page', db)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual(data.title)
+    })
+
+    it('loads the page\'s tags', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test page',  body: 'This is a test. [[Test:Hello]] [[Test:World]]' }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      expect(page.tags.test).toEqual([ 'Hello', 'World' ])
     })
   })
 
