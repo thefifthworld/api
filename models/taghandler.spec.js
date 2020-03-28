@@ -80,7 +80,7 @@ describe('TagHandler', () => {
       tags.add('num', '3')
       await tags.save(page.id, db)
       const rows = await db.run(`SELECT * FROM tags WHERE page=${page.id};`)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(rows).toHaveLength(3)
       expect(rows[0].tag).toEqual('test')
       expect(rows[0].value).toEqual('hello')
@@ -101,7 +101,7 @@ describe('TagHandler', () => {
       tags.add('location', 'here')
       await tags.save(page.id, db)
       const rows = await db.run(`SELECT * FROM tags WHERE page=${page.id};`)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(rows).toHaveLength(0)
     })
 
@@ -123,7 +123,7 @@ describe('TagHandler', () => {
       await after.save(page.id, db)
 
       const rows = await db.run(`SELECT * FROM tags WHERE page=${page.id};`)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(rows).toHaveLength(1)
       expect(rows[0].tag).toEqual('test')
       expect(rows[0].value).toEqual('hello')
@@ -138,7 +138,7 @@ describe('TagHandler', () => {
       const data = { title: 'Test', body: 'This is a test. [[Test:Hello]] [[Test:World]]' }
       const page = await Page.create(data, editor, 'Initial text', db)
       const actual = await TagHandler.load(page.id, db)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(actual).toBeInstanceOf(TagHandler)
       expect(actual.get('test')).toEqual([ 'Hello', 'World' ])
     })

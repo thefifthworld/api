@@ -46,7 +46,7 @@ describe('Page', () => {
       await Page.create(data, editor, 'Initial text', db)
       const pages = await db.run(`SELECT id, title FROM pages;`)
       const changes = await db.run(`SELECT page FROM changes;`)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(pages).toHaveLength(1)
       expect(changes).toHaveLength(1)
       expect(pages[0].title).toEqual(data.title)
@@ -62,7 +62,7 @@ describe('Page', () => {
         body: 'This is a test.'
       }
       const page = await Page.create(data, editor, 'Initial text', db)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual(data.title)
     })
@@ -76,7 +76,7 @@ describe('Page', () => {
         body: 'This is a test. [[Type:Nope]] [[Type:Test]]'
       }
       const page = await Page.create(data, editor, 'Initial text', db)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(page.type).toEqual('Test')
     })
 
@@ -89,7 +89,7 @@ describe('Page', () => {
       const parent = await Page.create(pdata, editor, 'Initial text', db)
       cdata.parent = parent.path
       const child = await Page.create(cdata, editor, 'Initial text', db)
-      await testUtils.resetTables(db, 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(child.parent).toEqual(parent.id)
       expect(child.depth).toEqual(1)
     })
@@ -101,7 +101,7 @@ describe('Page', () => {
       const data = { title: 'Test Page', body: 'This is a test. [[Tag:Test]]' }
       const page = await Page.create(data, editor, 'Initial text', db)
       const rows = await db.run(`SELECT * FROM tags WHERE page=${page.id};`)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(rows).toHaveLength(1)
       expect(rows[0].tag).toEqual('tag')
       expect(rows[0].value).toEqual('Test')
@@ -116,7 +116,7 @@ describe('Page', () => {
       const data = { title: 'Test page',  body: 'This is a test.' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get(1, db)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
 
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual(data.title)
@@ -134,7 +134,7 @@ describe('Page', () => {
       const data = { title: 'Test page',  body: 'This is a test.' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get('/test-page', db)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual(data.title)
     })
@@ -146,7 +146,7 @@ describe('Page', () => {
       const data = { title: 'Test page',  body: 'This is a test. [[Test:Hello]] [[Test:World]]' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get(1, db)
-      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      await testUtils.resetTables(db)
       expect(page.tags.test).toEqual([ 'Hello', 'World' ])
     })
   })

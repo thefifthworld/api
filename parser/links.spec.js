@@ -16,7 +16,7 @@ describe('parseLinks', () => {
     const data = { title: 'Test', body: 'This is a test.' }
     await Page.create(data, editor, 'Initial text', db)
     const actual = await parseLinks('Here\'s a link: [[Test | hello]]', db)
-    await testUtils.resetTables(db, 'links', 'requested', 'changes', 'pages', 'members')
+    await testUtils.resetTables(db)
     expect(actual.str).toEqual('Here\'s a link: <a href="/test" title="Test">hello</a>')
     expect(actual.links).toEqual([ { text: 'hello', path: '/test', isNew: false } ])
   })

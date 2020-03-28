@@ -18,7 +18,7 @@ describe('Members API', () => {
   })
 
   afterEach(async done => {
-    await testUtils.resetTables(db, 'invitations', 'messages', 'members')
+    await testUtils.resetTables(db)
     done()
   })
 
