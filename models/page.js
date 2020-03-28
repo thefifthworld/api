@@ -63,7 +63,7 @@ class Page {
         const id = res.insertId
         await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
         // TODO: setPlace
-        if (handler) handler.save(id, db)
+        if (handler) await handler.save(id, db)
         return Page.get(id, db)
       } catch (err) {
         throw err

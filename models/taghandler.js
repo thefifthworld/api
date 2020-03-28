@@ -59,6 +59,26 @@ class TagHandler {
       }
     }
   }
+
+  /**
+   * Load tags for a given page from the database into a new TagHandler.
+   * @param id {number} - The primary key of a page in the database.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<TagHandler>} - A Promise that resolves with a new
+   *   TagHandler instance loaded with the page's tags from the database.
+   */
+
+  static async load (id, db) {
+    const handler = new TagHandler()
+    const rows = await db.run(`SELECT tag, value FROM tags WHERE page=${escape(id)};`)
+    if (rows) {
+      rows.forEach(row => {
+        const { tag, value } = row
+        handler.add(tag, value)
+      })
+    }
+    return handler
+  }
 }
 
 module.exports = TagHandler

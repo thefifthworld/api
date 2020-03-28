@@ -129,4 +129,18 @@ describe('TagHandler', () => {
       expect(rows[0].value).toEqual('hello')
     })
   })
+
+  describe('load', () => {
+    it('loads tags from the database', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test', body: 'This is a test. [[Test:Hello]] [[Test:World]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const actual = await TagHandler.load(page.id, db)
+      await testUtils.resetTables(db, 'tags', 'changes', 'pages', 'members')
+      expect(actual).toBeInstanceOf(TagHandler)
+      expect(actual.get('test')).toEqual([ 'Hello', 'World' ])
+    })
+  })
 })
