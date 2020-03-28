@@ -21,6 +21,26 @@ class TagHandler {
   }
 
   /**
+   * Return the value(s) associated with this tag.
+   * @param tag {string} - The tag value to fetch.
+   * @param justLast {boolean} - Optional. If set to `true`, just returns the
+   *   last value associated with the tag (Default: `false`).
+   * @returns {undefined|string|string[]} - The last value associated with the
+   *   tag if it can be found, or `undefined` if it could not be found.
+   */
+
+  get (tag, justLast = false) {
+    const arr = this.tags[tag]
+    if (justLast && arr && Array.isArray(arr) && arr.length > 0) {
+      return arr[arr.length - 1]
+    } else if (!justLast && arr) {
+      return arr
+    } else {
+      return undefined
+    }
+  }
+
+  /**
    * Save tags to the database.
    * @param id {number} - The primary key of the page to associate these tags
    *   with in the database.

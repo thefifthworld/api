@@ -44,6 +44,29 @@ describe('TagHandler', () => {
     })
   })
 
+  describe('get', () => {
+    it('returns the values associated with a tag', () => {
+      const actual = new TagHandler()
+      actual.add('test', 'hello')
+      actual.add('test', 'world')
+      expect(actual.get('test')).toEqual([ 'hello', 'world' ])
+    })
+
+    it('can return just the last value', () => {
+      const actual = new TagHandler()
+      actual.add('test', 'hello')
+      actual.add('test', 'world')
+      expect(actual.get('test', true)).toEqual('world')
+    })
+
+    it('returns undefined if the tag doesn\'t exist', () => {
+      const actual = new TagHandler()
+      actual.add('test', 'hello')
+      actual.add('test', 'world')
+      expect(actual.get('nope')).toEqual(undefined)
+    })
+  })
+
   describe('save', () => {
     it('saves tags to the database', async () => {
       expect.assertions(7)
