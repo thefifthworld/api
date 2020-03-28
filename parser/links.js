@@ -1,4 +1,4 @@
-const { escape } = require('sqlstring')
+const LinkHandler = require('../models/linkhandler')
 
 /**
  * Parse links.
@@ -15,24 +15,16 @@ const { escape } = require('sqlstring')
  */
 
 const parseLinks = async (str, db) => {
-  const res = { str, links: [] }
+  const res = { str, linkHandler: new LinkHandler() }
   const matches = str.match(/\[\[(.*)\]\]/gm)
   if (matches) {
     for (const match of matches) {
-      const pair = match.substr(2, match.length - 4).split('|').map(el => el.trim())
-      const check = await db.run(`SELECT title, path FROM pages WHERE title=${escape(pair[0])} OR path=${escape(pair[0])};`)
-      const found = check && check.length > 0
-      const link = {
-        text: pair[pair.length - 1],
-        path: found ? check[0].path : `/new?title=${encodeURIComponent(pair[0])}`,
-        isNew: !found
-      }
+      const link = await res.linkHandler.add(match, db)
       let a = `<a href="${link.path}"`
-      if (found && check[0].title !== link.text) a += ` title="${check[0].title}"`
-      if (!found) a += ` class="isNew"`
+      if (!link.isNew && link.title !== link.text) a += ` title="${link.title}"`
+      if (link.isNew) a += ` class="isNew"`
       a += `>${link.text}</a>`
       res.str = res.str.replace(match, a)
-      res.links.push(link)
     }
   }
   return res
