@@ -77,6 +77,18 @@ CREATE TABLE `likes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE `links` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `src` int(10) unsigned NOT NULL DEFAULT '0',
+  `destKey` int(10) unsigned NOT NULL DEFAULT '0',
+  `destTable` enum('pages','requested') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'pages',
+  PRIMARY KEY (`id`),
+  KEY `linkSrc` (`src`),
+  KEY `linkDest` (`destKey`),
+  CONSTRAINT `linkSrc` FOREIGN KEY (`src`) REFERENCES `pages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE `members` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
@@ -136,6 +148,14 @@ CREATE TABLE `places` (
   SPATIAL KEY `location` (`location`),
   KEY `placePage` (`page`),
   CONSTRAINT `placePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `requested` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `path` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
