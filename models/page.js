@@ -39,7 +39,7 @@ class Page {
    */
 
   static async create (data, editor, msg, db) {
-    const handler = parseTags(data.body).tags
+    const tagHandler = parseTags(data.body).tags
 
     const title = data.title || ''
     const slug = data.slug || Page.slugify(title)
@@ -51,7 +51,7 @@ class Page {
     const image = data.image
     const header = data.header
     const permissions = data.permissions || 774
-    const type = data.type || handler.get('type', true)
+    const type = data.type || tagHandler.get('type', true)
     // TODO: Parse location from body
 
     if (Page.isReservedPath(path)) {
@@ -64,7 +64,7 @@ class Page {
         const id = res.insertId
         await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
         // TODO: setPlace
-        if (handler) await handler.save(id, db)
+        if (tagHandler) await tagHandler.save(id, db)
         return Page.get(id, db)
       } catch (err) {
         throw err
