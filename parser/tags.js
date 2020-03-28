@@ -13,7 +13,7 @@ const TagHandler = require('../models/taghandler')
  */
 
 const parseTags = str => {
-  const tags = new TagHandler()
+  const tagHandler = new TagHandler()
   let stripped = str
   const matches = str.match(/\[\[(.*?):(.*?)\]\]/gm)
   if (matches) {
@@ -21,12 +21,12 @@ const parseTags = str => {
       stripped = stripped.replace(match, '')
       const pair = match.substr(2, match.length - 4).split(':').map(el => el.trim())
       if (pair && pair.length > 1) {
-        tags.add(...pair)
+        tagHandler.add(...pair)
       }
     })
   }
   stripped = stripped.replace(/ +/gm, ' ')
-  return { stripped, tags }
+  return { stripped, tagHandler }
 }
 
 module.exports = parseTags

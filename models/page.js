@@ -39,7 +39,7 @@ class Page {
    */
 
   static async create (data, editor, msg, db) {
-    const tagHandler = parseTags(data.body).tags
+    const tagHandler = parseTags(data.body).tagHandler
 
     const title = data.title || ''
     const slug = data.slug || Page.slugify(title)

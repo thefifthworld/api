@@ -54,10 +54,10 @@ const restoreBlocks = (str, blocks) => {
 const parser = async (str) => {
   const md = new Remarkable()
   const { blocked, blocks } = saveBlocks(str)
-  const { stripped, tags } = parseTags(blocked)
+  const { stripped, tagHandler } = parseTags(blocked)
   let html = md.render(stripped)
   html = restoreBlocks(html, blocks)
-  return { html, tags }
+  return { html, tagHandler }
 }
 
 module.exports = parser
