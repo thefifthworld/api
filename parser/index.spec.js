@@ -16,4 +16,9 @@ describe('Parser', () => {
     expect(actual.html).toEqual('<p>This is text outside of tags.</p>\n<p>And here is a second paragraph.</p>\n')
     expect(actual.tags.tags).toEqual({ hello: [ 'World', 'Test' ], tag: [ '1' ], test: [ 'true' ] })
   })
+
+  it('doesn\'t parse tags that are inside code blocks', async () => {
+    const actual = await parser('```\n[[Test:Hello]]\n```\n\nThis is outside of the code block.')
+    expect(actual.html).toEqual('<pre><code>\n[[Test:Hello]]\n</code></pre>\n<p>This is outside of the code block.</p>\n')
+  })
 })
