@@ -1,5 +1,6 @@
 const { Remarkable } = require('remarkable')
 const parseTags = require('./tags')
+const parseLinks = require('./links')
 
 /**
  * Remove code blocks from the string, so that we don't parse tags, links, or
@@ -43,6 +44,7 @@ const restoreBlocks = (str, blocks) => {
 /**
  * Parse markdown.
  * @param str {string} - The markdown to parse.
+ * @param db {Pool} - The database connection.
  * @returns {Promise<Object>} - An object detailing the results of the parsing.
  *   It has the following properties:
  *     - `html`: The HTML rendered from the markdown.
@@ -51,13 +53,14 @@ const restoreBlocks = (str, blocks) => {
  *         array of all the values assigned to that tag throughout the string.
  */
 
-const parser = async (str) => {
+const parser = async (str, db) => {
   const md = new Remarkable()
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = parseTags(blocked)
   let html = md.render(stripped)
-  html = restoreBlocks(html, blocks)
-  return { html, tagHandler }
+  const { str:linked, linkHandler } = await parseLinks(html, db)
+  html = restoreBlocks(linked, blocks)
+  return { html, tagHandler, linkHandler }
 }
 
 module.exports = parser
