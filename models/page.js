@@ -93,8 +93,8 @@ class Page {
         const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${page.id} ORDER BY c.timestamp DESC;`)
         changes.reverse()
         // TODO: Fetch location data
-        const handler = await TagHandler.load(page.id, db)
-        page.tags = handler.tags
+        const tagHandler = await TagHandler.load(page.id, db)
+        page.tags = tagHandler.tags
         // TODO: Fetch file data
         // TODO: Fetch likes
         return new Page(page, changes)
