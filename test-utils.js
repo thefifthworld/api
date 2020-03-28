@@ -42,7 +42,7 @@ const createTestPage = async (Page, Member, db) => {
 
 const resetTables = async (db) => {
   const tables = ['authorizations', 'changes', 'files', 'invitations', 'likes', 'links', 'messages',
-    'places', 'requested', 'responses', 'sessions', 'tags', 'pages', 'members']
+    'places', 'responses', 'sessions', 'tags', 'pages', 'members']
   for (const table of tables) {
     await db.run(`DELETE FROM ${table};`)
     await db.run(`ALTER TABLE ${table} AUTO_INCREMENT=1;`)
