@@ -56,6 +56,33 @@ class LinkHandler {
       return Promise.all(promises)
     }
   }
+
+  /**
+   * Return information about the links saved in the database for a page.
+   * @param page {Page} - The page to find links from.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise} - A Promise that resolves with an array of objects.
+   *   Each object contains information about one of the links from the given
+   *   page saved to the database, namely the `title`, `id`, and `path` of the
+   *   page it links to, and `isNew`, a boolean that equals `true` if the page
+   *   does not yet exist.
+   */
+
+  static async load (page, db) {
+    if (page && page.constructor && page.constructor.name === 'Page' && page.id && !isNaN(page.id)) {
+      const rows = await db.run(`SELECT l.dest, l.title, p.path FROM links l LEFT JOIN pages p ON p.id = l.dest WHERE l.src=${page.id};`)
+      return rows.map(row => {
+        const { title, dest, path } = row
+        const isNew = dest === null
+        return {
+          title,
+          id: isNew ? null : dest,
+          path: isNew ? null : path,
+          isNew
+        }
+      })
+    }
+  }
 }
 
 module.exports = LinkHandler

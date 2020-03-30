@@ -100,4 +100,32 @@ describe('LinkHandler', () => {
       expect(actual).toHaveLength(0)
     })
   })
+
+  describe('load', () => {
+    it('returns links from the database', async () => {
+      expect.assertions(9)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const ds = { title: 'Source Page', body: 'This is my source page.' }
+      const dd = { title: 'Destination Page', body: 'This is my destination page.' }
+      const src = await Page.create(ds, editor, 'Initial text', db)
+      const dest = await Page.create(dd, editor, 'Initial text', db)
+      const handler = new LinkHandler()
+      await handler.add('[[Destination Page]]', db)
+      await handler.add('[[New Page]]', db)
+      await handler.save(src, db)
+      const actual = await LinkHandler.load(src, db)
+      await testUtils.resetTables(db)
+
+      expect(actual).toHaveLength(2)
+      expect(actual[0].id).toEqual(dest.id)
+      expect(actual[0].title).toEqual('Destination Page')
+      expect(actual[0].path).toEqual('/destination-page')
+      expect(actual[0].isNew).toEqual(false)
+      expect(actual[1].id).toEqual(null)
+      expect(actual[1].title).toEqual('New Page')
+      expect(actual[1].path).toEqual(null)
+      expect(actual[1].isNew).toEqual(true)
+    })
+  })
 })
