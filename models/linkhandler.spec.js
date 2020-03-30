@@ -99,6 +99,23 @@ describe('LinkHandler', () => {
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(0)
     })
+
+    it('overwrites previous saves', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new LinkHandler()
+      await handler.add('[[Test Page]]', db)
+      await handler.add('[[New Page]]', db)
+      await handler.save(page, db)
+      const before = await db.run(`SELECT * FROM links;`)
+      handler.links = []
+      await handler.add('[[Test Page]]', db)
+      await handler.save(page, db)
+      const after = await db.run(`SELECT * FROM links;`)
+      await testUtils.resetTables(db)
+      expect(before).toHaveLength(2)
+      expect(after).toHaveLength(1)
+    })
   })
 
   describe('load', () => {
