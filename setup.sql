@@ -107,11 +107,11 @@ CREATE TABLE `likes` (
 CREATE TABLE `links` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `src` int(10) unsigned NOT NULL DEFAULT '0',
-  `destKey` int(10) unsigned NOT NULL DEFAULT '0',
-  `destTable` enum('pages','requested') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'pages',
+  `dest` int(10) unsigned DEFAULT '0',
+  `title` varchar(128) DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `linkSrc` (`src`),
-  KEY `linkDest` (`destKey`),
+  KEY `linkDest` (`dest`),
   CONSTRAINT `linkSrc` FOREIGN KEY (`src`) REFERENCES `pages` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
