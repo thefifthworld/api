@@ -83,6 +83,32 @@ class LinkHandler {
       })
     }
   }
+
+  /**
+   * Load a list of requested links and which pages are requesting them.
+   * @param db {Pool} - The database connection.
+   * @param sortFn {function} - Optional. A function to use to sort the array
+   *   of links. By default, it is sorted by the number of links descending.
+   * @returns {Promise<[]>} - A Promise that resolves with an array of objects
+   *   representing all of the requested links saved to the database.
+   */
+
+  static async loadRequested (db, sortFn = (a, b) => b.links.length - a.links.length) {
+    const links = []
+    const requests = await db.run('SELECT DISTINCT title FROM links;')
+    if (requests) {
+      for (const request of requests) {
+        const { title } = request
+        const rows = await db.run(`SELECT p.id, p.title, p.path FROM pages p, links l WHERE l.title = ${escape(title)} AND l.dest IS NULL AND p.id=l.src;`)
+        const link = {
+          title,
+          links: rows
+        }
+        links.push(link)
+      }
+    }
+    return links.sort(sortFn)
+  }
 }
 
 module.exports = LinkHandler

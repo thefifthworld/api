@@ -145,4 +145,34 @@ describe('LinkHandler', () => {
       expect(actual[1].isNew).toEqual(true)
     })
   })
+
+  describe('loadRequested', () => {
+    it('loads requested links', async () => {
+      expect.assertions(8)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const d1 = { title: 'Page One', body: 'This is a page.' }
+      const d2 = { title: 'Page Two', body: 'This is another page.' }
+      const p1 = await Page.create(d1, editor, 'Initial text', db)
+      const p2 = await Page.create(d2, editor, 'Initial text', db)
+      const handler = new LinkHandler()
+      await handler.add('[[Page Four]]', db)
+      await handler.add('[[Page Five]]', db)
+      await handler.save(p1, db)
+      handler.links = []
+      await handler.add('[[Page Five]]', db)
+      await handler.save(p2, db)
+      const actual = await LinkHandler.loadRequested(db)
+      await testUtils.resetTables(db)
+
+      expect(actual).toHaveLength(2)
+      expect(actual[0].links).toHaveLength(2)
+      expect(actual[0].title).toEqual('Page Five')
+      expect(actual[0].links[0].id).toEqual(p1.id)
+      expect(actual[0].links[1].id).toEqual(p2.id)
+      expect(actual[1].links).toHaveLength(1)
+      expect(actual[1].title).toEqual('Page Four')
+      expect(actual[1].links[0].id).toEqual(p1.id)
+    })
+  })
 })
