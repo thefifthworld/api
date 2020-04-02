@@ -38,20 +38,21 @@ class LinkHandler {
 
   /**
    * Saves links to the database.
-   * @param page {Page} - The page that contains these links.
+   * @param id {number} - The primary key of the page that contains these
+   *   links.
    * @param db {Pool} - The database connection.
    * @returns {Promise} - A Promise that resolves once the links have
    *   been saved to the database.
    */
 
-  async save (page, db) {
-    if (page && page.constructor && page.constructor.name === 'Page' && page.id && !isNaN(page.id)) {
-      await db.run(`DELETE FROM links WHERE src=${page.id};`)
+  async save (id, db) {
+    if (id && !isNaN(id)) {
+      await db.run(`DELETE FROM links WHERE src=${id};`)
       const promises = this.links.map(link => {
-        const { isNew, title, id } = link
+        const { isNew, title } = link
         return isNew
-          ? db.run(`INSERT INTO links (src, dest, title) VALUES (${page.id}, NULL, ${escape(title)});`)
-          : db.run(`INSERT INTO links (src, dest, title) VALUES (${page.id}, ${id}, ${escape(title)});`)
+          ? db.run(`INSERT INTO links (src, dest, title) VALUES (${id}, NULL, ${escape(title)});`)
+          : db.run(`INSERT INTO links (src, dest, title) VALUES (${id}, ${link.id}, ${escape(title)});`)
       })
       return Promise.all(promises)
     }

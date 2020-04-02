@@ -42,7 +42,7 @@ describe('LinkHandler', () => {
       const page = await testUtils.createTestPage(Page, Member, db)
       const handler = new LinkHandler()
       await handler.add('[[Test Page]]', db)
-      await handler.save(page, db)
+      await handler.save(page.id, db)
       const actual = await db.run(`SELECT * FROM links;`)
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(1)
@@ -56,7 +56,7 @@ describe('LinkHandler', () => {
       const page = await testUtils.createTestPage(Page, Member, db)
       const handler = new LinkHandler()
       await handler.add('[[New Page]]', db)
-      await handler.save(page, db)
+      await handler.save(page.id, db)
       const actual = await db.run(`SELECT * FROM links;`)
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(1)
@@ -65,30 +65,7 @@ describe('LinkHandler', () => {
       expect(actual[0].title).toEqual('New Page')
     })
 
-    it('does nothing if not given a page', async () => {
-      expect.assertions(1)
-      await testUtils.createTestPage(Page, Member, db)
-      const handler = new LinkHandler()
-      await handler.add('[[Test Page]]', db)
-      await handler.save(1, db)
-      const actual = await db.run(`SELECT * FROM links;`)
-      await testUtils.resetTables(db)
-      expect(actual).toHaveLength(0)
-    })
-
-    it('does nothing if given a page that has no ID', async () => {
-      expect.assertions(1)
-      const page = await testUtils.createTestPage(Page, Member, db)
-      page.id = null
-      const handler = new LinkHandler()
-      await handler.add('[[Test Page]]', db)
-      await handler.save(page, db)
-      const actual = await db.run(`SELECT * FROM links;`)
-      await testUtils.resetTables(db)
-      expect(actual).toHaveLength(0)
-    })
-
-    it('does nothing if given a page that has an invalid ID', async () => {
+    it('does nothing if not given a number', async () => {
       expect.assertions(1)
       const page = await testUtils.createTestPage(Page, Member, db)
       page.id = 'nope'
@@ -106,11 +83,11 @@ describe('LinkHandler', () => {
       const handler = new LinkHandler()
       await handler.add('[[Test Page]]', db)
       await handler.add('[[New Page]]', db)
-      await handler.save(page, db)
+      await handler.save(page.id, db)
       const before = await db.run(`SELECT * FROM links;`)
       handler.links = []
       await handler.add('[[Test Page]]', db)
-      await handler.save(page, db)
+      await handler.save(page.id, db)
       const after = await db.run(`SELECT * FROM links;`)
       await testUtils.resetTables(db)
       expect(before).toHaveLength(2)
@@ -130,10 +107,10 @@ describe('LinkHandler', () => {
       const handler = new LinkHandler()
       await handler.add('[[Page Four]]', db)
       await handler.add('[[Page Five]]', db)
-      await handler.save(p1, db)
+      await handler.save(p1.id, db)
       handler.links = []
       await handler.add('[[Page Five]]', db)
-      await handler.save(p2, db)
+      await handler.save(p2.id, db)
       const actual = await LinkHandler.loadRequested(db)
       await testUtils.resetTables(db)
 
