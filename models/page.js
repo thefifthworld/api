@@ -1,6 +1,7 @@
 const { escape } = require('sqlstring')
 const TagHandler = require('./taghandler')
 const parseTags = require('../parser/tags')
+const parseLinks = require('../parser/links')
 
 class Page {
   constructor (page = {}, changes = []) {
@@ -40,6 +41,8 @@ class Page {
 
   static async create (data, editor, msg, db) {
     const tagHandler = parseTags(data.body).tagHandler
+    const links = await parseLinks(data.body, db)
+    const { linkHandler } = links
 
     const title = data.title || ''
     const slug = data.slug || Page.slugify(title)
@@ -65,6 +68,7 @@ class Page {
         await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
         // TODO: setPlace
         if (tagHandler) await tagHandler.save(id, db)
+        if (linkHandler) await linkHandler.save(id, db)
         return Page.get(id, db)
       } catch (err) {
         throw err

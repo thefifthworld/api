@@ -106,6 +106,19 @@ describe('Page', () => {
       expect(rows[0].tag).toEqual('tag')
       expect(rows[0].value).toEqual('Test')
     })
+
+    it('saves links', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: 'This is a test. [[Test Link]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const rows = await db.run(`SELECT * FROM links WHERE src=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(rows).toHaveLength(1)
+      expect(rows[0].dest).toEqual(null)
+      expect(rows[0].title).toEqual('Test Link')
+    })
   })
 
   describe('get', () => {
