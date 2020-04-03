@@ -104,4 +104,22 @@ describe('LocationHandler', () => {
       expect(handler.lon).toBeCloseTo(-80.000, 3)
     })
   })
+
+  describe('setCoords', () => {
+    it('can accept an object', () => {
+      const coords = { lat: 40.441823, lon: -80.012778 }
+      const handler = new LocationHandler()
+      handler.setCoords(coords)
+      expect(handler.lat).toBeCloseTo(40.441823, 3)
+      expect(handler.lon).toBeCloseTo(-80.012778, 3)
+    })
+
+    it('can accept an array', () => {
+      const coords = [ 40.441823, -80.012778 ]
+      const handler = new LocationHandler()
+      handler.setCoords(coords)
+      expect(handler.lat).toBeCloseTo(40.441823, 3)
+      expect(handler.lon).toBeCloseTo(-80.012778, 3)
+    })
+  })
 })
