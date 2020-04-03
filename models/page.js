@@ -1,5 +1,6 @@
 const { escape } = require('sqlstring')
 const TagHandler = require('./taghandler')
+const LocationHandler = require('./locationHandler')
 const parseTags = require('../parser/tags')
 const parseLinks = require('../parser/links')
 
@@ -41,6 +42,9 @@ class Page {
 
   static async create (data, editor, msg, db) {
     const tagHandler = parseTags(data.body).tagHandler
+    const locationHandler = tagHandler && Object.keys(tagHandler.tags).includes('location')
+      ? new LocationHandler(tagHandler.get('location', true).split(',').map(el => el.trim()))
+      : undefined
     const links = await parseLinks(data.body, db)
     const { linkHandler } = links
 
@@ -54,8 +58,7 @@ class Page {
     const image = data.image
     const header = data.header
     const permissions = data.permissions || 774
-    const type = data.type || tagHandler.get('type', true)
-    // TODO: Parse location from body
+    const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
 
     if (Page.isReservedPath(path)) {
       throw new Error(`We reserve ${path} for internal use.`)
@@ -66,7 +69,7 @@ class Page {
         const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(slug)}, ${escape(path)}, ${pid}, ${escape(type)}, ${escape(title)}, ${escape(description)}, ${escape(image)}, ${escape(header)}, ${permissions}, ${editor.id}, ${depth});`)
         const id = res.insertId
         await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
-        // TODO: setPlace
+        if (locationHandler) await locationHandler.save(id, db)
         if (tagHandler) await tagHandler.save(id, db)
         if (linkHandler) await linkHandler.save(id, db)
         return Page.get(id, db)

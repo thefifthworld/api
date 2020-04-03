@@ -94,6 +94,27 @@ describe('Page', () => {
       expect(child.depth).toEqual(1)
     })
 
+    it('saves the location', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Pittsburgh', body: '[[Location: 40.441823, -80.012778]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const rows = await db.run(`SELECT * FROM places WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(rows).toHaveLength(1)
+    })
+
+    it('marks the page as a place if it has a location', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Pittsburgh', body: '[[Location: 40.441823, -80.012778]] [[Type:Test]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      await testUtils.resetTables(db)
+      expect(page.type).toEqual('Place')
+    })
+
     it('saves tags', async () => {
       expect.assertions(3)
       await testUtils.populateMembers(db)
