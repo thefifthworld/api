@@ -155,4 +155,18 @@ describe('LocationHandler', () => {
       expect(rows).toHaveLength(1)
     })
   })
+
+  describe('load', () => {
+    it('loads a location from the database', async () => {
+      expect.assertions(3)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new LocationHandler(40.441823, -80.012778)
+      await handler.save(page.id, db)
+      const actual = await LocationHandler.load(page.id, db)
+      await testUtils.resetTables(db)
+      expect(actual).toBeInstanceOf(LocationHandler)
+      expect(actual.lat).toBeCloseTo(40.441823, 3)
+      expect(actual.lon).toBeCloseTo(-80.012778, 3)
+    })
+  })
 })

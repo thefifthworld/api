@@ -47,7 +47,7 @@ class LocationHandler {
    */
 
   setCoords (coords) {
-    const isObj = coords.lat && coords.lon
+    const isObj = Boolean(coords.lat) && Boolean(coords.lon)
     const isArray = Array.isArray(coords) && coords.length > 1
     const lat = isObj ? coords.lat : isArray ? coords[0] : null
     const lon = isObj ? coords.lon : isArray ? coords[1] : null
@@ -73,6 +73,26 @@ class LocationHandler {
       await db.run(`DELETE FROM places WHERE page=${escape(id)};`)
       const geom = `ST_GeomFromText('POINT(${lat} ${lon})', 4326)`
       await db.run(`INSERT INTO places (page, location) VALUES (${id}, ${geom});`)
+    }
+  }
+
+  /**
+   * Load a location from the database.
+   * @param id {number} - The primary key of the page that we're loading a
+   *   location for.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<boolean|LocationHandler>} - A Promise that resolves
+   *   either with a LocationHandler object loaded with the latitude and
+   *   longitude coordinates from the database, or `false` if something went
+   *   wrong.
+   */
+
+  static async load (id, db) {
+    const rows = await db.run(`SELECT ST_X(location) AS lat, ST_Y(location) AS lon FROM places WHERE page=${id};`)
+    if (rows && Array.isArray(rows) && rows.length > 0) {
+      return new LocationHandler(rows[0])
+    } else {
+      return false
     }
   }
 
