@@ -167,7 +167,7 @@ describe('Page', () => {
       expect(page.title).toEqual('Test Page')
     })
 
-    it('loads the page\'s tags', async () => {
+    it('loads the page\'s location', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -176,6 +176,18 @@ describe('Page', () => {
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
       expect(page.tags.test).toEqual([ 'Hello', 'World' ])
+    })
+
+    it('loads the page\'s tags', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Pittsburgh', body: '[[Location: 40.441823, -80.012778]]' }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.location.lat).toBeCloseTo(40.441823, 3)
+      expect(page.location.lon).toBeCloseTo(-80.012778, 3)
     })
   })
 
