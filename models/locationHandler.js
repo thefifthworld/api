@@ -58,6 +58,25 @@ class LocationHandler {
   }
 
   /**
+   * Save the location to the database.
+   * @param id {number} - The primary key of the page to associate this
+   *   location with.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves once all places
+   *   previously associated with this page have been deleted from the database
+   *   and the new location saved.
+   */
+
+  async save (id, db) {
+    const { lat, lon } = this
+    if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
+      await db.run(`DELETE FROM places WHERE page=${escape(id)};`)
+      const geom = `ST_GeomFromText('POINT(${lat} ${lon})', 4326)`
+      await db.run(`INSERT INTO places (page, location) VALUES (${id}, ${geom});`)
+    }
+  }
+
+  /**
    * Converting latitude and longitude have a lot in common, so here's a common
    * function to reduce repeated code.
    * @param str {number|string} - A latitude or longitude, represented either as

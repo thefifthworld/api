@@ -1,8 +1,15 @@
 /* global describe, it, expect, afterAll */
 
+const db = require('../db')
+const testUtils = require('../test-utils')
+
+const Member = require('./member')
+const Page = require('./page')
 const LocationHandler = require('./locationHandler')
 
 describe('LocationHandler', () => {
+  afterAll(() => { db.end() })
+
   describe('constructor', () => {
     it('sets lat and lon', () => {
       const actual = new LocationHandler(40.441823, -80.012778)
@@ -134,6 +141,18 @@ describe('LocationHandler', () => {
       handler.setCoords(coords)
       expect(handler.lat).toBeCloseTo(40.441823, 3)
       expect(handler.lon).toBeCloseTo(-80.012778, 3)
+    })
+  })
+
+  describe('save', () => {
+    it('saves location to the database', async () => {
+      expect.assertions(1)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new LocationHandler(40.441823, -80.012778)
+      await handler.save(page.id, db)
+      const rows = await db.run(`SELECT * FROM places WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(rows).toHaveLength(1)
     })
   })
 })
