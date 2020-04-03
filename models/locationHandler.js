@@ -1,7 +1,14 @@
 class LocationHandler {
-  constructor (lat = null, lon = null) {
-    this.lat = lat
-    this.lon = lon
+  constructor (...args) {
+    this.lat = null
+    this.lon = null
+
+    if (typeof args[0] === 'object') {
+      this.setCoords(args[0])
+    } else if (args.length > 1) {
+      this.setLat(args[0])
+      this.setLon(args[1])
+    }
   }
 
   /**

@@ -10,6 +10,20 @@ describe('LocationHandler', () => {
       expect(actual.lon).toBeCloseTo(-80.012778, 3)
     })
 
+    it('can take an object', () => {
+      const coords = { lat: 40.441823, lon: -80.012778 }
+      const actual = new LocationHandler(coords)
+      expect(actual.lat).toBeCloseTo(coords.lat, 3)
+      expect(actual.lon).toBeCloseTo(coords.lon, 3)
+    })
+
+    it('can take an array', () => {
+      const coords = [ 40.441823, -80.012778 ]
+      const actual = new LocationHandler(coords)
+      expect(actual.lat).toBeCloseTo(coords[0], 3)
+      expect(actual.lon).toBeCloseTo(coords[1], 3)
+    })
+
     it('defaults to null', () => {
       const actual = new LocationHandler()
       expect(actual.lat).toEqual(null)
