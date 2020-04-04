@@ -53,7 +53,7 @@ class Page {
     const parent = data.parent ? await Page.get(data.parent, db) : null
     const pid = parent ? parent.id : 0
     const depth = parent ? parent.depth + 1 : 0
-    const path = data.path || `/${slug}` // TODO: When you get the parent, use it here
+    const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
     const description = data.description || '' // TODO: Parse a better description
     const image = data.image
     const header = data.header

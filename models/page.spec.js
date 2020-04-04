@@ -81,7 +81,7 @@ describe('Page', () => {
     })
 
     it('can create a child', async () => {
-      expect.assertions(2)
+      expect.assertions(3)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
       const pdata = { title: 'Parent', body: 'This is the parent.' }
@@ -92,6 +92,7 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(child.parent).toEqual(parent.id)
       expect(child.depth).toEqual(1)
+      expect(child.path).toEqual('/parent/child')
     })
 
     it('saves the location', async () => {
