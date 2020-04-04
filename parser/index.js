@@ -1,6 +1,7 @@
 const { Remarkable } = require('remarkable')
 const parseTags = require('./tags')
 const parseLinks = require('./links')
+const parseTemplates = require('./templates')
 
 /**
  * Remove code blocks from the string, so that we don't parse tags, links, or
@@ -58,8 +59,9 @@ const parser = async (str, db) => {
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = parseTags(blocked)
   let html = md.render(stripped)
-  const { str:linked, linkHandler } = await parseLinks(html, db)
-  html = restoreBlocks(linked, blocks)
+  const { str: linked, linkHandler } = await parseLinks(html, db)
+  const templated = await parseTemplates(linked, db)
+  html = restoreBlocks(templated, blocks)
   return { html, tagHandler, linkHandler }
 }
 
