@@ -1,3 +1,10 @@
+/**
+ * Gets params from a template expression.
+ * @param tpl {string} - A template string.
+ * @returns {{}} - An object with key/value pairs providing the parameters
+ *   provided in the given template expression.
+ */
+
 const getParams = tpl => {
   const paramStrings = tpl.match(/\s(.*?)=["“”](.*?)["“”]/g)
   const params = {}
@@ -11,6 +18,16 @@ const getParams = tpl => {
   }
   return params
 }
+
+/**
+ * Load template from database and parse in parameter values.
+ * @param template {string} - A template expression.
+ * @param db {Pool} - The database connection.
+ * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
+ *   resolves with an object with two properties: `str` (the string that should
+ *   replace the template expression) and `match` (the template expression to
+ *   replace). If no template could be loaded, it resolves with `false`.
+ */
 
 const loadTemplate = async (template, db) => {
   const tpl = template.replace(/\n/g, '')
@@ -33,6 +50,14 @@ const loadTemplate = async (template, db) => {
 
   return false
 }
+
+/**
+ * Sends an array of template expressions to `loadTemplate`.
+ * @param templates {string[]} - An array of template expressions to load.
+ * @param db {Pool} - The database connection.
+ * @returns {Promise<*[]>} - A Promise that resolves with an array of objects
+ *   returned from `loadTemplate`.
+ */
 
 const loadTemplates = async (templates, db) => {
   const loaded = []
