@@ -111,6 +111,37 @@ class Page {
   }
 
   /**
+   * Returns an array of the child pages of a given page.
+   * @param id {!int|string|Page} - The ID or the path of a page, or a Page
+   *   instance (in which case, it simply returns the page). This allows the
+   *   method to take a wide range of identifiers and reliably return the
+   *   correct object.
+   * @param type {?string} - Optional. If provided, then only child pages that
+   *   match this type will be returned.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<Page[]>} - An array of Page objects that are child pages
+   *   of the page identified by the `id` parameter (and optionally restricted
+   *   to those that match the `type` parameter).
+   */
+
+  static async getChildrenOf (id, type, db) {
+    const parent = await Page.get(id, db)
+    if (parent) {
+      const query = type
+        ? `SELECT id FROM pages WHERE parent=${parent.id} AND type=${escape(type)};`
+        : `SELECT id FROM pages WHERE parent=${parent.id};`
+      const rows = await db.run(query)
+      const children = []
+      for (const row of rows) {
+        const child = await Page.get(row.id, db)
+        children.push(child)
+      }
+      return children
+    }
+    return []
+  }
+
+  /**
    * If passed the type and title to be used when saving a page, this method
    * returns `false` if the page is not a template or if it is a template with
    * a valid name (one that is not the name of an internal template). It will

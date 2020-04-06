@@ -192,6 +192,42 @@ describe('Page', () => {
     })
   })
 
+  describe('getChildrenOf', () => {
+    it('returns an array of the page\'s children', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is the parent.' }
+      const cdata = { title: 'Child', body: 'This is the child.' }
+      const parent = await Page.create(pdata, editor, 'Initial text', db)
+      cdata.parent = parent.path
+      await Page.create(cdata, editor, 'Initial text', db)
+      const children = await Page.getChildrenOf(parent, null, db)
+      await testUtils.resetTables(db)
+      expect(children).toHaveLength(1)
+      expect(children[0].title).toEqual(cdata.title)
+      expect(children[0].parent).toEqual(parent.id)
+    })
+
+    it('returns an array of the page\'s children that match the type', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is the parent.' }
+      const c1data = { title: 'Child 1', body: 'This is one child. [[Type: Test]]' }
+      const c2data = { title: 'Child 2', body: 'This is another child.' }
+      const parent = await Page.create(pdata, editor, 'Initial text', db)
+      c1data.parent = parent.path; c2data.parent = parent.path
+      await Page.create(c1data, editor, 'Initial text', db)
+      await Page.create(c2data, editor, 'Initial text', db)
+      const children = await Page.getChildrenOf(parent, 'Test', db)
+      await testUtils.resetTables(db)
+      expect(children).toHaveLength(1)
+      expect(children[0].title).toEqual(c1data.title)
+      expect(children[0].parent).toEqual(parent.id)
+    })
+  })
+
   describe('isReservedTemplate', () => {
     it('returns false if the type is not a template', () => {
       expect(Page.isReservedTemplate('NotTemplate', 'Test')).toEqual(false)
