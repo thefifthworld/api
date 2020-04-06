@@ -18,7 +18,7 @@ describe('templateParse', () => {
       title: 'Template:Hello',
       body: '{{Template}}Hello world!{{/Template}} [[Type:Template]]'
     }, member, 'Initial text', db)
-    const actual = await parseTemplates('{{Template:Hello}}', db)
+    const actual = await parseTemplates('{{Template:Hello}}', null, db)
     expect(actual).toEqual('Hello world!')
   })
 
@@ -29,7 +29,7 @@ describe('templateParse', () => {
       title: 'Template:Hello',
       body: '{{Template}}Hello, {{{Name}}}!{{/Template}} [[Type:Template]]'
     }, member, 'Initial text', db)
-    const actual = await parseTemplates('{{Template:Hello Name="Bob"}}', db)
+    const actual = await parseTemplates('{{Template:Hello Name="Bob"}}', null, db)
     expect(actual).toEqual('Hello, Bob!')
   })
 
@@ -40,7 +40,7 @@ describe('templateParse', () => {
       title: 'Template:Hello',
       body: '{{Template}}Hello, {{{Name}}}!{{/Template}} [[Type:Template]]'
     }, member, 'Initial text', db)
-    const actual = await parseTemplates('{{Template:Hello Name=”Bob”}}', db)
+    const actual = await parseTemplates('{{Template:Hello Name=”Bob”}}', null, db)
     expect(actual).toEqual('Hello, Bob!')
   })
 
@@ -51,7 +51,7 @@ describe('templateParse', () => {
       title: 'Template:Hello',
       body: '{{Template}}Hello, {{{Name}}}!{{/Template}} [[Type:Template]]'
     }, member, 'Initial text', db)
-    const actual = await parseTemplates('{{Template:Hello\n  Name=”Bob”}}', db)
+    const actual = await parseTemplates('{{Template:Hello\n  Name=”Bob”}}', null, db)
     expect(actual).toEqual('Hello, Bob!')
   })
 
@@ -62,7 +62,7 @@ describe('templateParse', () => {
       title: 'Template:Hello',
       body: '{{Template}}Hello, {{{Name}}}!{{/Template}} This template greets you.\n\n## Example\n\n{{Temmplate:Hello Name="Bob"}}\n\n##Markdown\n\n```\n{{Temmplate:Hello Name="Bob"}}\n```\n\n[[Type:Template]]'
     }, member, 'Initial text', db)
-    const actual = await parseTemplates('{{Template:Hello Name=”Bob”}}', db)
+    const actual = await parseTemplates('{{Template:Hello Name=”Bob”}}', null, db)
     expect(actual).toEqual('Hello, Bob!')
   })
 })

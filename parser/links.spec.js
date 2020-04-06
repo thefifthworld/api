@@ -17,7 +17,7 @@ describe('parseLinks', () => {
     await testUtils.resetTables(db)
     expect(actual.str).toEqual('Here\'s a link: <a href="/test-page" title="Test Page">hello</a>')
     expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
-    expect(actual.linkHandler.links).toEqual([ { text: 'hello', title: 'Test Page', path: '/test-page', isNew: false } ])
+    expect(actual.linkHandler.links).toEqual([ { id: 1, text: 'hello', title: 'Test Page', path: '/test-page', isNew: false } ])
   })
 
   it('parses new links', async () => {
@@ -25,6 +25,6 @@ describe('parseLinks', () => {
     const actual = await parseLinks('Here\'s a link: [[hello]]', db)
     expect(actual.str).toEqual('Here\'s a link: <a href="/new?title=hello" class="isNew">hello</a>')
     expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
-    expect(actual.linkHandler.links).toEqual([ { text: 'hello', title: 'hello', path: '/new?title=hello', isNew: true } ])
+    expect(actual.linkHandler.links).toEqual([ { id: null, text: 'hello', title: 'hello', path: '/new?title=hello', isNew: true } ])
   })
 })

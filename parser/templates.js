@@ -22,6 +22,9 @@ const getParams = tpl => {
 /**
  * Load template from database and parse in parameter values.
  * @param template {!string} - A template expression.
+ * @param name {!string} - The name of the template to load.
+ * @param params {!Object} - An object that defines the parameters to use for
+ *   the template as key/value pairs.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
@@ -49,6 +52,7 @@ const loadTemplate = async (template, name, params, db) => {
 /**
  * Parse a single template expression.
  * @param template {!string} - The template expression to parse.
+ * @param path {?string} - The path of the page we're parsing.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
@@ -56,7 +60,7 @@ const loadTemplate = async (template, name, params, db) => {
  *   replace). If no template could be loaded, it resolves with `false`.
  */
 
-const parseTemplate = async (template, db) => {
+const parseTemplate = async (template, path, db) => {
   const tpl = template.replace(/\n/g, '')
   const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
   const params = getParams(tpl)
@@ -70,17 +74,18 @@ const parseTemplate = async (template, db) => {
 /**
  * Parses templates.
  * @param str {!string} - The string to parse.
+ * @param path {?string} - The path of the page that we're parsing.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<string>} - A Promise that resolves with the string parsed,
  *   such that any template calls are replaced with the appropriate values for
  *   those templates.
  */
 
-const parseTemplates = async (str, db) => {
+const parseTemplates = async (str, path, db) => {
   let templates = str.match(/{{((.*?)\n?)*?}}/gm)
   if (templates) {
     for (const template of templates) {
-      const tpl = await parseTemplate(template, db)
+      const tpl = await parseTemplate(template, path, db)
       str = str.replace(tpl.match, tpl.str)
     }
   }
