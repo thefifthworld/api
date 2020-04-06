@@ -1,8 +1,8 @@
 /**
  * Gets params from a template expression.
- * @param tpl {string} - A template string.
- * @returns {{}} - An object with key/value pairs providing the parameters
- *   provided in the given template expression.
+ * @param tpl {!string} - A template string.
+ * @returns {{key: string, value: string}[]} - An object with key/value pairs
+ *   providing the parameters provided in the given template expression.
  */
 
 const getParams = tpl => {
@@ -21,8 +21,8 @@ const getParams = tpl => {
 
 /**
  * Load template from database and parse in parameter values.
- * @param template {string} - A template expression.
- * @param db {Pool} - The database connection.
+ * @param template {!string} - A template expression.
+ * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
  *   replace the template expression) and `match` (the template expression to
@@ -48,8 +48,8 @@ const loadTemplate = async (template, name, params, db) => {
 
 /**
  * Parse a single template expression.
- * @param template {string} - The template expression to parse.
- * @param db {Pool} - The database connection.
+ * @param template {!string} - The template expression to parse.
+ * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
  *   replace the template expression) and `match` (the template expression to
@@ -61,7 +61,7 @@ const parseTemplate = async (template, db) => {
   const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
   const params = getParams(tpl)
 
-  switch (name) {
+  switch (name.toLowerCase()) {
     default:
       return loadTemplate(template, name, params, db)
   }
@@ -69,11 +69,11 @@ const parseTemplate = async (template, db) => {
 
 /**
  * Parses templates.
- * @param str {string} - The string to parse.
- * @param db {Pool} - The database connection.
- * @returns {Promise<*>} - A Promise that resolves with the string parsed, such
- *   that any template calls are replaced with the appropriate values for those
- *   templates.
+ * @param str {!string} - The string to parse.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<string>} - A Promise that resolves with the string parsed,
+ *   such that any template calls are replaced with the appropriate values for
+ *   those templates.
  */
 
 const parseTemplates = async (str, db) => {

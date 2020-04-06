@@ -21,10 +21,10 @@ class Member {
 
   /**
    * Update a member record.
-   * @param updates {Object} - An object providing the updates to be made as
+   * @param updates {!Object} - An object providing the updates to be made as
    *   key-value pairs.
-   * @param editor {Member} - The person making the update.
-   * @param db {Pool} - The database connection.
+   * @param editor {!Member} - The person making the update.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<boolean>} - A Promise that returns with `true` if the
    *   update could be made, or `false` if not.
    */
@@ -59,11 +59,11 @@ class Member {
 
   /**
    * Deactivates a member.
-   * @param editor {Member} - The member requesting the deactivation. Only an
+   * @param editor {!Member} - The member requesting the deactivation. Only an
    *   administrator can do this.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<any>} - A Promise that resolves when the update has been
-   *   saved to the database.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<OkPacket>} - A Promise that resolves when the update has
+   *   been saved to the database.
    */
 
   async deactivate (editor, db) {
@@ -75,10 +75,10 @@ class Member {
 
   /**
    * Reactivates a member.
-   * @param editor {Member} - The member requesting the reactivation. Only an
+   * @param editor {!Member} - The member requesting the reactivation. Only an
    *   administrator can do this.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<any>} - A Promise that resolves when the update has been
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<OkPacket>} - A Promise that resolves when the update has been
    *   saved to the database.
    */
 
@@ -91,12 +91,12 @@ class Member {
 
   /**
    * Logs a message to the database.
-   * @param type {string} - The type of the message. Valid types are defined by
-   *   the keys of the object returned by `Member.getMessageTypes`
-   * @param msg {string} - The message to log.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<void>} - A Promise that resolves once the message has
-   *   been logged to the database.
+   * @param type {!string} - The type of the message. Valid types are defined
+   *   by the keys of the object returned by `Member.getMessageTypes`
+   * @param msg {!string} - The message to log.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<OkPacket>} - A Promise that resolves once the message
+   *   has been logged to the database.
    */
 
   async logMessage (type, msg, db) {
@@ -107,10 +107,10 @@ class Member {
 
   /**
    * Fetches the member's messages and deletes them.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<void>} - A Promise that resolves with an object
-   *   containing the member's messages. The keys are the types of messages,
-   *   and each is an array of strings, being the messages of that type.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<{}>} - A Promise that resolves with an object containing
+   *   the member's messages. The keys are the types of messages, and each is
+   *   an array of strings, being the messages of that type.
    */
 
   async getMessages (db) {
@@ -131,9 +131,9 @@ class Member {
 
   /**
    * Creates a new invitation.
-   * @param addr {string} - The email address to invite.
-   * @param emailer {func} - A function that can send an email.
-   * @param db {Pool} - A database connectionn.
+   * @param addr {!string} - The email address to invite.
+   * @param emailer {!function} - A function that can send an email.
+   * @param db {!Pool} - A database connectionn.
    * @returns {Promise} - A promise that resolves when the invitation is sent.
    */
 
@@ -158,10 +158,10 @@ class Member {
   /**
    * Sends a reminder email to someone who has received an invitation but has
    * not yet accepted it.
-   * @param member {Member} - The member who has not yet accepted her
+   * @param member {!Member} - The member who has not yet accepted her
    *   invitation.
-   * @param emailer {func} - A function that can send an email.
-   * @param db {Pool} - A database connection.
+   * @param emailer {!function} - A function that can send an email.
+   * @param db {!Pool} - A database connection.
    * @returns {Promise} - A promise that resolves when the reminder email has
    *   been sent.
    */
@@ -183,9 +183,9 @@ class Member {
 
   /**
    * Send an invitation.
-   * @param email {string} - The email address to send an invitation to.
-   * @param emailer {func} - A function that can send an email.
-   * @param db {Pool} - A database connection.
+   * @param email {!string} - The email address to send an invitation to.
+   * @param emailer {!function} - A function that can send an email.
+   * @param db {!Pool} - A database connection.
    * @returns {Promise} - A promise that resolves once the request has been
    *   evaluated and handled.
    */
@@ -212,12 +212,12 @@ class Member {
 
   /**
    * Send several invitations at once.
-   * @param addrs {string[]} - An array of email addresses to send invitations
+   * @param addrs {!string[]} - An array of email addresses to send invitations
    *   to.
-   * @param emailer {func} - A function that can send an email.
-   * @param db {Pool} - A database connection.
-   * @returns {Promise<void>} - A Promise that resolves once invitations have
-   *   been processed for each email address in the given array.
+   * @param emailer {!function} - A function that can send an email.
+   * @param db {!Pool} - A database connection.
+   * @returns {Promise} - A Promise that resolves once invitations have been
+   *   processed for each email address in the given array.
    */
 
   async sendInvitations (addrs, emailer, db) {
@@ -228,8 +228,8 @@ class Member {
 
   /**
    * Returns an array of the members that this member invited.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<Object[]>} - A Promise that resolves with an array of
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<Member[]>} - A Promise that resolves with an array of
    *   the people that the member has invited.
    */
 
@@ -247,9 +247,9 @@ class Member {
 
   /**
    * Load a Member instance from the database.
-   * @param id {number|string} - Either the primary key or the email address of
+   * @param id {!number|string} - Either the primary key or the email address of
    *   the member to load.
-   * @param db {Pool} - The database connection.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<Member|undefined>} - a Member instance loaded with the
    *   information from the database matching the primary key provided if the
    *   record could be found, or `undefined` if it could not.
@@ -272,9 +272,9 @@ class Member {
    * it returns her ID. If not — either because the email is not associated
    * with any member account, or it is associated with a member account but the
    * password provided does not match that account — it returns `false`.
-   * @param email {string} - The member's email.
-   * @param password {string} - The member's password (unencrypted).
-   * @param db {Pool} - The database connection.
+   * @param email {!string} - The member's email.
+   * @param password {!string} - The member's password (unencrypted).
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<boolean|number>} - A Promise that resolves, either with
    *   the member's ID if she could be authenticated, or `false` if she could
    *   not be.
@@ -290,9 +290,9 @@ class Member {
 
   /**
    * Accepts an invitation.
-   * @param code {string} - The invitation code for the invitation being
+   * @param code {!string} - The invitation code for the invitation being
    *   accepted.
-   * @param db {Pool} - The database connection.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<Member>} - A Promise that resolves with the Member
    *   instance of the account associated with the invitation that has been
    *   accepted.
@@ -312,8 +312,8 @@ class Member {
   /**
    * Checks if the `editor` has permission to edit the member account of
    * `subject`.
-   * @param subject {Member} - A member account to be edited.
-   * @param editor {Member} - A member who would like to edit the account of
+   * @param subject {!Member} - A member account to be edited.
+   * @param editor {!Member} - A member who would like to edit the account of
    *   `subject`.
    * @returns {boolean} - `true` if `editor` has permission to edit the member
    *   account of `subject`, or `false` if she does not.
@@ -328,7 +328,7 @@ class Member {
 
   /**
    * Returns an encrypted hash of a string.
-   * @param orig {string} - The string to hash.
+   * @param orig {!string} - The string to hash.
    * @returns {string} - The encrypted hash of the original string.
    */
 
@@ -338,7 +338,7 @@ class Member {
 
   /**
    * Generates a random code that isn't already in use.
-   * @param db {Pool} - The database connection.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<string>} - A Promise that resolves with a random code.
    */
 

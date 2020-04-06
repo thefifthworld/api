@@ -7,14 +7,14 @@ class LinkHandler {
 
   /**
    * Add a link to the handler.
-   * @param str {string} - The string used to create a link. This is a wikitext
-   *   link, like `[[Title]]` or `[[/path]]`, which would like to a page with
-   *   a matching title or path, respectively. Links can also include a pipe,
-   *   as in `[[Title | Text]]` or `[[/path | Text]]`. The string before the
-   *   pipe is used to match the link (by either title or path), while what
-   *   follows is used as the text of the link.
-   * @param db {Pool} - The database connection.
-   * @returns {{path: (string), text: string, isNew: boolean}} - An object
+   * @param str {!string} - The string used to create a link. This is a
+   *   wikitext link, like `[[Title]]` or `[[/path]]`, which would like to a
+   *   page with a matching title or path, respectively. Links can also include
+   *   a pipe, as in `[[Title | Text]]` or `[[/path | Text]]`. The string
+   *   before the pipe is used to match the link (by either title or path),
+   *   while what follows is used as the text of the link.
+   * @param db {!Pool} - The database connection.
+   * @returns {{path: string, text: string, isNew: boolean}} - An object
    *   representing the information parsed out of the link string and used to
    *   create the link. The `path` property is the path that we're to link to,
    *   the `text` property is the text of the link, and `isNew` is a boolean
@@ -38,9 +38,9 @@ class LinkHandler {
 
   /**
    * Saves links to the database.
-   * @param id {number} - The primary key of the page that contains these
+   * @param id {!number} - The primary key of the page that contains these
    *   links.
-   * @param db {Pool} - The database connection.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise} - A Promise that resolves once the links have
    *   been saved to the database.
    */
@@ -60,11 +60,12 @@ class LinkHandler {
 
   /**
    * Load a list of requested links and which pages are requesting them.
-   * @param db {Pool} - The database connection.
-   * @param sortFn {function} - Optional. A function to use to sort the array
+   * @param db {!Pool} - The database connection.
+   * @param sortFn {function=} - Optional. A function to use to sort the array
    *   of links. By default, it is sorted by the number of links descending.
-   * @returns {Promise<[]>} - A Promise that resolves with an array of objects
-   *   representing all of the requested links saved to the database.
+   * @returns {Promise<{path: string, text: string, isNew: boolean}[]>} -
+   *   A Promise that resolves with an array of objects representing all of the
+   *   requested links saved to the database.
    */
 
   static async loadRequested (db, sortFn = (a, b) => b.links.length - a.links.length) {

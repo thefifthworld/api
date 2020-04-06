@@ -29,13 +29,13 @@ class Page {
 
   /**
    * Creates a new page.
-   * @param data {Object} - An object defining the data for the page. Expected
+   * @param data {!Object} - An object defining the data for the page. Expected
    *   properties include `path` (for the page's path), `title` (for the page's
    *   title), and `body` (for the wikitext of the page's main content).
-   * @param editor {Member} - The member creating the page. This object must at
-   *   least include an `id` property specifying the editor's member ID.
-   * @param msg {string} - A commit message.
-   * @param db {Pool} - A database connection.
+   * @param editor {!Member} - The member creating the page. This object must
+   *   at least include an `id` property specifying the editor's member ID.
+   * @param msg {!string} - A commit message.
+   * @param db {!Pool} - A database connection.
    * @returns {Promise} - A promise that resolves with the newly created Page
    *   instance once it has been added to the database.
    */
@@ -81,11 +81,11 @@ class Page {
 
   /**
    * Returns a page from the database.
-   * @param id {int|string|Page} - The ID or the path of a page, or a Page
+   * @param id {!int|string|Page} - The ID or the path of a page, or a Page
    *   instance (in which case, it simply returns the page). This allows the
    *   method to take a wide range of identifiers and reliably return the
    *   correct object.
-   * @param db {Pool} - A database connection.
+   * @param db {!Pool} - A database connection.
    * @returns {Promise} - A promise that resolves with the Page object if it
    *   can be found, or `undefined` if it could not be found.
    */
@@ -117,8 +117,8 @@ class Page {
    * return `true` if the type argument is equal to the string `'Template'` and
    * the title argument is one of the reserved, internal template names
    * (meaning that the page is not valid).
-   * @param type {string} - The type of the page.
-   * @param title {string} - The title of the page.
+   * @param type {!string} - The type of the page.
+   * @param title {!string} - The title of the page.
    * @returns {boolean} - `true` if the given arguments indicate that the page
    *   will conflict with reserved, internal templates, or `false` if not.
    */
@@ -133,7 +133,7 @@ class Page {
    * reserved paths (paths that are used internally, and so cannot be used for
    * any member-created pages). Returns `false` if the path does not match any
    * of those patterns (meaning it's safe to use).
-   * @param path {string} - The path to check.
+   * @param path {!string} - The path to check.
    * @returns {boolean} - A boolean indicating if the path matches a reserved
    *   pattern (`true`), or if it is safe to use (`false`).
    */
@@ -163,7 +163,7 @@ class Page {
 
   /**
    * Returns a "slugified" version of the original string.
-   * @param str {string} - A string to "slugify."
+   * @param str {!string} - A string to "slugify."
    * @returns {string} - The "slugified" version of the original string.
    */
 

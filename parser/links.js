@@ -2,10 +2,11 @@ const LinkHandler = require('../models/linkhandler')
 
 /**
  * Parse links.
- * @param str {string} - The string to parse.
- * @param db {Pool} - The database connection
- * @returns {Promise<{str: string, links: []}>} - An object with two
- *   properties:
+ * @param str {!string} - The string to parse.
+ * @param db {!Pool} - The database connection
+ * @returns {Promise<{str: string, links: {text: string, path: string,
+ *   isNew: boolean}[]}>} - A Promise that resolves with an object containing
+ *   two properties:
  *     - `str`: The parsed string.
  *     - `links`: An array of objects representing the links parsed. Each
  *         object has three properties: `text` (the text of the link), `path`

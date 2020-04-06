@@ -7,8 +7,8 @@ class TagHandler {
 
   /**
    * Add a tag.
-   * @param tag {string} - The name of the tag to add.
-   * @param val {string} - The value of the tag to add.
+   * @param tag {!string} - The name of the tag to add.
+   * @param val {!string} - The value of the tag to add.
    */
 
   add (tag, val) {
@@ -22,8 +22,8 @@ class TagHandler {
 
   /**
    * Return the value(s) associated with this tag.
-   * @param tag {string} - The tag value to fetch.
-   * @param justLast {boolean} - Optional. If set to `true`, just returns the
+   * @param tag {!string} - The tag value to fetch.
+   * @param justLast {boolean=} - Optional. If set to `true`, just returns the
    *   last value associated with the tag (Default: `false`).
    * @returns {undefined|string|string[]} - The last value associated with the
    *   tag if it can be found, or `undefined` if it could not be found.
@@ -42,10 +42,10 @@ class TagHandler {
 
   /**
    * Save tags to the database.
-   * @param id {number} - The primary key of the page to associate these tags
+   * @param id {!number} - The primary key of the page to associate these tags
    *   with in the database.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise} - A promise that resolves when the tags have been saved
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<OkPacket>} - A promise that resolves when the tags have been saved
    *   to the database.
    */
 
@@ -62,8 +62,8 @@ class TagHandler {
 
   /**
    * Load tags for a given page from the database into a new TagHandler.
-   * @param id {number} - The primary key of a page in the database.
-   * @param db {Pool} - The database connection.
+   * @param id {!number} - The primary key of a page in the database.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<TagHandler>} - A Promise that resolves with a new
    *   TagHandler instance loaded with the page's tags from the database.
    */

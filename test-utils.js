@@ -4,7 +4,7 @@ const { escape } = sqlstring
 
 /**
  * Populates the database with member accounts for use in tests.
- * @param db {Pool} - The database connection.
+ * @param db {!Pool} - The database connection.
  * @returns {Promise<void>} - A Promise that returns when the member accounts
  *   have been added to the database.
  */
@@ -18,9 +18,9 @@ const populateMembers = async (db) => {
 
 /**
  * Creates a test page.
- * @param Page {ClassDeclaration} - The Page class.
- * @param Member {ClassDeclaration} - The Member class.
- * @param db {Pool} - The database connection.
+ * @param Page {!ClassDeclaration} - The Page class.
+ * @param Member {!ClassDeclaration} - The Member class.
+ * @param db {!Pool} - The database connection.
  * @returns {Promise<Page>} - A Promise that resolves with the test page that
  *   it has created.
  */
@@ -34,7 +34,7 @@ const createTestPage = async (Page, Member, db) => {
 
 /**
  * Resets all of the tables specified.
- * @param db {Pool} - The database connection.
+ * @param db {!Pool} - The database connection.
  * @returns {Promise<void>} - A Promise that returns once all of the rows in
  *   each of the tables provided has been deleted, and the table's auto-
  *   increment index has been reset to zero.

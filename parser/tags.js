@@ -2,8 +2,9 @@ const TagHandler = require('../models/taghandler')
 
 /**
  * Parse tags from string
- * @param str {string} - Markdown to parse.
- * @returns {Object} - an object with two properties:
+ * @param str {!string} - Markdown to parse.
+ * @returns {{stripped: string, tags: TagHandler}} - an object containing two
+ *   properties:
  *   - `stripped`: A copy of the original string with the tags removed.
  *   - `tags`: An object that represents each tag with a property. The tag
  *       is reduced to lower-case to use as the key. The value is an array of
