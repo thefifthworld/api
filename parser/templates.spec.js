@@ -6,7 +6,7 @@ const db = require('../db')
 const parseTemplates = require('./templates')
 const testUtils = require('../test-utils')
 
-describe('templateParse', () => {
+describe('parseTemplates', () => {
   beforeEach(async done => { await testUtils.populateMembers(db); done() })
   afterEach(async done => { await testUtils.resetTables(db); done() })
   afterAll(() => { db.end() })
@@ -64,5 +64,44 @@ describe('templateParse', () => {
     }, member, 'Initial text', db)
     const actual = await parseTemplates('{{Template:Hello Name=”Bob”}}', null, db)
     expect(actual).toEqual('Hello, Bob!')
+  })
+
+  it('can parse a list of child pages', async () => {
+    expect.assertions(1)
+    const editor = await Member.load(2, db)
+    const pdata = { title: 'Parent', body: 'This is a parent page.' }
+    await Page.create(pdata, editor, 'Initial text', db)
+    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+    await Page.create(c1data, editor, 'Initial text', db)
+    await Page.create(c2data, editor, 'Initial text', db)
+    const actual = await parseTemplates('{{Children}}', '/parent', db)
+    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+  })
+
+  it('can parse a list of child pages restricted by type', async () => {
+    expect.assertions(1)
+    const editor = await Member.load(2, db)
+    const pdata = { title: 'Parent', body: 'This is a parent page.' }
+    await Page.create(pdata, editor, 'Initial text', db)
+    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+    await Page.create(c1data, editor, 'Initial text', db)
+    await Page.create(c2data, editor, 'Initial text', db)
+    const actual = await parseTemplates('{{Children type="Test"}}', '/parent', db)
+    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n</ul>')
+  })
+
+  it('can parse a list of a different page\'s children', async () => {
+    expect.assertions(1)
+    const editor = await Member.load(2, db)
+    const pdata = { title: 'Parent', body: 'This is a parent page.' }
+    await Page.create(pdata, editor, 'Initial text', db)
+    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+    await Page.create(c1data, editor, 'Initial text', db)
+    await Page.create(c2data, editor, 'Initial text', db)
+    const actual = await parseTemplates('{{Children of="/parent"}}', '/parent/child-1', db)
+    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
   })
 })

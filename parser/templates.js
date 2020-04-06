@@ -1,3 +1,5 @@
+const Page = require('../models/page')
+
 /**
  * Gets params from a template expression.
  * @param tpl {!string} - A template string.
@@ -17,6 +19,31 @@ const getParams = tpl => {
     })
   }
   return params
+}
+
+/**
+ * Parse a {{Children}} template.
+ * @param template {!string} - The template expression.
+ * @param params {?Object} - An object defining the parameters for the template
+ *   in key/value pairs.
+ * @param path {?string} - The path of the page being parsed.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadChildren = async (template, params, path, db) => {
+  const parentPath = params.of ? params.of : path
+  const type = params.type ? params.type : null
+  const children = parentPath ? await Page.getChildrenOf(parentPath, type, db) : false
+  if (children) {
+    const items = children.map(child => `<li><a href="${child.path}">${child.title}</a></li>`)
+    const tag = params.ordered ? 'ol' : 'ul'
+    return { match: template, str: `<${tag}>\n  ${items.join('\n  ')}\n</${tag}>` }
+  } else {
+    return { match: template, str: '' }
+  }
 }
 
 /**
@@ -66,6 +93,8 @@ const parseTemplate = async (template, path, db) => {
   const params = getParams(tpl)
 
   switch (name.toLowerCase()) {
+    case 'children':
+      return loadChildren(template, params, path, db)
     default:
       return loadTemplate(template, name, params, db)
   }
