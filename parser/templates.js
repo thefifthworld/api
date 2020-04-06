@@ -29,11 +29,7 @@ const getParams = tpl => {
  *   replace). If no template could be loaded, it resolves with `false`.
  */
 
-const loadTemplate = async (template, db) => {
-  const tpl = template.replace(/\n/g, '')
-  const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
-  const params = getParams(tpl)
-
+const loadTemplate = async (template, name, params, db) => {
   const res = await db.run(`SELECT c.json AS json FROM changes c, pages p WHERE p.id=c.page AND p.type='Template' AND p.title='${name}' ORDER BY p.depth ASC, c.timestamp DESC;`)
   if (res.length > 0) {
     const full = JSON.parse(res[0].json).body.replace(/\[\[Type:(.*?)\]\]/g, '').trim()
@@ -47,25 +43,28 @@ const loadTemplate = async (template, db) => {
       return { match: template, str }
     }
   }
-
   return false
 }
 
 /**
- * Sends an array of template expressions to `loadTemplate`.
- * @param templates {string[]} - An array of template expressions to load.
+ * Parse a single template expression.
+ * @param template {string} - The template expression to parse.
  * @param db {Pool} - The database connection.
- * @returns {Promise<*[]>} - A Promise that resolves with an array of objects
- *   returned from `loadTemplate`.
+ * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
+ *   resolves with an object with two properties: `str` (the string that should
+ *   replace the template expression) and `match` (the template expression to
+ *   replace). If no template could be loaded, it resolves with `false`.
  */
 
-const loadTemplates = async (templates, db) => {
-  const loaded = []
-  for (const template of templates) {
-    const tpl = await loadTemplate(template, db)
-    loaded.push(tpl)
+const parseTemplate = async (template, db) => {
+  const tpl = template.replace(/\n/g, '')
+  const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
+  const params = getParams(tpl)
+
+  switch (name) {
+    default:
+      return loadTemplate(template, name, params, db)
   }
-  return loaded.filter(tpl => tpl !== false)
 }
 
 /**
@@ -80,10 +79,10 @@ const loadTemplates = async (templates, db) => {
 const parseTemplates = async (str, db) => {
   let templates = str.match(/{{((.*?)\n?)*?}}/gm)
   if (templates) {
-    templates = await loadTemplates(templates, db)
-    templates.forEach(template => {
-      str = str.replace(template.match, template.str)
-    })
+    for (const template of templates) {
+      const tpl = await parseTemplate(template, db)
+      str = str.replace(tpl.match, tpl.str)
+    }
   }
   return str
 }
