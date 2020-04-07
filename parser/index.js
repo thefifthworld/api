@@ -59,10 +59,10 @@ const parser = async (str, path, db) => {
   const md = new Remarkable()
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = parseTags(blocked)
-  let html = md.render(stripped)
+  const templated = await parseTemplates(stripped, path, db)
+  let html = md.render(templated)
   const { str: linked, linkHandler } = await parseLinks(html, db)
-  const templated = await parseTemplates(linked, path, db)
-  html = restoreBlocks(templated, blocks)
+  html = restoreBlocks(linked, blocks)
   return { html, tagHandler, linkHandler }
 }
 

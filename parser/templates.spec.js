@@ -66,6 +66,21 @@ describe('parseTemplates', () => {
     expect(actual).toEqual('Hello, Bob!')
   })
 
+  it('parses recursively', async () => {
+    expect.assertions(1)
+    const member = await Member.load(2, db)
+    await Page.create({
+      title: 'Template:Inner',
+      body: '{{Template}}Hello world!{{/Template}} [[Type:Template]]'
+    }, member, 'Initial text', db)
+    await Page.create({
+      title: 'Template:Outer',
+      body: '{{Template}}{{Template:Inner}}{{/Template}} [[Type:Template]]'
+    }, member, 'Initial text', db)
+    const actual = await parseTemplates('{{Template:Outer}}', null, db)
+    expect(actual).toEqual('Hello world!')
+  })
+
   it('can parse a list of child pages', async () => {
     expect.assertions(1)
     const editor = await Member.load(2, db)

@@ -92,12 +92,16 @@ const parseTemplate = async (template, path, db) => {
   const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
   const params = getParams(tpl)
 
+  let res
   switch (name.toLowerCase()) {
     case 'children':
-      return loadChildren(template, params, path, db)
+      res = await loadChildren(template, params, path, db); break
     default:
-      return loadTemplate(template, name, params, db)
+      res = await loadTemplate(template, name, params, db); break
   }
+
+  res.str = await parseTemplates(res.str, path, db)
+  return res
 }
 
 /**
