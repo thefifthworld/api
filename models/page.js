@@ -30,6 +30,43 @@ class Page {
   }
 
   /**
+   * This method returns whether or not the person provided has a given type of
+   * permissions for this page.
+   * @param person {Member|null} - This parameter expects a Member object, or
+   *   at least an object with the same properties. If given something else, it
+   *   will evaluate permissions based on other (world) permissions.
+   * @param level {int} - This parameter defines the type of permission
+   *   requested: 4 to read or 6 to read and write.
+   * @returns {boolean} - Returns `true` if the person given has the type of
+   *   permissions requested, or `false` if she does not.
+   */
+
+  checkPermissions (person, level) {
+    if (this.permissions) {
+      const p = typeof this.permissions === 'string'
+        ? this.permissions
+        : this.permissions.toString()
+      const owner = parseInt(p.charAt(0))
+      const group = parseInt(p.charAt(1))
+      const world = parseInt(p.charAt(2))
+
+      if (person && person.admin) {
+        return true
+      } else if (person && this.owner && person.id === this.owner.id && owner >= level) {
+        return true
+      } else if (person && group >= level) {
+        return true
+      } else if (world >= level) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  }
+
+  /**
    * Creates a new page.
    * @param data {!Object} - An object defining the data for the page. Expected
    *   properties include `path` (for the page's path), `title` (for the page's
@@ -96,7 +133,7 @@ class Page {
     if (id instanceof Page) return id
     if (id) {
       const column = typeof id === 'string' ? 'path' : 'id'
-      const pages = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)};`)
+      const pages = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)} AND p.owner=m.id;`)
       const page = Array.isArray(pages) && pages.length > 0 ? pages[0] : undefined
       if (page) {
         const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${page.id} ORDER BY c.timestamp DESC;`)

@@ -40,6 +40,116 @@ describe('Page', () => {
     })
   })
 
+  describe('checkPermissions', () => {
+    it('returns false if the page doesn\'t have permissions set', async () => {
+      expect.assertions(1)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      delete page.permissions
+      const actual = page.checkPermissions(page.owner, 4)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(false)
+    })
+
+    it('gives 774 access by default', async () => {
+      expect.assertions(6)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const owner = await Member.load(2, db)
+      const ownerCanRead = page.checkPermissions(owner, 4)
+      const ownerCanWrite = page.checkPermissions(owner, 6)
+      const other = await Member.load(3, db)
+      const otherCanRead = page.checkPermissions(other, 4)
+      const otherCanWrite = page.checkPermissions(other, 6)
+      const strangerCanRead = page.checkPermissions(null, 4)
+      const strangerCanWrite = page.checkPermissions(null, 6)
+      await testUtils.resetTables(db)
+
+      expect(ownerCanRead).toEqual(true)
+      expect(ownerCanWrite).toEqual(true)
+      expect(otherCanRead).toEqual(true)
+      expect(otherCanWrite).toEqual(true)
+      expect(strangerCanRead).toEqual(true)
+      expect(strangerCanWrite).toEqual(false)
+    })
+
+    it('is OK with permissions as a string', async () => {
+      expect.assertions(6)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      page.permissions = '774'
+      const owner = await Member.load(2, db)
+      const ownerCanRead = page.checkPermissions(owner, 4)
+      const ownerCanWrite = page.checkPermissions(owner, 6)
+      const other = await Member.load(3, db)
+      const otherCanRead = page.checkPermissions(other, 4)
+      const otherCanWrite = page.checkPermissions(other, 6)
+      const strangerCanRead = page.checkPermissions(null, 4)
+      const strangerCanWrite = page.checkPermissions(null, 6)
+      await testUtils.resetTables(db)
+
+      expect(ownerCanRead).toEqual(true)
+      expect(ownerCanWrite).toEqual(true)
+      expect(otherCanRead).toEqual(true)
+      expect(otherCanWrite).toEqual(true)
+      expect(strangerCanRead).toEqual(true)
+      expect(strangerCanWrite).toEqual(false)
+    })
+
+    it('can completely lock a page', async () => {
+      expect.assertions(6)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      page.permissions = 444
+      const owner = await Member.load(2, db)
+      const ownerCanRead = page.checkPermissions(owner, 4)
+      const ownerCanWrite = page.checkPermissions(owner, 6)
+      const other = await Member.load(3, db)
+      const otherCanRead = page.checkPermissions(other, 4)
+      const otherCanWrite = page.checkPermissions(other, 6)
+      const strangerCanRead = page.checkPermissions(null, 4)
+      const strangerCanWrite = page.checkPermissions(null, 6)
+      await testUtils.resetTables(db)
+
+      expect(ownerCanRead).toEqual(true)
+      expect(ownerCanWrite).toEqual(false)
+      expect(otherCanRead).toEqual(true)
+      expect(otherCanWrite).toEqual(false)
+      expect(strangerCanRead).toEqual(true)
+      expect(strangerCanWrite).toEqual(false)
+    })
+
+    it('can completely hide a page', async () => {
+      expect.assertions(6)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      page.permissions = '000'
+      const owner = await Member.load(2, db)
+      const ownerCanRead = page.checkPermissions(owner, 4)
+      const ownerCanWrite = page.checkPermissions(owner, 6)
+      const other = await Member.load(3, db)
+      const otherCanRead = page.checkPermissions(other, 4)
+      const otherCanWrite = page.checkPermissions(other, 6)
+      const strangerCanRead = page.checkPermissions(null, 4)
+      const strangerCanWrite = page.checkPermissions(null, 6)
+      await testUtils.resetTables(db)
+
+      expect(ownerCanRead).toEqual(false)
+      expect(ownerCanWrite).toEqual(false)
+      expect(otherCanRead).toEqual(false)
+      expect(otherCanWrite).toEqual(false)
+      expect(strangerCanRead).toEqual(false)
+      expect(strangerCanWrite).toEqual(false)
+    })
+
+    it('gives an admin all permissions', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      page.permissions = '000'
+      const admin = await Member.load(1, db)
+      const adminCanRead = page.checkPermissions(admin, 4)
+      const adminCanWrite = page.checkPermissions(admin, 6)
+      await testUtils.resetTables(db)
+      expect(adminCanRead).toEqual(true)
+      expect(adminCanWrite).toEqual(true)
+    })
+  })
+
   describe('create', () => {
     it('adds a page to the database', async () => {
       expect.assertions(4)
@@ -158,7 +268,7 @@ describe('Page', () => {
 
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual('Test Page')
-      expect(page.owner).toEqual({ id: 1, email: 'admin@thefifthworld.com', name: 'Admin' })
+      expect(page.owner).toEqual({ id: 2, email: 'normal@thefifthworld.com', name: 'Normal' })
       expect(page.changes).toHaveLength(1)
       expect(page.changes[0].editor.id).toEqual(2)
       expect(page.changes[0].editor.name).toEqual('Normal')
