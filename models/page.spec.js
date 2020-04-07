@@ -22,6 +22,12 @@ describe('Page', () => {
       expect(actual.type).toEqual(data.type)
     })
 
+    it('copies owner info', () => {
+      const data = { ownerID: 1, ownerEmail: 'admin@thefifthworld.com', ownerName: 'Admin' }
+      const actual = new Page(data)
+      expect(actual.owner).toEqual({ id: data.ownerID, email: data.ownerEmail, name: data.ownerName })
+    })
+
     it('copies changes', () => {
       const data = { id: 1, title: 'Test', description: 'test', slug: 'test', path: '/test', parent: null, type: 'Test' }
       const changes = [
@@ -145,13 +151,14 @@ describe('Page', () => {
 
   describe('get', () => {
     it('fetches a page from the database', async () => {
-      expect.assertions(7)
+      expect.assertions(8)
       await testUtils.createTestPage(Page, Member, db)
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
 
       expect(page).toBeInstanceOf(Page)
       expect(page.title).toEqual('Test Page')
+      expect(page.owner).toEqual({ id: 1, email: 'admin@thefifthworld.com', name: 'Admin' })
       expect(page.changes).toHaveLength(1)
       expect(page.changes[0].editor.id).toEqual(2)
       expect(page.changes[0].editor.name).toEqual('Normal')

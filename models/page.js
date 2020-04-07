@@ -6,11 +6,13 @@ const parseLinks = require('../parser/links')
 
 class Page {
   constructor (page = {}, changes = []) {
-    const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'type', 'depth', 'tags', 'location' ]
+    const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'depth', 'permissions',
+      'type', 'tags', 'location' ]
     toCopy.forEach(key => {
       this[key] = page[key]
     })
 
+    this.owner = { id: page.ownerID, email: page.ownerEmail, name: page.ownerName }
     this.changes = []
 
     changes.forEach(change => {
@@ -94,7 +96,7 @@ class Page {
     if (id instanceof Page) return id
     if (id) {
       const column = typeof id === 'string' ? 'path' : 'id'
-      const pages = await db.run(`SELECT * FROM pages WHERE ${column}=${escape(id)};`)
+      const pages = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)};`)
       const page = Array.isArray(pages) && pages.length > 0 ? pages[0] : undefined
       if (page) {
         const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${page.id} ORDER BY c.timestamp DESC;`)
