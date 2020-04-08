@@ -309,6 +309,88 @@ describe('Page', () => {
     })
   })
 
+  describe('getIfAllowed', () => {
+    it('fetches a page from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const owner = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      const data = { title: 'Test Page', body: 'This is a test', permissions: '774' }
+      const page = await Page.create(data, owner, 'Initial text', db)
+      const adminRequest = await Page.getIfAllowed(page.id, admin, db)
+      const ownerRequest = await Page.getIfAllowed(page.id, owner, db)
+      const otherRequest = await Page.getIfAllowed(page.id, other, db)
+      const strangerRequest = await Page.getIfAllowed(page.id, null, db)
+      await testUtils.resetTables(db)
+
+      expect(adminRequest).toBeInstanceOf(Page)
+      expect(ownerRequest).toBeInstanceOf(Page)
+      expect(otherRequest).toBeInstanceOf(Page)
+      expect(strangerRequest).toBeInstanceOf(Page)
+    })
+
+    it('can restrict strangers', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const owner = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      const data = { title: 'Test Page', body: 'This is a test', permissions: '770' }
+      const page = await Page.create(data, owner, 'Initial text', db)
+      const adminRequest = await Page.getIfAllowed(page.id, admin, db)
+      const ownerRequest = await Page.getIfAllowed(page.id, owner, db)
+      const otherRequest = await Page.getIfAllowed(page.id, other, db)
+      const strangerRequest = await Page.getIfAllowed(page.id, null, db)
+      await testUtils.resetTables(db)
+
+      expect(adminRequest).toBeInstanceOf(Page)
+      expect(ownerRequest).toBeInstanceOf(Page)
+      expect(otherRequest).toBeInstanceOf(Page)
+      expect(strangerRequest).not.toBeInstanceOf(Page)
+    })
+
+    it('can restrict other members', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const owner = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      const data = { title: 'Test Page', body: 'This is a test', permissions: '700' }
+      const page = await Page.create(data, owner, 'Initial text', db)
+      const adminRequest = await Page.getIfAllowed(page.id, admin, db)
+      const ownerRequest = await Page.getIfAllowed(page.id, owner, db)
+      const otherRequest = await Page.getIfAllowed(page.id, other, db)
+      const strangerRequest = await Page.getIfAllowed(page.id, null, db)
+      await testUtils.resetTables(db)
+
+      expect(adminRequest).toBeInstanceOf(Page)
+      expect(ownerRequest).toBeInstanceOf(Page)
+      expect(otherRequest).not.toBeInstanceOf(Page)
+      expect(strangerRequest).not.toBeInstanceOf(Page)
+    })
+
+    it('can restrict the owner, but not an admin', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const admin = await Member.load(1, db)
+      const owner = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      const data = { title: 'Test Page', body: 'This is a test', permissions: '000' }
+      const page = await Page.create(data, owner, 'Initial text', db)
+      const adminRequest = await Page.getIfAllowed(page.id, admin, db)
+      const ownerRequest = await Page.getIfAllowed(page.id, owner, db)
+      const otherRequest = await Page.getIfAllowed(page.id, other, db)
+      const strangerRequest = await Page.getIfAllowed(page.id, null, db)
+      await testUtils.resetTables(db)
+
+      expect(adminRequest).toBeInstanceOf(Page)
+      expect(ownerRequest).not.toBeInstanceOf(Page)
+      expect(otherRequest).not.toBeInstanceOf(Page)
+      expect(strangerRequest).not.toBeInstanceOf(Page)
+    })
+  })
+
   describe('getChildrenOf', () => {
     it('returns an array of the page\'s children', async () => {
       expect.assertions(3)

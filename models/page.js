@@ -42,13 +42,13 @@ class Page {
    */
 
   checkPermissions (person, level) {
-    if (this.permissions) {
+    if (this.permissions !== undefined) {
       const p = typeof this.permissions === 'string'
-        ? this.permissions
-        : this.permissions.toString()
-      const owner = parseInt(p.charAt(0))
-      const group = parseInt(p.charAt(1))
-      const world = parseInt(p.charAt(2))
+        ? this.permissions.padStart(3, '0')
+        : this.permissions.toString().padStart(3, '0')
+      const owner = parseInt(p.charAt(0)) || 0
+      const group = parseInt(p.charAt(1)) || 0
+      const world = parseInt(p.charAt(2)) || 0
 
       if (person && person.admin) {
         return true
@@ -147,6 +147,25 @@ class Page {
       }
     }
     return undefined
+  }
+
+  /**
+   * Returns a page from the database if the requester has read permission
+   * for it.
+   * @param id {!int|string|Page} - The ID or the path of a page, or a Page
+   *   instance (in which case, it simply returns the page). This allows the
+   *   method to take a wide range of identifiers and reliably return the
+   *   correct object.
+   * @param requester {!Member} - The person asking for the page.
+   * @param db {!Pool} - A database connection.
+   * @returns {Promise} - A promise that resolves with the Page object if it
+   *   can be found, or `undefined` if it could not be found, or if the
+   *   requester doesn't have permission for it.
+   */
+
+  static async getIfAllowed (id, requester, db) {
+    const page = await Page.get(id, db)
+    return page.checkPermissions(requester, 4) ? page : undefined
   }
 
   /**
