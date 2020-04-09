@@ -12,6 +12,15 @@ class History {
     }))
     this.changes.reverse()
   }
+
+  /**
+   * Return the content as of the most recent change.
+   * @returns {Object} - The content object.
+   */
+
+  getContent () {
+    return this.changes[0].content
+  }
 }
 
 module.exports = History

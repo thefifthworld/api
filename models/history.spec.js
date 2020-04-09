@@ -27,4 +27,16 @@ describe('History', () => {
       expect(actual.changes[1].id).toEqual(changes[0].id)
     })
   })
+
+  describe('getContent', () => {
+    it('returns the most recent content', () => {
+      const changes = [
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": false }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": true }', editorName: 'Tester', editorID: 1 }
+      ]
+      const history = new History(changes)
+      const actual = history.getContent()
+      expect(actual.test).toEqual(true)
+    })
+  })
 })
