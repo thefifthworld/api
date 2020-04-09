@@ -1,8 +1,15 @@
-/* global describe, it, expect */
+/* global describe, it, expect, afterAll */
+
+const db = require('../db')
+const testUtils = require('../test-utils')
 
 const History = require('./history')
+const Member = require('./member')
+const Page = require('./page')
 
 describe('History', () => {
+  afterAll(() => { db.end() })
+
   describe('constructor', () => {
     it('saves changes', () => {
       const changes = [
@@ -37,6 +44,21 @@ describe('History', () => {
       const history = new History(changes)
       const actual = history.getContent()
       expect(actual.test).toEqual(true)
+    })
+  })
+
+  describe('addChange', () => {
+    it('adds a change', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const history = new History([])
+      const update = { title: 'Updated page', body: 'This has been updated!' }
+      await history.addChange(page.id, editor, 'Test change', update, db)
+      const check = await db.run(`SELECT id FROM changes WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(history.changes).toHaveLength(1)
+      expect(check).toHaveLength(2)
     })
   })
 })
