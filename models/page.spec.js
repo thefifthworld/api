@@ -31,12 +31,12 @@ describe('Page', () => {
     it('copies changes', () => {
       const data = { id: 1, title: 'Test', description: 'test', slug: 'test', path: '/test', parent: null, type: 'Test' }
       const changes = [
-        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{}', editor: { name: 'Tester', id: 1 } },
-        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{}', editor: { name: 'Tester', id: 1 } }
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{}', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{}', editorName: 'Tester', editorID: 1 },
       ]
       const actual = new Page(data, changes)
-      expect(actual.changes[0].id).toEqual(2)
-      expect(actual.changes[1].id).toEqual(1)
+      expect(actual.history.changes[0].id).toEqual(2)
+      expect(actual.history.changes[1].id).toEqual(1)
     })
   })
 

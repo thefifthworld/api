@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const History = require('./history')
 const TagHandler = require('./taghandler')
 const LocationHandler = require('./locationHandler')
 const parseTags = require('../parser/tags')
@@ -13,20 +14,7 @@ class Page {
     })
 
     this.owner = { id: page.ownerID, email: page.ownerEmail, name: page.ownerName }
-    this.changes = []
-
-    changes.forEach(change => {
-      this.changes.unshift({
-        id: change.id,
-        timestamp: new Date(change.timestamp * 1000),
-        msg: change.msg,
-        content: JSON.parse(change.json),
-        editor: {
-          name: change.editorName ? change.editorName : change.editorEmail ? change.editorEmail : `Member #${change.editorID}`,
-          id: change.editorID
-        }
-      })
-    })
+    this.history = new History(changes)
   }
 
   /**
