@@ -7,6 +7,8 @@ const Page = require('../models/page')
 const parsePlainText = require('./plain')
 
 describe('parsePlainText', () => {
+  afterAll(() => { db.end() })
+
   it('returns plain text', () => {
     const actual = parsePlainText('*Hello* **[world](https://thefifthworld.com)**')
     expect(actual).toEqual('Hello world\n')
