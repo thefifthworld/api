@@ -490,4 +490,26 @@ describe('Page', () => {
       expect(actual).toEqual(expected)
     })
   })
+
+  describe('getDescription', () => {
+    it('returns the default if not given a string', () => {
+      const actual = Page.getDescription()
+      expect(actual).toEqual('Four hundred years from now, humanity thrives beyond civilization.')
+    })
+
+    it('returns the string if it\'s less than the cutoff.', () => {
+      const actual = Page.getDescription('This is less than 150 characters.')
+      expect(actual).toEqual('This is less than 150 characters.')
+    })
+
+    it('returns as many sentences as will fit in the cutoff', () => {
+      const actual = Page.getDescription('We might have a short sentence. We might have two short sentences, even. But a third one that goes past the runoff won\'t make the cut, so that we can make a description entirely out of complete sentences.')
+      expect(actual).toEqual('We might have a short sentence. We might have two short sentences, even.')
+    })
+
+    it('returns as many words as will fit in the cutoff', () => {
+      const actual = Page.getDescription('If the very first sentence is rather long, such that it contains more characters than will fit within the designated cutoff, then we\'ll instead find as many full words as we can fit inside of that cutoff and return those.')
+      expect(actual).toEqual('If the very first sentence is rather long, such that it contains more characters than will fit within the designated cutoff, then we\'ll instead find…')
+    })
+  })
 })

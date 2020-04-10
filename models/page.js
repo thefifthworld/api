@@ -4,6 +4,7 @@ const TagHandler = require('./taghandler')
 const LocationHandler = require('./locationHandler')
 const parseTags = require('../parser/tags')
 const parseLinks = require('../parser/links')
+const parsePlainText = require('../parser/plain')
 
 class Page {
   constructor (page = {}, changes = []) {
@@ -137,7 +138,7 @@ class Page {
       const links = await parseLinks(data.body, db)
       this.links = links.linkHandler
       this.depth = parent ? parent.depth + 1 : 0
-      this.description = data.description || '' // TODO: Parse a better description
+      this.description = data.description || Page.getDescription(data.body)
       this.image = data.image
       this.header = data.header
       this.permissions = data.permissions || 774
@@ -328,6 +329,56 @@ class Page {
       .replace(/\-\-+/g, '-')
       .replace(/^-+/, '')
       .replace(/-+$/, '')
+  }
+
+  static getDescription (str) {
+    // Google truncates descriptions to ~155-160 characters, so we want to make
+    // a description that uses all the complete sentences that will fit into
+    // that space.
+    const cutoff = 150
+    const safe = str || ''
+    const txt = parsePlainText(safe)
+    if (!txt || txt.length === 0) {
+      // Things have gone wrong in a completely unexpected way. Return our
+      // default description.
+      return 'Four hundred years from now, humanity thrives beyond civilization.'
+    } else if (txt.length < cutoff) {
+      return txt.trim()
+    } else {
+      const sentences = txt.match(/[^\.!\?]+[\.!\?]+/g)
+      let desc = sentences[0]
+      let i = 1
+      let ready = false
+      if (desc.length < cutoff) {
+        // The first sentence is not as long as the cutoff. How many sentences
+        // can we add before we reach that limit?
+        while (!ready) {
+          const candidate = sentences.length > i ? `${desc.trim()} ${sentences[i].trim()}` : null
+          if (!candidate || (candidate.length > cutoff) || (i === sentences.length - 1)) {
+            ready = true
+          } else {
+            desc = candidate
+            i++
+          }
+        }
+      } else {
+        // The first sentence is already beyond the cutoff, so let's truncate
+        // it at the cutoff.
+        const words = desc.split(' ')
+        desc = words[0]
+        while (!ready) {
+          const candidate = words.length > i ? `${desc.trim()} ${words[i].trim()}` : null
+          if (!candidate || (candidate.length > cutoff - 1) || (i === words.length - 1)) {
+            ready = true
+          } else {
+            desc = candidate
+            i++
+          }
+        }
+        desc = `${desc}…`
+      }
+      return desc.trim()
+    }
   }
 }
 
