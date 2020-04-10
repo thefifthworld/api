@@ -69,8 +69,7 @@ class Page {
 
   async insert (data, editor, msg = 'Initial text', db) {
     try {
-      const pid = this.parent ? this.parent.id : null
-      const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(this.slug)}, ${escape(this.path)}, ${pid}, ${escape(this.type)}, ${escape(this.title)}, ${escape(this.description)}, ${escape(this.image)}, ${escape(this.header)}, ${this.permissions}, ${editor.id}, ${this.depth});`)
+      const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(this.slug)}, ${escape(this.path)}, ${this.parent}, ${escape(this.type)}, ${escape(this.title)}, ${escape(this.description)}, ${escape(this.image)}, ${escape(this.header)}, ${this.permissions}, ${editor.id}, ${this.depth});`)
       this.id = res.insertId
       this.saved = true
       await this.history.addChange(this.id, editor, msg, data, db)
@@ -93,8 +92,7 @@ class Page {
   async update (data, editor, msg, db) {
     if (this.saved && this.id) {
       try {
-        const pid = this.parent ? this.parent.id : null
-        await db.run(`UPDATE pages SET slug=${escape(this.slug)}, path=${escape(this.path)}, parent=${pid}, type=${escape(this.type)}, title=${escape(this.title)}, description=${escape(this.description)}, image=${escape(this.image)}, header=${escape(this.header)}, permissions=${this.permissions}, depth=${this.depth} WHERE id=${this.id};`)
+        await db.run(`UPDATE pages SET slug=${escape(this.slug)}, path=${escape(this.path)}, parent=${this.parent}, type=${escape(this.type)}, title=${escape(this.title)}, description=${escape(this.description)}, image=${escape(this.image)}, header=${escape(this.header)}, permissions=${this.permissions}, depth=${this.depth} WHERE id=${this.id};`)
         await this.history.addChange(this.id, editor, msg, data, db)
       } catch (err) {
         throw err
@@ -131,8 +129,9 @@ class Page {
     } else if (Page.isReservedTemplate(type, title)) {
       throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
     } else {
-      const assign = { title, slug, parent, path, type }
+      const assign = { title, slug, path, type }
       Object.keys(assign).forEach(key => { this[key] = assign[key] })
+      this.parent = parent && parent.id ? parent.id : 0
       this.tags = tagHandler
       this.location = locationHandler
       const links = await parseLinks(data.body, db)

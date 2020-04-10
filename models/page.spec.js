@@ -237,7 +237,7 @@ describe('Page', () => {
       cdata.parent = parent.path
       const child = await Page.create(cdata, editor, 'Initial text', db)
       await testUtils.resetTables(db)
-      expect(child.parent.id).toEqual(parent.id)
+      expect(child.parent).toEqual(parent.id)
       expect(child.depth).toEqual(1)
       expect(child.path).toEqual('/parent/child')
     })
