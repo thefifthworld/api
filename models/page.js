@@ -155,6 +155,23 @@ class Page {
   }
 
   /**
+   * Return an array of the page's ancestors.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<Page[]>} - A Promise that resolves with an array of the
+   *   page's ancestors, from its most distant ancestor to its direct parent.
+   */
+
+  async getLineage (db) {
+    if (this.parent === 0) {
+      return []
+    } else {
+      const parent = await Page.get(this.parent, db)
+      const ancestors = await parent.getLineage(db)
+      return [ ...ancestors, parent ]
+    }
+  }
+
+  /**
    * Creates a new page.
    * @param data {!Object} - An object defining the data for the page. Expected
    *   properties include `path` (for the page's path), `title` (for the page's

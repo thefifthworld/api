@@ -181,6 +181,22 @@ describe('Page', () => {
     })
   })
 
+  describe('getLineage', () => {
+    it('returns the page\'s ancestors', async () => {
+      expect.assertions(1)
+      const grandparent = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const parent = await Page.create({ title: 'Child Page', body: 'This is a child.', parent: grandparent.id }, editor, 'Initial text', db)
+      const child = await Page.create({ title: 'Grandchild Page', body: 'This is a grandchild.', parent: parent.id }, editor, 'Initial text', db)
+      const lineage = await child.getLineage(db)
+      const transform = p => ({ id: p.id, title: p.title })
+      const actual = lineage.map(transform)
+      const expected = [ grandparent, parent ].map(transform)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(expected)
+    })
+  })
+
   describe('create', () => {
     it('adds a page to the database', async () => {
       expect.assertions(4)
