@@ -17,11 +17,28 @@ class History {
 
   /**
    * Return the content as of the most recent change.
-   * @returns {Object} - The content object.
+   * @returns {Object|false} - The content object, or `false` if something has
+   *   gone wrong.
    */
 
   getContent () {
-    return this.changes[0].content
+    const hasChanges = Array.isArray(this.changes) && this.changes.length > 0
+    return hasChanges && this.changes[0].content
+      ? this.changes[0].content
+      : false
+  }
+
+  /**
+   * Returns the current body of the page.
+   * @returns {string|false} - The current body of the page, or `false` if it
+   *   could not be found.
+   */
+
+  getBody () {
+    const hasChanges = Array.isArray(this.changes) && this.changes.length > 0
+    const hasContent = hasChanges && this.changes[0].content
+    const hasBody = hasContent && this.changes[0].content.body && typeof this.changes[0].content.body === 'string'
+    return hasBody ? this.changes[0].content.body : false
   }
 
   /**

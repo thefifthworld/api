@@ -47,6 +47,18 @@ describe('History', () => {
     })
   })
 
+  describe('getBody', () => {
+    it('returns the most recent body of the page', () => {
+      const changes = [
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "First it was this." }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "And then it was this." }', editorName: 'Tester', editorID: 1 }
+      ]
+      const history = new History(changes)
+      const actual = history.getBody()
+      expect(actual).toEqual('And then it was this.')
+    })
+  })
+
   describe('addChange', () => {
     it('adds a change', async () => {
       expect.assertions(2)
