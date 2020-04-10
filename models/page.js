@@ -15,6 +15,7 @@ class Page {
 
     this.owner = { id: page.ownerID, email: page.ownerEmail, name: page.ownerName }
     this.history = new History(changes)
+    this.saved = false
   }
 
   /**
@@ -55,6 +56,105 @@ class Page {
   }
 
   /**
+   * Insert a record for this page into the database.
+   * @param data {!Object} - An object with the content of the page.
+   * @param editor {!{ id: number, name: string }} - An object with information
+   *   about the member who is creating the page.
+   * @param msg {string=} - A commit message (Default: `Initial text`).
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the page's record
+   *   has been created in the database.
+   */
+
+  async insert (data, editor, msg = 'Initial text', db) {
+    try {
+      const pid = this.parent ? this.parent.id : null
+      const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(this.slug)}, ${escape(this.path)}, ${pid}, ${escape(this.type)}, ${escape(this.title)}, ${escape(this.description)}, ${escape(this.image)}, ${escape(this.header)}, ${this.permissions}, ${editor.id}, ${this.depth});`)
+      this.id = res.insertId
+      this.saved = true
+      await this.history.addChange(this.id, editor, msg, data, db)
+    } catch (err) {
+      throw err
+    }
+  }
+
+  /**
+   * Save an update to a page.
+   * @param data {!Object} - An object with the changes to make to the page.
+   * @param editor {!{ id: number, name: string }} - An object with information
+   *   about the member who is creating the page.
+   * @param msg {?string} - A commit message describing the change to make.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the page's record
+   *   has been created in the database.
+   */
+
+  async update (data, editor, msg, db) {
+    if (this.saved && this.id) {
+      try {
+        const pid = this.parent ? this.parent.id : null
+        await db.run(`UPDATE pages SET slug=${escape(this.slug)}, path=${escape(this.path)}, parent=${pid}, type=${escape(this.type)}, title=${escape(this.title)}, description=${escape(this.description)}, image=${escape(this.image)}, header=${escape(this.header)}, permissions=${this.permissions}, depth=${this.depth} WHERE id=${this.id};`)
+        await this.history.addChange(this.id, editor, msg, data, db)
+      } catch (err) {
+        throw err
+      }
+    }
+  }
+
+  /**
+   * Save the current state of the page to the database.
+   * @param data {!Object} - An object representing the changes to make.
+   * @param editor {!{ id: number, name: string }} - An object representing the
+   *   member making the change, including her primary key (`id`) and name
+   *   (`string`).
+   * @param msg {?string} - A commit message.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the changes have
+   *   been made and saved to the database.
+   */
+
+  async save (data, editor, msg, db) {
+    const tagHandler = parseTags(data.body).tagHandler
+    const locationHandler = tagHandler && Object.keys(tagHandler.tags).includes('location')
+      ? new LocationHandler(tagHandler.get('location', true).split(',').map(el => el.trim()))
+      : undefined
+
+    const title = data.title || ''
+    const slug = data.slug || Page.slugify(title)
+    const parent = data.parent ? await Page.get(data.parent, db) : null
+    const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
+    const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
+
+    if (Page.isReservedPath(path)) {
+      throw new Error(`We reserve ${path} for internal use.`)
+    } else if (Page.isReservedTemplate(type, title)) {
+      throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
+    } else {
+      const assign = { title, slug, parent, path, type }
+      Object.keys(assign).forEach(key => { this[key] = assign[key] })
+      this.tags = tagHandler
+      this.location = locationHandler
+      const links = await parseLinks(data.body, db)
+      this.links = links.linkHandler
+      this.depth = parent ? parent.depth + 1 : 0
+      this.description = data.description || '' // TODO: Parse a better description
+      this.image = data.image
+      this.header = data.header
+      this.permissions = data.permissions || 774
+
+      if (!this.saved) {
+        await this.insert(data, editor, msg, db)
+      } else {
+        await this.update(data, editor, msg, db)
+      }
+
+      if (this.location) await this.location.save(this.id, db)
+      if (this.tags) await this.tags.save(this.id, db)
+      if (this.links) await this.links.save(this.id, db)
+    }
+  }
+
+  /**
    * Creates a new page.
    * @param data {!Object} - An object defining the data for the page. Expected
    *   properties include `path` (for the page's path), `title` (for the page's
@@ -68,42 +168,9 @@ class Page {
    */
 
   static async create (data, editor, msg, db) {
-    const tagHandler = parseTags(data.body).tagHandler
-    const locationHandler = tagHandler && Object.keys(tagHandler.tags).includes('location')
-      ? new LocationHandler(tagHandler.get('location', true).split(',').map(el => el.trim()))
-      : undefined
-    const links = await parseLinks(data.body, db)
-    const { linkHandler } = links
-
-    const title = data.title || ''
-    const slug = data.slug || Page.slugify(title)
-    const parent = data.parent ? await Page.get(data.parent, db) : null
-    const pid = parent ? parent.id : 0
-    const depth = parent ? parent.depth + 1 : 0
-    const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
-    const description = data.description || '' // TODO: Parse a better description
-    const image = data.image
-    const header = data.header
-    const permissions = data.permissions || 774
-    const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
-
-    if (Page.isReservedPath(path)) {
-      throw new Error(`We reserve ${path} for internal use.`)
-    } else if (Page.isReservedTemplate(type, title)) {
-      throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
-    } else {
-      try {
-        const res = await db.run(`INSERT INTO pages (slug, path, parent, type, title, description, image, header, permissions, owner, depth) VALUES (${escape(slug)}, ${escape(path)}, ${pid}, ${escape(type)}, ${escape(title)}, ${escape(description)}, ${escape(image)}, ${escape(header)}, ${permissions}, ${editor.id}, ${depth});`)
-        const id = res.insertId
-        await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${Math.floor(Date.now() / 1000)}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
-        if (locationHandler) await locationHandler.save(id, db)
-        if (tagHandler) await tagHandler.save(id, db)
-        if (linkHandler) await linkHandler.save(id, db)
-        return Page.get(id, db)
-      } catch (err) {
-        throw err
-      }
-    }
+    const page = new Page()
+    await page.save(data, editor, msg, db)
+    return page
   }
 
   /**
@@ -121,17 +188,19 @@ class Page {
     if (id instanceof Page) return id
     if (id) {
       const column = typeof id === 'string' ? 'path' : 'id'
-      const pages = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)} AND p.owner=m.id;`)
-      const page = Array.isArray(pages) && pages.length > 0 ? pages[0] : undefined
-      if (page) {
-        const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${page.id} ORDER BY c.timestamp DESC;`)
+      const rows = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)} AND p.owner=m.id;`)
+      const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : undefined
+      if (row) {
+        const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${row.id} ORDER BY c.timestamp DESC;`)
         changes.reverse()
-        page.location = await LocationHandler.load(page.id, db)
-        const tagHandler = await TagHandler.load(page.id, db)
-        page.tags = tagHandler.tags
+        row.location = await LocationHandler.load(row.id, db)
+        const tagHandler = await TagHandler.load(row.id, db)
+        row.tags = tagHandler.tags
         // TODO: Fetch file data
         // TODO: Fetch likes
-        return new Page(page, changes)
+        const page = new Page(row, changes)
+        page.saved = true
+        return page
       }
     }
     return undefined

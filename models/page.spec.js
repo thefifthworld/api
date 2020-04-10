@@ -150,6 +150,37 @@ describe('Page', () => {
     })
   })
 
+  describe('save', () => {
+    it('inserts a record to the database', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Initial text', db)
+      const pagesCheck = await db.run(`SELECT id FROM pages WHERE id=${page.id};`)
+      const changesCheck = await db.run(`SELECT id FROM changes WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(page.saved).toEqual(true)
+      expect(pagesCheck).toHaveLength(1)
+      expect(changesCheck).toHaveLength(1)
+    })
+
+    it('updates a record in the database', async () => {
+      expect.assertions(4)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      await page.save({ body: 'This is an updated body.' }, editor, 'Test update', db)
+      const pagesCheck = await db.run(`SELECT id FROM pages WHERE id=${page.id};`)
+      const changesCheck = await db.run(`SELECT id FROM changes WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(page.saved).toEqual(true)
+      expect(page.history.getContent().body).toEqual('This is an updated body.')
+      expect(pagesCheck).toHaveLength(1)
+      expect(changesCheck).toHaveLength(2)
+    })
+  })
+
   describe('create', () => {
     it('adds a page to the database', async () => {
       expect.assertions(4)
@@ -206,7 +237,7 @@ describe('Page', () => {
       cdata.parent = parent.path
       const child = await Page.create(cdata, editor, 'Initial text', db)
       await testUtils.resetTables(db)
-      expect(child.parent).toEqual(parent.id)
+      expect(child.parent.id).toEqual(parent.id)
       expect(child.depth).toEqual(1)
       expect(child.path).toEqual('/parent/child')
     })
@@ -261,19 +292,20 @@ describe('Page', () => {
 
   describe('get', () => {
     it('fetches a page from the database', async () => {
-      expect.assertions(8)
+      expect.assertions(9)
       await testUtils.createTestPage(Page, Member, db)
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
 
       expect(page).toBeInstanceOf(Page)
+      expect(page.saved).toEqual(true)
       expect(page.title).toEqual('Test Page')
       expect(page.owner).toEqual({ id: 2, email: 'normal@thefifthworld.com', name: 'Normal' })
-      expect(page.changes).toHaveLength(1)
-      expect(page.changes[0].editor.id).toEqual(2)
-      expect(page.changes[0].editor.name).toEqual('Normal')
-      expect(page.changes[0].msg).toEqual('Initial text')
-      expect(page.changes[0].content.body).toEqual('This is a test page.')
+      expect(page.history.changes).toHaveLength(1)
+      expect(page.history.changes[0].editor.id).toEqual(2)
+      expect(page.history.changes[0].editor.name).toEqual('Normal')
+      expect(page.history.changes[0].msg).toEqual('Initial text')
+      expect(page.history.changes[0].content.body).toEqual('This is a test page.')
     })
 
     it('can fetch by path', async () => {
