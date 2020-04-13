@@ -1,6 +1,24 @@
 const basicAuth = require('basic-auth')
 const Member = require('./models/member')
+const Page = require('./models/page')
 const db = require('./db')
+
+/**
+ * Prompt HTTP basic authentication.
+ * @param req {!Object} - The Express.js request object.
+ * @returns {Promise<boolean|number>} - A Promise that resolves with the
+ *   primary key of the member if she successfully authenticated, or `false` if
+ *   she did not.
+ */
+
+const promptAuth = async req => {
+  const auth = basicAuth(req)
+  if (auth && auth.name && auth.pass) {
+    return await Member.authenticate(auth.name, auth.pass, db)
+  } else {
+    return false
+  }
+}
 
 /**
  * Express Middleware for requiring authentication.
@@ -14,16 +32,52 @@ const db = require('./db')
  */
 
 const requireLogIn = async (req, res, next) => {
-  const auth = basicAuth(req)
-  if (auth && auth.name && auth.pass) {
-    const id = await Member.authenticate(auth.name, auth.pass, db)
-    if (id) req.user = await Member.load(id, db)
+  const id = await promptAuth(req)
+  if (id) {
+    req.user = await Member.load(id, db)
     next()
   } else {
     res.sendStatus(401)
   }
 }
 
+/**
+ * Middleware that adds the requested page to `req.page`. If that page's
+ * permissions only give read access to a logged-in user, it prompts for basic
+ * authentication and only loads the page if the logged-in member has read
+ * permission for the page.
+ * @param req {!Object} - The Express.js request object.
+ * @param res {!Object} - The Express.js response object.
+ * @param {function} - The Express next middleware function.
+ * @returns {Promise<void>} - A Promise that resolves when the page has been
+ *   loaded and permissions have been sorted out.
+ */
+
+const loadPage = async (req, res, next) => {
+  const query = req.originalUrl.split('?')
+  const page = await Page.get(query[0].substr(6), db)
+  if (page && page.checkPermissions(req.user, 4)) {
+    req.page = page
+    next()
+  } else if (page) {
+    const id = await promptAuth(req)
+    if (id) {
+      req.user = await Member.load(id, db)
+      if (page.checkPermissions(req.user, 4)) {
+        req.page = page
+        next()
+      } else {
+        res.sendStatus(401)
+      }
+    } else {
+      res.sendStatus(401)
+    }
+  } else {
+    res.sendStatus(404)
+  }
+}
+
 module.exports = {
-  requireLogIn
+  requireLogIn,
+  loadPage
 }
