@@ -33,6 +33,30 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /pages', () => {
+    it('creates a page', async () => {
+      expect.assertions(6)
+      const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
+      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const check = await db.run(`SELECT title FROM pages WHERE id=${res.body.id};`)
+      expect(res.status).toEqual(200)
+      expect(res.body.path).toEqual('/new-page')
+      expect(res.body.title).toEqual('New Page')
+      expect(res.body.history.changes).toHaveLength(1)
+      expect(check).toHaveLength(1)
+      expect(check[0].title).toEqual(res.body.title)
+    })
+
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(2)
+      const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
+      const res = await request.post('/pages').send(data)
+      const check = await db.run(`SELECT title FROM pages WHERE path='/new-page';`)
+      expect(res.status).toEqual(401)
+      expect(check).toHaveLength(0)
+    })
+  })
+
   describe('GET /pages/*', () => {
     it('returns 200', async () => {
       expect.assertions(4)
