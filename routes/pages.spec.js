@@ -57,6 +57,44 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /pages/*', () => {
+    it('updates a page', async () => {
+      expect.assertions(9)
+      const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing update' }
+      const res = await request.post('/pages/test-page').auth('normal@thefifthworld.com', 'password').send(data)
+      const check = await Page.get(res.body.id, db)
+      const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
+        ? res.body.history.changes[0].content.body
+        : false
+
+      expect(res.status).toEqual(200)
+      expect(actual).not.toEqual(false)
+      expect(res.body.path).toEqual('/test-page')
+      expect(res.body.title).toEqual('Test Page')
+      expect(res.body.history.changes).toHaveLength(2)
+      expect(actual).toEqual(data.body)
+      expect(check).toBeInstanceOf(Page)
+      expect(check.history.getBody()).toEqual(data.body)
+      expect(check.title).toEqual(res.body.title)
+    })
+
+    it('returns 401 if you don\'t have permission', async () => {
+      expect.assertions(4)
+      await request.post('/pages/test-page').auth('normal@thefifthworld.com', 'password').send({ title: 'Test PAge', body: 'This is a test page.', msg: 'Locking out other editors', permissions: 700 })
+      const update = { title: 'Test Page', body: 'This is an update.', msg: 'Locking out other editors' }
+      const res = await request.post('/pages/test-page').auth('other@thefifthworld.com', 'password').send(update)
+      const check = await Page.get('/test-page', db)
+      const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
+        ? res.body.history.changes[0].content.body
+        : false
+
+      expect(res.status).toEqual(401)
+      expect(actual).not.toEqual(update.body)
+      expect(check).toBeInstanceOf(Page)
+      expect(check.history.getBody()).not.toEqual(update.body)
+    })
+  })
+
   describe('GET /pages/*', () => {
     it('returns 200', async () => {
       expect.assertions(4)

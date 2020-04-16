@@ -14,6 +14,18 @@ pages.post('/pages', requireLogIn, async (req, res) => {
   }
 })
 
+// POST /pages/*
+pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
+  if (req.page && req.page.checkPermissions(req.user, 6)) {
+    await req.page.save(req.body, req.user, req.body.msg, db)
+    res.status(200).json(req.page)
+  } else if (req.page) {
+    res.sendStatus(401)
+  } else {
+    res.sendStatus(404)
+  }
+})
+
 // GET /pages/*
 pages.get('/pages/*', loadPage, async (req, res) => {
   res.status(200).json(req.page)

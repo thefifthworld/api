@@ -12,7 +12,6 @@ class History {
         id: change.editorID
       }
     }))
-    this.changes.reverse()
   }
 
   /**

@@ -347,6 +347,14 @@ class Page {
       .replace(/-+$/, '')
   }
 
+  /**
+   * Return a description from a given string.
+   * @param str {string} - The string to use to derive a description.
+   * @returns {string} - A description derived from this string, by returning
+   *   the first `cutoff` characters, trying to return full sentences or at
+   *   least full words.
+   */
+
   static getDescription (str) {
     // Google truncates descriptions to ~155-160 characters, so we want to make
     // a description that uses all the complete sentences that will fit into
