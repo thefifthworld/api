@@ -274,6 +274,39 @@ class Page {
   }
 
   /**
+   * Find pages that match a query.
+   * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
+   *   ?logic: string }} - An object representing the query being made.
+   *   - `path` finds any pages that begin with that string.
+   *   - `title` finds any pages that match that regex.
+   *   - `type` finds any pages that match the given type.
+   *   - `tags` finds any pages that have the tags (using key-value pairs).
+   *   - `logic` can be either `and` or `or`, setting the query to either
+   *       return any page that matches any of these criteria (`or`) or
+   *       all of them (`and`). (Default: `and`)
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Page[]>} - A Promise that resolves with an array of
+   *   pages that match your query.
+   */
+
+  static async find (query, db) {
+    const pages = []
+    const conditions = []
+    if (query.path) { conditions.push(`p.path LIKE ${escape(`${query.path}%`)}`) }
+    if (query.title) { conditions.push(`p.title LIKE ${escape(`%${query.title}%`)}`) }
+    if (query.type) { conditions.push(`p.type=${escape(query.type)}`) }
+    if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
+    const logic = query.logic === 'or' ? ' OR ' : ' AND '
+    const clause = conditions.join(logic)
+    const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
+    for (let row of rows) {
+      const page = await Page.get(row.id, db)
+      pages.push(page)
+    }
+    return pages
+  }
+
+  /**
    * If passed the type and title to be used when saving a page, this method
    * returns `false` if the page is not a template or if it is a template with
    * a valid name (one that is not the name of an internal template). It will

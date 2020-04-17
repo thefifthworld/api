@@ -475,6 +475,73 @@ describe('Page', () => {
     })
   })
 
+  describe('find', () => {
+    it('returns pages that start with the given path', async () => {
+      expect.assertions(5)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page.', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ path: '/test-page' }, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(found).toHaveLength(2)
+      expect(found[0]).toBeInstanceOf(Page)
+      expect(found[1]).toBeInstanceOf(Page)
+      expect(actual).toContain(t1.id)
+      expect(actual).toContain(t2.id)
+    })
+
+    it('returns pages that match part of the title query', async () => {
+      expect.assertions(3)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page.', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ title: 'Page' }, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+      expect(actual).toContain(t1.id)
+      expect(actual).toContain(t2.id)
+    })
+
+    it('returns pages of the given type', async () => {
+      expect.assertions(2)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page. [[Type: Test]]', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ type: 'Test' }, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual).toContain(t2.id)
+    })
+
+    it('returns pages that match a given tag', async () => {
+      expect.assertions(2)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page. [[Test: true]]', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ tags: { Test: 'true' } }, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual).toContain(t2.id)
+    })
+
+    it('can perform an OR search', async () => {
+      expect.assertions(3)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page.', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ path: '/test-page/child-page', title: 'Test Page', logic: 'or' }, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+      expect(actual).toContain(t1.id)
+      expect(actual).toContain(t2.id)
+    })
+  })
+
   describe('isReservedTemplate', () => {
     it('returns false if the type is not a template', () => {
       expect(Page.isReservedTemplate('NotTemplate', 'Test')).toEqual(false)
