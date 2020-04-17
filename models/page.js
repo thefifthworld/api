@@ -284,12 +284,13 @@ class Page {
    *   - `logic` can be either `and` or `or`, setting the query to either
    *       return any page that matches any of these criteria (`or`) or
    *       all of them (`and`). (Default: `and`)
+   * @param searcher {?Member} - The person who is searching.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of
    *   pages that match your query.
    */
 
-  static async find (query, db) {
+  static async find (query, searcher, db) {
     const pages = []
     const conditions = []
     if (query.path) { conditions.push(`p.path LIKE ${escape(`${query.path}%`)}`) }
@@ -301,7 +302,7 @@ class Page {
     const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
     for (let row of rows) {
       const page = await Page.get(row.id, db)
-      pages.push(page)
+      if (page.checkPermissions(searcher, 4)) pages.push(page)
     }
     return pages
   }
