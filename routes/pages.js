@@ -41,4 +41,15 @@ pages.get('/pages/*', loadPage, async (req, res) => {
   res.status(200).json(req.page)
 })
 
+// GET /near/:lat/:lon/:dist*?
+pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
+  const { lat, lon, dist } = req.params
+  if (lat && lon) {
+    const pages = await Page.placesNear([ lat, lon ], dist, req.user, db)
+    res.status(200).json(pages)
+  } else {
+    res.sendStatus(500)
+  }
+})
+
 module.exports = pages

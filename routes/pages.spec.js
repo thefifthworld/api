@@ -131,4 +131,28 @@ describe('Pages API', () => {
       expect(res.status).toEqual(401)
     })
   })
+
+  describe('GET /near/:lat/:lon/:dist*?', () => {
+    it('returns places near a point', async () => {
+      expect.assertions(10)
+      const point = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'The Point', body: '[[Location:40.441800, -80.012772]]', msg: 'Initial text' })
+      const myland = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Three Myland', body: '[[Location:40.154507, -76.724877]]', msg: 'Initial text' })
+      const tower = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'The Steel Tower', body: '[[Location:40.441399, -79.994673]]', permissions: 700, msg: 'Initial text' })
+      const r1 = await request.get('/near/40.440667/-80.002583')
+      const r2 = await request.get('/near/40.440667/-80.002583/400000')
+      const distDefault = r1.body.map(p => p.id)
+      const dist400km = r2.body.map(p => p.id)
+
+      expect(r1.status).toEqual(200)
+      expect(r2.status).toEqual(200)
+      expect(distDefault).toHaveLength(1)
+      expect(distDefault).toContain(point.body.id)
+      expect(distDefault).not.toContain(myland.body.id)
+      expect(distDefault).not.toContain(tower.body.id)
+      expect(dist400km).toHaveLength(2)
+      expect(dist400km).toContain(point.body.id)
+      expect(dist400km).toContain(myland.body.id)
+      expect(dist400km).not.toContain(tower.body.id)
+    })
+  })
 })
