@@ -42,6 +42,23 @@ const requireLogIn = async (req, res, next) => {
 }
 
 /**
+ * Express Middleware to allow for authentication.
+ * @param req {!Object} - The Express request object.
+ * @param res {!Object} - The Express response object.
+ * @param next {function} - The Express next middleware function.
+ * @returns {Promise<void>} - A Promise that resolves once the username and
+ *   password provided by Basic Auth have been authenticated or rejected. If
+ *   the credentials provided can be authenticated, the matching Member account
+ *   is loaded into `req.user`.
+ */
+
+const optionalLogIn = async (req, res, next) => {
+  const id = await promptAuth(req)
+  if (id) req.user = await Member.load(id, db)
+  next()
+}
+
+/**
  * Middleware that adds the requested page to `req.page`. If that page's
  * permissions only give read access to a logged-in user, it prompts for basic
  * authentication and only loads the page if the logged-in member has read
@@ -79,5 +96,6 @@ const loadPage = async (req, res, next) => {
 
 module.exports = {
   requireLogIn,
+  optionalLogIn,
   loadPage
 }

@@ -1,8 +1,18 @@
 const express = require('express')
 const Page = require('../models/page')
-const { loadPage, requireLogIn } = require('../security')
+const { loadPage, requireLogIn, optionalLogIn } = require('../security')
 const db = require('../db')
 const pages = express.Router()
+
+// GET /pages
+pages.get('/pages', optionalLogIn, async (req, res) => {
+  if (req.body) {
+    const pages = await Page.find(req.body, req.user, db)
+    res.status(200).json(pages)
+  } else {
+    res.sendStatus(500)
+  }
+})
 
 // POST /pages
 pages.post('/pages', requireLogIn, async (req, res) => {

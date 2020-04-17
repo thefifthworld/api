@@ -57,6 +57,23 @@ describe('Pages API', () => {
     })
   })
 
+  describe('GET /pages', () => {
+    it('returns matching pages', async () => {
+      expect.assertions(5)
+      const r1 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Child Page', body: 'This is the child.', parent: r1.body.id, msg: 'Initial text' })
+      const r3 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
+      const actual = await request.get('/pages').send({ path: '/parent-page' })
+      const ids = actual.body.map(p => p.id)
+
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(2)
+      expect(ids).toContain(r1.body.id)
+      expect(ids).toContain(r2.body.id)
+      expect(ids).not.toContain(r3.body.id)
+    })
+  })
+
   describe('POST /pages/*', () => {
     it('updates a page', async () => {
       expect.assertions(9)
