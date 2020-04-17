@@ -274,6 +274,38 @@ class Page {
   }
 
   /**
+   * Search for places near a center point.
+   * @param center {(number|string)[]} - An array of two numbers or strings
+   *   representing latitude in the first value and longitude in the second.
+   * @param max {?number} - The maximum distance to search in meters
+   *   (Default: `10000`).
+   * @param searcher {?Member} - The person who is searching.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Page[]>} - A Promise that resolves with an array of the
+   *   pages that are within `max` meters of the coordinates provided.
+   */
+
+  static async placesNear (center, max, searcher, db) {
+    if (!Array.isArray(center) || center.length < 2) return []
+    const lat = LocationHandler.convertLatLon(center[0], 'lat')
+    const lon = LocationHandler.convertLatLon(center[1], 'lon')
+    const dist = max && !isNaN(max) ? max : 10000
+    if (!lat || !lon) return []
+    const radius = `ST_Distance_Sphere(places.location, ST_GeomFromText('POINT(${lat} ${lon})', 4326)) <= ${dist}`
+    const rows = await db.run(`SELECT pages.id FROM pages, places WHERE ${radius} AND pages.id=places.page;`)
+    if (rows && rows.length > 0) {
+      const pages = []
+      for (let row of rows) {
+        const page = await Page.get(row.id, db)
+        if (page.checkPermissions(searcher, 4)) pages.push(page)
+      }
+      return pages
+    } else {
+      return []
+    }
+  }
+
+  /**
    * Find pages that match a query.
    * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
    *   ?logic: string }} - An object representing the query being made.

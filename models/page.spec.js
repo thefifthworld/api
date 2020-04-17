@@ -475,6 +475,35 @@ describe('Page', () => {
     })
   })
 
+  describe('placesNear', () => {
+    it('returns those places within the search area', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+
+      // A page that should be returned.
+      const d1 = { title: 'The Point', body: '[[Location:40.441800, -80.012772]]' }
+      const point = await Page.create(d1, editor, 'Initial text', db)
+
+      // A page outside of the search area.
+      const d2 = { title: 'Three Myland', body: '[[Location:40.154507, -76.724877]]' }
+      const myland = await Page.create(d2, editor, 'Initial text', db)
+
+      // A page that the searcher doesn't have read permission for.
+      const d3 = { title: 'The Steel Tower', body: '[[Location:40.441399, -79.994673]]', permissions: 700 }
+      const tower = await Page.create(d3, editor, 'Initial text', db)
+
+      const actual = await Page.placesNear([ 40.440667, -80.002583 ], null, null, db)
+      const ids = actual.map(p => p.id)
+      await testUtils.resetTables(db)
+
+      expect(actual).toHaveLength(1)
+      expect(ids).toContain(point.id)
+      expect(ids).not.toContain(myland.id)
+      expect(ids).not.toContain(tower.id)
+    })
+  })
+
   describe('find', () => {
     it('returns pages that start with the given path', async () => {
       expect.assertions(5)
