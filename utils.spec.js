@@ -7,6 +7,10 @@ describe('union', () => {
     expect(union([ 1, 2 ], [ 3, 4 ], [ 5, 6 ])).toEqual([ 1, 2, 3, 4, 5, 6 ])
   })
 
+  it('returns the original array if only given one', () => {
+    expect(union([ 1, 2 ])).toEqual([ 1, 2 ])
+  })
+
   it('doesn\'t duplicate the overlap', () => {
     expect(union([ 1, 2 ], [ 2, 3 ], [ 3, 4 ])).toEqual([ 1, 2, 3, 4 ])
   })
