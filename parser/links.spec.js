@@ -13,11 +13,11 @@ describe('parseLinks', () => {
   it('parses links', async () => {
     expect.assertions(3)
     await testUtils.createTestPage(Page, Member, db)
-    const actual = await parseLinks('Here\'s a link: [[Test Page | hello]]', db)
+    const actual = await parseLinks('Here\'s some links: [[Test Page | hello]] [[Test Page]]', db)
     await testUtils.resetTables(db)
-    expect(actual.str).toEqual('Here\'s a link: <a href="/test-page" title="Test Page">hello</a>')
+    expect(actual.str).toEqual('Here\'s some links: <a href="/test-page" title="Test Page">hello</a> <a href="/test-page">Test Page</a>')
     expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
-    expect(actual.linkHandler.links).toEqual([ { id: 1, text: 'hello', title: 'Test Page', path: '/test-page', isNew: false } ])
+    expect(actual.linkHandler.links).toHaveLength(2)
   })
 
   it('parses new links', async () => {
