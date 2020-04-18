@@ -1,4 +1,5 @@
 const express = require('express')
+const LinkHandler = require('../models/linkhandler')
 const Page = require('../models/page')
 const { loadPage, requireLogIn, optionalLogIn } = require('../security')
 const db = require('../db')
@@ -50,6 +51,12 @@ pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
   } else {
     res.sendStatus(500)
   }
+})
+
+// GET /requested
+pages.get('/requested', async (eq, res) => {
+  const links = await LinkHandler.loadRequested(db)
+  res.status(200).json(links)
 })
 
 module.exports = pages

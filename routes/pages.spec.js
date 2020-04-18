@@ -155,4 +155,18 @@ describe('Pages API', () => {
       expect(dist400km).not.toContain(tower.body.id)
     })
   })
+
+  describe('GET /requested', () => {
+    it('returns requested links', async () => {
+      expect.assertions(5)
+      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Test', body: '[[Link One]] [[Link Two]] [[Link Three]]', msg: 'Initial text' })
+      const res = await request.get('/requested')
+
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(3)
+      expect(res.body[0]).toEqual({ title: 'Link One', links: [ { id: 2, title: 'Test', path: '/test' } ] })
+      expect(res.body[1]).toEqual({ title: 'Link Two', links: [ { id: 2, title: 'Test', path: '/test' } ] })
+      expect(res.body[2]).toEqual({ title: 'Link Three', links: [ { id: 2, title: 'Test', path: '/test' } ] })
+    })
+  })
 })
