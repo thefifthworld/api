@@ -49,8 +49,8 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   }
 })
 
-// GET /pages/*/lock
-pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
+// PATCH /pages/*/lock
+pages.patch('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
   let status = 401
   if (req.user.admin) {
     const update = Object.assign({}, req.page.history.getContent(), { permissions: 444 })
@@ -60,12 +60,38 @@ pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
   res.status(status).json(req.page)
 })
 
-// GET /pages/*/unlock
-pages.get('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
+// PATCH /pages/*/unlock
+pages.patch('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
   let status = 401
   if (req.user.admin) {
     const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
     await req.page.save(update, req.user, 'Unlocking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// PATCH /pages/*/hide
+pages.patch('/pages/*/hide', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  const isOwner = req.user.id === req.page.owner.id
+  const canWrite = req.page.checkPermissions(req.user, 6)
+  if (req.user.admin || (isOwner && canWrite)) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 700 })
+    await req.page.save(update, req.user, 'Hiding page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// PATCH /pages/*/unhide
+pages.patch('/pages/*/unhide', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  const isOwner = req.user.id === req.page.owner.id
+  const canWrite = req.page.checkPermissions(req.user, 6)
+  if (req.user.admin || (isOwner && canWrite)) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
+    await req.page.save(update, req.user, 'Hiding page', db)
     status = 200
   }
   res.status(status).json(req.page)
