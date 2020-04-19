@@ -71,7 +71,7 @@ const optionalLogIn = async (req, res, next) => {
  */
 
 const loadPage = async (req, res, next) => {
-  const verbs = [ '/like', '/unlike', '/lock', '/unlock', '/hide', '/unhide' ]
+  const verbs = ['/like', '/unlike', '/lock', '/unlock', '/hide', '/unhide']
   const query = req.originalUrl.split('?')
   const raw = query[0].substr(6)
   const path = verbs.includes(raw.substr(raw.lastIndexOf('/'))) ? raw.substr(0, raw.lastIndexOf('/')) : raw
