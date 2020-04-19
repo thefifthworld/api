@@ -10,7 +10,7 @@ const parsePlainText = require('../parser/plain')
 class Page {
   constructor (page = {}, changes = []) {
     const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'depth', 'permissions',
-      'type', 'tags', 'location' ]
+      'type', 'tags', 'location', 'likes' ]
     toCopy.forEach(key => {
       this[key] = page[key]
     })
@@ -216,7 +216,7 @@ class Page {
         const tagHandler = await TagHandler.load(row.id, db)
         row.tags = tagHandler.tags
         // TODO: Fetch file data
-        // TODO: Fetch likes
+        row.likes = await LikesHandler.load(row, db)
         const page = new Page(row, changes)
         page.saved = true
         return page

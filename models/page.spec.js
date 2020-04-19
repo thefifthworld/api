@@ -374,12 +374,23 @@ describe('Page', () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const data = { title: 'Pittsburgh', body: '[[Tag1: Test]] [[Tag2: Hello world!]]' }
+      const data = { title: 'Test Page', body: '[[Tag1: Test]] [[Tag2: Hello world!]]' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
       expect(page.tags.tag1).toEqual([ 'Test' ])
       expect(page.tags.tag2).toEqual([ 'Hello world!' ])
+    })
+
+    it('loads the page\'s likes', async () => {
+      expect.assertions(2)
+      const before = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await before.likes.add(member.id, db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.likes.ids).toHaveLength(1)
+      expect(page.likes.ids).toContain(member.id)
     })
   })
 
