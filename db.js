@@ -7,7 +7,7 @@ const db = mysql.createPool(config.db)
 /**
  * We add a new method to our instance that allows us to query the database
  * with a Promise.
- * @param query {string} - A MySQL query to execute.
+ * @param query {!string} - A MySQL query to execute.
  * @returns {Promise} - A promise that resolves with the results of the query.
  */
 
@@ -15,6 +15,7 @@ db.run = query => {
   return new Promise((resolve, reject) => {
     db.query(query, (err, rows, fields) => {
       if (err) {
+        console.error(query)
         reject(err)
       } else {
         resolve(rows, fields)
@@ -25,17 +26,17 @@ db.run = query => {
 
 /**
  * Run an update.
- * @param fields {Object[]} - An array of objects that define the fields that
+ * @param fields {!Object[]} - An array of objects that define the fields that
  *   can be updated. Each object should have a `name` property, providing the
  *   name of the column in the database, and a `type` property that identifies
  *   the type of data that column holds (just `string` or `number`).
- * @param updates {Object} - An object providing the updates to be made as
+ * @param updates {!Object} - An object providing the updates to be made as
  *   key-value pairs (the names of the fields, as provided to the `fields`
  *   argument, should be the keys for this object).
- * @param table {string} - The name of the table to update.
- * @param id {number} - The primary key of the object to update.
- * @returns {Promise<any>} - A Promise that resolves when the query has been
- *   built and executed.
+ * @param table {!string} - The name of the table to update.
+ * @param id {!number} - The primary key of the object to update.
+ * @returns {Promise<OkPacket>} - A Promise that resolves when the query has
+ *   been built and executed.
  */
 
 db.update = (fields, updates, table, id) => {
