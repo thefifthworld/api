@@ -3,9 +3,8 @@ const Member = require('./member')
 
 class LikesHandler {
   constructor (page, ids) {
-    const givenPage = page && page.constructor && page.constructor.name === 'Page'
-    this.id = givenPage && !isNaN(page.id) ? page.id : null
-    this.path = givenPage && page.path ? page.path : null
+    this.id = page && page.id && !isNaN(page.id) ? page.id : null
+    this.path = page && page.path && typeof page.path === 'string' ? page.path : null
     this.ids = Array.isArray(ids) && ids.length > 0 ? ids : []
   }
 
