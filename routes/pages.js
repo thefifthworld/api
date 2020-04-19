@@ -49,6 +49,28 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   }
 })
 
+// GET /pages/*/lock
+pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  if (req.user.admin) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 444 })
+    await req.page.save(update, req.user, 'Locking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// GET /pages/*/unlock
+pages.get('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  if (req.user.admin) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
+    await req.page.save(update, req.user, 'Unlocking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
 // GET /pages/*
 pages.get('/pages/*', loadPage, async (req, res) => {
   res.status(200).json(req.page)
