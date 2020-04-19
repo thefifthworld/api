@@ -24,11 +24,24 @@ class FileHandler {
       const Key = FileHandler.createKey(name)
       if (Key !== false) {
         const s3 = FileHandler.instantiateS3()
-        const params = {ACL: 'public-read', Bucket: config.aws.bucket, Key, Body: data, ContentType: mimetype}
+        const params = { ACL: 'public-read', Bucket: config.aws.bucket, Key, Body: data, ContentType: mimetype }
         const res = await s3.upload(params).promise()
         return res
       }
     }
+  }
+
+  /**
+   * Delete an object from Amazon Web Services S3 storage.
+   * @param key {string} - The key to the object to delete.
+   * @returns {Promise<void>} - A Promise that resolves once the object has
+   *   been deleted.
+   */
+
+  static async remove (key) {
+    const s3 = FileHandler.instantiateS3()
+    const params = {Bucket: config.aws.bucket, Key: key}
+    await s3.deleteObject(params).promise()
   }
 
   /**
