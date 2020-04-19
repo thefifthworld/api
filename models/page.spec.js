@@ -344,7 +344,7 @@ describe('Page', () => {
       expect(page.tags.test).toEqual([ 'Hello', 'World' ])
     })
 
-    it('loads the page\'s tags', async () => {
+    it('loads the page\'s location', async () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
