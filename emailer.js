@@ -3,10 +3,11 @@ const config = require('./config')
 
 /**
  * This method sends an email through Mailgun.
- * @param msg {Object} - An object that should include three properties: `to`
- *   (a string that contains the email address to send the email to), `subject`
- *   (a string containing the subject line of the email) and `body` (a string
- *   containing the body of the email message).
+ * @param msg {!{ to: string, subject: string, body: string }} - An object that
+ *   should include three properties:
+ *     - `to`: A string that contains the email address to send the email to
+ *     - `subject`: A string containing the subject line of the email
+ *     - `body`: A string containing the body of the email message
  * @returns {Promise} - A promise that resolves when the email has been sent
  *   to Mailgun for delivery.
  */
