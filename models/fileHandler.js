@@ -23,12 +23,21 @@ class FileHandler {
     if (name && data && mimetype && size) {
       const Key = FileHandler.createKey(name)
       if (Key !== false) {
-        const s3 = new aws.S3({accessKeyId: config.aws.key, secretAccessKey: config.aws.secret})
+        const s3 = FileHandler.instantiateS3()
         const params = {ACL: 'public-read', Bucket: config.aws.bucket, Key, Body: data, ContentType: mimetype}
         const res = await s3.upload(params).promise()
         return res
       }
     }
+  }
+
+  /**
+   * Instantiate an S3 object.
+   * @returns {S3} - An S3 object.
+   */
+
+  static instantiateS3 () {
+    return new aws.S3({ accessKeyId: config.aws.key, secretAccessKey: config.aws.secret })
   }
 
   /**
