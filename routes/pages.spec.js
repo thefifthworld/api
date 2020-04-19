@@ -79,14 +79,14 @@ describe('Pages API', () => {
   describe('GET /pages/*/lock', () => {
     it('locks a page', async () => {
       expect.assertions(2)
-      const res = await request.get('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
+      const res = await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(444)
     })
 
     it('requires an admin', async () => {
       expect.assertions(2)
-      const res = await request.get('/pages/test-page/lock').auth('normal@thefifthworld.com', 'password')
+      const res = await request.patch('/pages/test-page/lock').auth('normal@thefifthworld.com', 'password')
       expect(res.status).toEqual(401)
       expect(res.body.permissions).toEqual(774)
     })
@@ -95,16 +95,16 @@ describe('Pages API', () => {
   describe('GET /pages/*/unlock', () => {
     it('unlocks a page', async () => {
       expect.assertions(2)
-      await request.get('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
-      const res = await request.get('/pages/test-page/unlock').auth('admin@thefifthworld.com', 'password')
+      await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
+      const res = await request.patch('/pages/test-page/unlock').auth('admin@thefifthworld.com', 'password')
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(774)
     })
 
     it('requires an admin', async () => {
       expect.assertions(2)
-      await request.get('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
-      const res = await request.get('/pages/test-page/unlock').auth('normal@thefifthworld.com', 'password')
+      await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
+      const res = await request.patch('/pages/test-page/unlock').auth('normal@thefifthworld.com', 'password')
       expect(res.status).toEqual(401)
       expect(res.body.permissions).toEqual(444)
     })

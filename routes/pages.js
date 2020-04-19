@@ -50,7 +50,7 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
 })
 
 // GET /pages/*/lock
-pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
+pages.patch('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
   let status = 401
   if (req.user.admin) {
     const update = Object.assign({}, req.page.history.getContent(), { permissions: 444 })
@@ -61,7 +61,7 @@ pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
 })
 
 // GET /pages/*/unlock
-pages.get('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
+pages.patch('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
   let status = 401
   if (req.user.admin) {
     const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
