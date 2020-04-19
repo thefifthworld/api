@@ -22,4 +22,12 @@ describe('FileHandler', () => {
       expect(actual.md5).toEqual(file.md5)
     })
   })
+
+  describe('upload', () => {
+    it('uploads a file', async () => {
+      const file = testUtils.mockGIF()
+      const res = await FileHandler.upload(file)
+      expect(res.key).toBeDefined()
+    })
+  })
 })
