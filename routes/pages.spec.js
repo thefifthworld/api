@@ -142,6 +142,53 @@ describe('Pages API', () => {
     })
   })
 
+  describe('PATCH /pages/*/hide', () => {
+    it('allows an admin to hide a page', async () => {
+      expect.assertions(6)
+      const res = await request.patch('/pages/test-page/hide').auth('admin@thefifthworld.com', 'password')
+      const page = await Page.get('/test-page', db)
+      const admin = await Member.load('admin@thefifthworld.com', db)
+      const normal = await Member.load('normal@thefifthworld.com', db)
+      const other = await Member.load('other@thefifthworld.com', db)
+      expect(res.status).toEqual(200)
+      expect(res.body.permissions).toEqual(700)
+      expect(page.checkPermissions(admin, 4)).toEqual(true)
+      expect(page.checkPermissions(normal, 4)).toEqual(true)
+      expect(page.checkPermissions(other, 4)).toEqual(false)
+      expect(page.checkPermissions(null, 4)).toEqual(false)
+    })
+
+    it('allows a page owner to hide her page', async () => {
+      expect.assertions(6)
+      const res = await request.patch('/pages/test-page/hide').auth('normal@thefifthworld.com', 'password')
+      const page = await Page.get('/test-page', db)
+      const admin = await Member.load('admin@thefifthworld.com', db)
+      const normal = await Member.load('normal@thefifthworld.com', db)
+      const other = await Member.load('other@thefifthworld.com', db)
+      expect(res.status).toEqual(200)
+      expect(res.body.permissions).toEqual(700)
+      expect(page.checkPermissions(admin, 4)).toEqual(true)
+      expect(page.checkPermissions(normal, 4)).toEqual(true)
+      expect(page.checkPermissions(other, 4)).toEqual(false)
+      expect(page.checkPermissions(null, 4)).toEqual(false)
+    })
+
+    it('requires an admin or the page owner', async () => {
+      expect.assertions(6)
+      const res = await request.patch('/pages/test-page/hide').auth('other@thefifthworld.com', 'password')
+      const page = await Page.get('/test-page', db)
+      const admin = await Member.load('admin@thefifthworld.com', db)
+      const normal = await Member.load('normal@thefifthworld.com', db)
+      const other = await Member.load('other@thefifthworld.com', db)
+      expect(res.status).toEqual(401)
+      expect(res.body.permissions).toEqual(774)
+      expect(page.checkPermissions(admin, 4)).toEqual(true)
+      expect(page.checkPermissions(normal, 4)).toEqual(true)
+      expect(page.checkPermissions(other, 4)).toEqual(true)
+      expect(page.checkPermissions(null, 4)).toEqual(true)
+    })
+  })
+
   describe('GET /pages', () => {
     it('returns matching pages', async () => {
       expect.assertions(5)
