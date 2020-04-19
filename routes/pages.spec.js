@@ -57,6 +57,25 @@ describe('Pages API', () => {
     })
   })
 
+  describe('GET /pages/*/like', () => {
+    it('saves a like', async () => {
+      expect.assertions(2)
+      const res = await request.get('/pages/test-page/like').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+      expect(res.body.likes.ids).toHaveLength(1)
+    })
+  })
+
+  describe('GET /pages/*/unlike', () => {
+    it('removes a like', async () => {
+      expect.assertions(2)
+      await request.get('/pages/test-page/like').auth('normal@thefifthworld.com', 'password')
+      const res = await request.get('/pages/test-page/unlike').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+      expect(res.body.likes.ids).toHaveLength(0)
+    })
+  })
+
   describe('GET /pages', () => {
     it('returns matching pages', async () => {
       expect.assertions(5)

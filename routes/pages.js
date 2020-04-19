@@ -25,6 +25,18 @@ pages.post('/pages', requireLogIn, async (req, res) => {
   }
 })
 
+// GET /pages/*/like
+pages.get('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
+  await req.page.likes.add(req.user, db)
+  res.status(200).json(req.page)
+})
+
+// GET /pages/*/unlike
+pages.get('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
+  await req.page.likes.remove(req.user, db)
+  res.status(200).json(req.page)
+})
+
 // POST /pages/*
 pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {
