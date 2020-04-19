@@ -92,6 +92,24 @@ describe('Pages API', () => {
     })
   })
 
+  describe('GET /pages/*/unlock', () => {
+    it('unlocks a page', async () => {
+      expect.assertions(2)
+      await request.get('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
+      const res = await request.get('/pages/test-page/unlock').auth('admin@thefifthworld.com', 'password')
+      expect(res.status).toEqual(200)
+      expect(res.body.permissions).toEqual(774)
+    })
+
+    it('requires an admin', async () => {
+      expect.assertions(2)
+      await request.get('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
+      const res = await request.get('/pages/test-page/unlock').auth('normal@thefifthworld.com', 'password')
+      expect(res.status).toEqual(401)
+      expect(res.body.permissions).toEqual(444)
+    })
+  })
+
   describe('GET /pages', () => {
     it('returns matching pages', async () => {
       expect.assertions(5)
