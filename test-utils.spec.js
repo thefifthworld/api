@@ -1,10 +1,20 @@
 /* global describe, it, expect, afterAll */
 
+const md5 = require('md5')
 const bcrypt = require('bcrypt')
 const Member = require('./models/member')
 const Page = require('./models/page')
 const db = require('./db')
 const utils = require('./test-utils')
+
+describe('mockGIF', () => {
+  it('returns a mock GIF file', () => {
+    const file = utils.mockGIF()
+    expect(file.data.byteLength).toEqual(file.size)
+    expect(file.md5).toEqual(md5(file.data))
+    expect(file.mimetype).toEqual('image/gif')
+  })
+})
 
 describe('populateMembers', () => {
   it('adds an administrator', async () => {

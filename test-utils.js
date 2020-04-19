@@ -3,6 +3,23 @@ const sqlstring = require('sqlstring')
 const { escape } = sqlstring
 
 /**
+ * Return a mock GIF file.
+ * @returns {{ name: string, data: Buffer, size: number, encoding: string,
+ *   mimetype: string, md5: string }} - A mock GIF file.
+ */
+
+const mockGIF = () => {
+  return {
+    name: 'test.gif',
+    data: Buffer.from([ 71, 73, 70, 56, 55, 97, 2, 0, 2, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 44, 0, 0, 0, 0, 2, 0, 2, 0, 0, 2, 2, 132, 81, 0, 59 ]),
+    size: 35,
+    encoding: '7bit',
+    mimetype: 'image/gif',
+    md5: '915405ca778b6c9f34f8a74c83bfe90f'
+  }
+}
+
+/**
  * Populates the database with member accounts for use in tests.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<void>} - A Promise that returns when the member accounts
@@ -50,6 +67,7 @@ const resetTables = async (db) => {
 }
 
 module.exports = {
+  mockGIF,
   populateMembers,
   createTestPage,
   resetTables
