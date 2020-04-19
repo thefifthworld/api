@@ -49,6 +49,17 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   }
 })
 
+// GET /pages/*/lock
+pages.get('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  if (req.user.admin || req.user.id === req.page.owner.id) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 744 })
+    await req.page.save(update, req.user, 'Locking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
 // GET /pages/*
 pages.get('/pages/*', loadPage, async (req, res) => {
   res.status(200).json(req.page)
