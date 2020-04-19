@@ -10,8 +10,8 @@ class LikesHandler {
 
   /**
    * Add a like.
-   * @param member {Member|number} - A Member instance or a member's ID number.
-   * @param db {Pool} - The database connection.
+   * @param member {!Member|!number} - A Member instance or a member's ID number.
+   * @param db {!Pool} - The database connection.
    * @returns {Promise<void>} - A Promise that resolves once the like has been
    *   saved to the database.
    */
@@ -21,6 +21,25 @@ class LikesHandler {
     if (mid !== null && this.id && this.path) {
       await db.run(`INSERT INTO likes (path, page, member) VALUES (${escape(this.path)}, ${this.id}, ${mid});`)
       this.ids.push(mid)
+    }
+  }
+
+  /**
+   * Load the likes for a particular page from the database.
+   * @param page {!Page} - The Page we're loading likes for.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<LikesHandler|boolean>} - a LikesHandler for the given
+   *   Page instance, or `false` if not given a Page with an ID.
+   */
+
+  static async load (page, db) {
+    const id = page && page.id && !isNaN(page.id) ? page.id : false
+    if (id) {
+      const rows = await db.run(`SELECT member FROM likes WHERE page=${id};`)
+      const likes = rows.map(row => row.member)
+      return new LikesHandler(page, likes)
+    } else {
+      return false
     }
   }
 }

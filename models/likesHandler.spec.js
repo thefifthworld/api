@@ -1,6 +1,7 @@
 /* global describe, it, expect, afterAll */
 
 const db = require('../db')
+const { escape } = require('sqlstring')
 const testUtils = require('../test-utils')
 
 const LikesHandler = require('./likesHandler')
@@ -59,6 +60,19 @@ describe('LikesHandler', () => {
       await testUtils.resetTables(db)
       expect(likes.ids).toEqual([ member.id ])
       expect(rows[0].member).toEqual(member.id)
+    })
+  })
+
+  describe('load', () => {
+    it('loads a LikesHandler for the page', async () => {
+      expect.assertions(3)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      await db.run(`INSERT INTO likes (path, page, member) VALUES (${escape(page.path)}, ${page.id}, 3);`)
+      const actual = await LikesHandler.load(page, db)
+      await testUtils.resetTables(db)
+      expect(actual.id).toEqual(page.id)
+      expect(actual.path).toEqual(page.path)
+      expect(actual.ids).toEqual([ 3 ])
     })
   })
 })
