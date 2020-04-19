@@ -3,6 +3,7 @@
 const db = require('../db')
 const testUtils = require('../test-utils')
 
+const LikesHandler = require('./likesHandler')
 const Member = require('./member')
 const Page = require('./page')
 
@@ -303,6 +304,19 @@ describe('Page', () => {
       expect(rows).toHaveLength(1)
       expect(rows[0].dest).toEqual(null)
       expect(rows[0].title).toEqual('Test Link')
+    })
+
+    it('has a LikesHandler', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: 'This is a test. [[Test Link]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      await testUtils.resetTables(db)
+      expect(page.likes).toBeInstanceOf(LikesHandler)
+      expect(page.likes.id).toEqual(page.id)
+      expect(page.likes.path).toEqual(page.path)
+      expect(page.likes.ids).toEqual([])
     })
   })
 

@@ -1,6 +1,7 @@
 const { escape } = require('sqlstring')
 const History = require('./history')
 const TagHandler = require('./taghandler')
+const LikesHandler = require('./likesHandler')
 const LocationHandler = require('./locationHandler')
 const parseTags = require('../parser/tags')
 const parseLinks = require('../parser/links')
@@ -187,6 +188,7 @@ class Page {
   static async create (data, editor, msg, db) {
     const page = new Page()
     await page.save(data, editor, msg, db)
+    page.likes = new LikesHandler(page)
     return page
   }
 
