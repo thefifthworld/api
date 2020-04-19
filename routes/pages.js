@@ -25,6 +25,18 @@ pages.post('/pages', requireLogIn, async (req, res) => {
   }
 })
 
+// GET /pages/*/like
+pages.get('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
+  await req.page.likes.add(req.user, db)
+  res.status(200).json(req.page)
+})
+
+// GET /pages/*/unlike
+pages.get('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
+  await req.page.likes.remove(req.user, db)
+  res.status(200).json(req.page)
+})
+
 // POST /pages/*
 pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {
@@ -35,6 +47,54 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   } else {
     res.sendStatus(404)
   }
+})
+
+// PATCH /pages/*/lock
+pages.patch('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  if (req.user.admin) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 444 })
+    await req.page.save(update, req.user, 'Locking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// PATCH /pages/*/unlock
+pages.patch('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  if (req.user.admin) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
+    await req.page.save(update, req.user, 'Unlocking page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// PATCH /pages/*/hide
+pages.patch('/pages/*/hide', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  const isOwner = req.user.id === req.page.owner.id
+  const canWrite = req.page.checkPermissions(req.user, 6)
+  if (req.user.admin || (isOwner && canWrite)) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 700 })
+    await req.page.save(update, req.user, 'Hiding page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
+})
+
+// PATCH /pages/*/unhide
+pages.patch('/pages/*/unhide', requireLogIn, loadPage, async (req, res) => {
+  let status = 401
+  const isOwner = req.user.id === req.page.owner.id
+  const canWrite = req.page.checkPermissions(req.user, 6)
+  if (req.user.admin || (isOwner && canWrite)) {
+    const update = Object.assign({}, req.page.history.getContent(), { permissions: 774 })
+    await req.page.save(update, req.user, 'Hiding page', db)
+    status = 200
+  }
+  res.status(status).json(req.page)
 })
 
 // GET /pages/*

@@ -3,6 +3,7 @@
 const db = require('../db')
 const testUtils = require('../test-utils')
 
+const LikesHandler = require('./likesHandler')
 const Member = require('./member')
 const Page = require('./page')
 
@@ -304,6 +305,19 @@ describe('Page', () => {
       expect(rows[0].dest).toEqual(null)
       expect(rows[0].title).toEqual('Test Link')
     })
+
+    it('has a LikesHandler', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: 'This is a test. [[Test Link]]' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      await testUtils.resetTables(db)
+      expect(page.likes).toBeInstanceOf(LikesHandler)
+      expect(page.likes.id).toEqual(page.id)
+      expect(page.likes.path).toEqual(page.path)
+      expect(page.likes.ids).toEqual([])
+    })
   })
 
   describe('get', () => {
@@ -344,7 +358,7 @@ describe('Page', () => {
       expect(page.tags.test).toEqual([ 'Hello', 'World' ])
     })
 
-    it('loads the page\'s tags', async () => {
+    it('loads the page\'s location', async () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -354,6 +368,29 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(page.location.lat).toBeCloseTo(40.441823, 3)
       expect(page.location.lon).toBeCloseTo(-80.012778, 3)
+    })
+
+    it('loads the page\'s tags', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '[[Tag1: Test]] [[Tag2: Hello world!]]' }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.tags.tag1).toEqual([ 'Test' ])
+      expect(page.tags.tag2).toEqual([ 'Hello world!' ])
+    })
+
+    it('loads the page\'s likes', async () => {
+      expect.assertions(2)
+      const before = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await before.likes.add(member.id, db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.likes.ids).toHaveLength(1)
+      expect(page.likes.ids).toContain(member.id)
     })
   })
 
