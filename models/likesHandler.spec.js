@@ -63,6 +63,33 @@ describe('LikesHandler', () => {
     })
   })
 
+  describe('removes', () => {
+    it('removes a like', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const likes = new LikesHandler(page)
+      await likes.add(1, db)
+      await likes.remove(1, db)
+      const rows = await db.run(`SELECT * FROM likes WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(likes.ids).toEqual([])
+      expect(rows).toHaveLength(0)
+    })
+
+    it('can take a Member as an argument', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(3, db)
+      const likes = new LikesHandler(page)
+      await likes.add(member, db)
+      await likes.remove(member, db)
+      const rows = await db.run(`SELECT * FROM likes WHERE page=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(likes.ids).toEqual([])
+      expect(rows).toHaveLength(0)
+    })
+  })
+
   describe('load', () => {
     it('loads a LikesHandler for the page', async () => {
       expect.assertions(3)

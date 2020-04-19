@@ -25,6 +25,22 @@ class LikesHandler {
   }
 
   /**
+   * Remove a like.
+   * @param member {!Member|!number} - A Member instance or a member's ID number.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the like has been
+   *   removed from the database.
+   */
+
+  async remove (member, db) {
+    const mid = member instanceof Member ? member.id : !isNaN(member) ? member : null
+    if (mid !== null && this.id) {
+      await db.run(`DELETE FROM likes WHERE page=${this.id} AND member=${mid};`)
+      this.ids = this.ids.filter(id => id !== mid)
+    }
+  }
+
+  /**
    * Load the likes for a particular page from the database.
    * @param page {!Page} - The Page we're loading likes for.
    * @param db {!Pool} - The database connection.
