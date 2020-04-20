@@ -41,6 +41,20 @@ describe('FileHandler', () => {
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(403)
     })
+
+    it('uploads a thumbnail', async () => {
+      const file = testUtils.mockJPEG()
+      const thumb = await FileHandler.thumbnail(file)
+      const res = await FileHandler.upload(thumb, true)
+      const url = res.Location
+      const a = await check(url)
+      await FileHandler.remove(res.key)
+      const b = await check(url)
+      expect(res.key).toBeDefined()
+      expect(res.key.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(a.status).toEqual(200)
+      expect(b.status).toEqual(403)
+    })
   })
 
   describe('thumbnail', () => {

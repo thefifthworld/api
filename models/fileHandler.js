@@ -16,14 +16,16 @@ class FileHandler {
    * configuration file.
    * @param file {!{ name: string, data: Buffer, mimetype: string }} - The file
    *   to upload.
+   * @param isThumbnail {?boolean} - Optional. If `true`, `thumb` is added to
+   *   the key to indicate that this is a thumbnail (Default: `false`).
    * @returns {Promise<{}>} - A Promise that resolves with the response from
    *   Amazon Web Services.
    */
 
-  static async upload (file) {
+  static async upload (file, isThumbnail = false) {
     const { name, data, mimetype, size } = file
     if (name && data && mimetype && size) {
-      const Key = FileHandler.createKey(name)
+      const Key = FileHandler.createKey(name, isThumbnail)
       if (Key !== false) {
         const s3 = FileHandler.instantiateS3()
         const params = { ACL: 'public-read', Bucket: config.aws.bucket, Key, Body: data, ContentType: mimetype }
