@@ -1,10 +1,12 @@
 const aws = require('aws-sdk')
+const md5 = require('md5')
+const thumbnailer = require('image-thumbnail')
 const config = require('../config')
 
 class FileHandler {
-  constructor (file) {
-    if (file) {
-      const keys = ['name', 'data', 'size', 'encoding', 'mimetype', 'md5']
+  constructor (obj) {
+    if (obj) {
+      const keys = ['name', 'thumbnail', 'mime', 'size', 'page', 'timestamp', 'uploader']
       keys.forEach(key => { if (file[key]) this[key] = file[key] })
     }
   }
