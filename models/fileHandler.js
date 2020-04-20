@@ -76,13 +76,15 @@ class FileHandler {
 
   /**
    * Return a suitable key for Amazon Web Services S3 storage.
-   * @param name {string} - The original filename.
+   * @param name {!string} - The original filename.
+   * @param isThumbnail {?boolean} - Optional. If `true`, `thumb` is added to
+   *   the key to indicate that this is a thumbnail (Default: `false`).
    * @return {string|false} - A string that can be used for the file to
    *   uniquely identify it in Amazon Web Services S3 storage, or `false` if
    *   something went wrong.
    */
 
-  static createKey (name) {
+  static createKey (name, isThumbnail = false) {
     const split = name.split('.')
     const base = split.slice(0, split.length - 1).join('.')
     const ext = split[split.length - 1]
@@ -98,7 +100,9 @@ class FileHandler {
         (now.getMinutes()).toString().padStart(2, '0'),
         (now.getSeconds()).toString().padStart(2, '0')
       ].join('')
-      return `uploads/${base}.${day}.${time}.${ext}`
+      return isThumbnail
+        ? `uploads/${base}.thumb.${day}.${time}.${ext}`
+        : `uploads/${base}.${day}.${time}.${ext}`
     } else {
       return false
     }
