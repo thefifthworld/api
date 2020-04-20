@@ -53,4 +53,15 @@ describe('FileHandler', () => {
       expect(b.status).toEqual(403)
     })
   })
+
+  describe('thumbnail', () => {
+    it('returns a thumbnail', async () => {
+      const file = testUtils.mockJPEG()
+      const thumbnail = await FileHandler.thumbnail(file)
+      const dimensions = sizeOf(thumbnail.data)
+      expect(dimensions.height).toEqual(256)
+      expect(dimensions.width).toEqual(256)
+      expect(thumbnail.size).toBeLessThan(file.size)
+    })
+  })
 })

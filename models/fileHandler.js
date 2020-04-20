@@ -45,6 +45,27 @@ class FileHandler {
   }
 
   /**
+   * Create a thumbnail.
+   * @param file {!{ name: string, data: Buffer, mimetype: string }} - The
+   *   image that we're creating a thumbnail for.
+   * @returns {Promise<{ name: string, data: Buffer, mimetype: string }>} - A
+   *   Promise that resolves with the file object for the thumbnail.
+   */
+
+  static async thumbnail (file) {
+    try {
+      const data = await thumbnailer(file.data, { height: 256, width: 256 })
+      return Object.assign({}, file, {
+        data,
+        size: data.byteLength,
+        md5: md5(data)
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  /**
    * Instantiate an S3 object.
    * @returns {S3} - An S3 object.
    */
