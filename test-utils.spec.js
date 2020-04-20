@@ -16,6 +16,15 @@ describe('mockGIF', () => {
   })
 })
 
+describe('mockJPEG', () => {
+  it('returns a mock JPEG file', () => {
+    const file = utils.mockJPEG()
+    expect(file.data.byteLength).toEqual(file.size)
+    expect(file.md5).toEqual(md5(file.data))
+    expect(file.mimetype).toEqual('image/jpeg')
+  })
+})
+
 describe('populateMembers', () => {
   it('adds an administrator', async () => {
     expect.assertions(4)
