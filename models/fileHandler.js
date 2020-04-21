@@ -7,7 +7,8 @@ class FileHandler {
   constructor (obj) {
     if (obj) {
       const keys = ['name', 'thumbnail', 'mime', 'size', 'page', 'timestamp', 'uploader']
-      keys.forEach(key => { if (file[key]) this[key] = file[key] })
+      keys.forEach(key => { if (obj[key]) this[key] = obj[key] })
+      if (obj.mimetype) this.mime = obj.mimetype
     }
   }
 
@@ -25,7 +26,7 @@ class FileHandler {
 
   static async handleArt (art, thumbnail) {
     try {
-      const thumb = thumbnail || await FileHandler.thumbnail(art)
+      const thumb = thumbnail || await FileHandler.createThumbnail(art)
       const a = await FileHandler.upload(art)
       const b = await FileHandler.upload(thumb, true)
       return { file: a.key, thumbnail: b.key }
@@ -79,7 +80,7 @@ class FileHandler {
    *   Promise that resolves with the file object for the thumbnail.
    */
 
-  static async thumbnail (file) {
+  static async createThumbnail (file) {
     try {
       const data = await thumbnailer(file.data, { height: 256, width: 256 })
       return Object.assign({}, file, {

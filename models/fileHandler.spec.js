@@ -2,7 +2,6 @@
 
 const fetch = require('node-fetch')
 const sizeOf = require('buffer-image-size')
-const config = require('../config')
 const testUtils = require('../test-utils')
 const FileHandler = require('./fileHandler')
 
@@ -27,6 +26,33 @@ describe('FileHandler', () => {
     it('creates a new FileHandler', () => {
       const actual = new FileHandler()
       expect(actual).toBeInstanceOf(FileHandler)
+    })
+
+    it('copies values', () => {
+      const now = new Date()
+      const obj = {
+        name: 'test.png',
+        thumbnail: 'test.thumb.png',
+        mime: 'image/png',
+        size: 9999,
+        page: 1,
+        timestamp: now.getTime() / 1000,
+        uploader: 1
+      }
+
+      const actual = new FileHandler(obj)
+      expect(actual.name).toEqual(obj.name)
+      expect(actual.thumbnail).toEqual(obj.thumbnail)
+      expect(actual.mime).toEqual(obj.mime)
+      expect(actual.size).toEqual(obj.size)
+      expect(actual.page).toEqual(obj.page)
+      expect(actual.timestamp).toEqual(obj.timestamp)
+      expect(actual.uploader).toEqual(obj.uploader)
+    })
+
+    it('captures mimetype', () => {
+      const actual = new FileHandler({ mimetype: 'image/png' })
+      expect(actual.mime).toEqual('image/png')
     })
   })
 
@@ -101,10 +127,10 @@ describe('FileHandler', () => {
     })
   })
 
-  describe('thumbnail', () => {
+  describe('createThumbnail', () => {
     it('returns a thumbnail', async () => {
       const file = testUtils.mockJPEG()
-      const thumbnail = await FileHandler.thumbnail(file)
+      const thumbnail = await FileHandler.createThumbnail(file)
       const dimensions = sizeOf(thumbnail.data)
       expect(dimensions.height).toEqual(256)
       expect(dimensions.width).toEqual(256)
