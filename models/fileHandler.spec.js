@@ -56,6 +56,69 @@ describe('FileHandler', () => {
     })
   })
 
+  describe('handle', () => {
+    it('handles file uploads', async () => {
+      const files = { file: testUtils.mockTXT() }
+      const handler = await FileHandler.handle(files)
+      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name)
+      await FileHandler.remove(handler.thumbnail)
+      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+
+      expect(handler.size).toEqual(files.file.size)
+      expect(handler.mime).toEqual(files.file.mimetype)
+      expect(fileCheckBefore.status).toEqual(200)
+      expect(thumbnailCheckBefore.status).toEqual(403)
+      expect(fileCheckAfter.status).toEqual(403)
+      expect(thumbnailCheckAfter.status).toEqual(403)
+    })
+
+    it('handles art uploads that need a thumbnail', async () => {
+      const files = { file: testUtils.mockJPEG() }
+      const handler = await FileHandler.handle(files)
+      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name)
+      await FileHandler.remove(handler.thumbnail)
+      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+
+      expect(handler.size).toEqual(files.file.size)
+      expect(handler.mime).toEqual(files.file.mimetype)
+      expect(handler.name.endsWith('.jpg')).toEqual(true)
+      expect(handler.thumbnail.endsWith('.jpg')).toEqual(true)
+      expect(fileCheckBefore.status).toEqual(200)
+      expect(thumbnailCheckBefore.status).toEqual(200)
+      expect(fileCheckAfter.status).toEqual(403)
+      expect(thumbnailCheckAfter.status).toEqual(403)
+    })
+
+    it('handles art uploads that come with a thumbnail', async () => {
+      const files = {
+        file: testUtils.mockJPEG(),
+        thumbnail: testUtils.mockGIF()
+      }
+      const handler = await FileHandler.handle(files)
+      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name)
+      await FileHandler.remove(handler.thumbnail)
+      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+
+      expect(handler.size).toEqual(files.file.size)
+      expect(handler.mime).toEqual(files.file.mimetype)
+      expect(handler.name.endsWith('.jpg')).toEqual(true)
+      expect(handler.thumbnail.endsWith('.gif')).toEqual(true)
+      expect(fileCheckBefore.status).toEqual(200)
+      expect(thumbnailCheckBefore.status).toEqual(200)
+      expect(fileCheckAfter.status).toEqual(403)
+      expect(thumbnailCheckAfter.status).toEqual(403)
+    })
+  })
+
   describe('handleArt', () => {
     it('uploads the art and its thumbnail', async () => {
       const art = testUtils.mockJPEG()
