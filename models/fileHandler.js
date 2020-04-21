@@ -1,6 +1,7 @@
 const aws = require('aws-sdk')
 const md5 = require('md5')
 const thumbnailer = require('image-thumbnail')
+const { escape } = require('sqlstring')
 const config = require('../config')
 
 class FileHandler {
@@ -10,6 +11,19 @@ class FileHandler {
       keys.forEach(key => { if (obj[key] !== undefined) this[key] = obj[key] })
       if (obj.mimetype) this.mime = obj.mimetype
     }
+    this.saved = false
+  }
+
+  /**
+   * Save a file record.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the file record
+   *   has been saved to the database.
+   */
+
+  async save (db) {
+    if (!this.timestamp) { const now = new Date(); this.timestamp = Math.ceil(now.getTime() / 1000) }
+    return db.run(`INSERT INTO files (name, thumbnail, mime, size, page, timestamp, uploader) VALUES (${escape(this.name)}, ${escape(this.thumbnail)}, ${escape(this.mime)}, ${this.size}, ${this.page}, ${this.timestamp}, ${this.uploader});`)
   }
 
   /**

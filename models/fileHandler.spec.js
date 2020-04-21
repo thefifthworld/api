@@ -1,8 +1,11 @@
-/* global describe, it, expect */
+/* global describe, it, expect, afterAll */
 
 const fetch = require('node-fetch')
 const sizeOf = require('buffer-image-size')
+const db = require('../db')
 const testUtils = require('../test-utils')
+const Member = require('./member')
+const Page = require('./page')
 const FileHandler = require('./fileHandler')
 
 /**
@@ -22,6 +25,8 @@ const check = async url => {
 }
 
 describe('FileHandler', () => {
+  afterAll(() => { db.end() })
+
   describe('constructor', () => {
     it('creates a new FileHandler', () => {
       const actual = new FileHandler()
@@ -53,6 +58,32 @@ describe('FileHandler', () => {
     it('captures mimetype', () => {
       const actual = new FileHandler({ mimetype: 'image/png' })
       expect(actual.mime).toEqual('image/png')
+    })
+  })
+
+  describe('save', () => {
+    it('saves file record', async () => {
+      const test = await testUtils.createTestPage(Page, Member, db)
+      const uploader = await Member.load(2, db)
+      const obj = {
+        name: 'test.txt',
+        mime: 'plain/text',
+        size: 0,
+        page: test.id,
+        uploader: uploader.id
+      }
+      const handler = new FileHandler(obj)
+      await handler.save(db)
+      const check = await db.run(`SELECT * FROM files;`)
+      await testUtils.resetTables(db)
+
+      expect(check).toHaveLength(1)
+      expect(check[0].name).toEqual(obj.name)
+      expect(check[0].thumbnail).toEqual(null)
+      expect(check[0].mime).toEqual(obj.mime)
+      expect(check[0].size).toEqual(obj.size)
+      expect(check[0].page).toEqual(test.id)
+      expect(check[0].uploader).toEqual(uploader.id)
     })
   })
 
