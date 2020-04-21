@@ -87,6 +87,22 @@ describe('FileHandler', () => {
     })
   })
 
+  describe('load', () => {
+    it('loads files', async () => {
+      const test = await testUtils.createTestPage(Page, Member, db)
+      const uploader = await Member.load(2, db)
+      const obj = { name: 'test.txt', mime: 'plain/text', size: 0, page: test.id, uploader: uploader.id }
+      const h1 = new FileHandler(obj); await h1.save(db)
+      const h2 = new FileHandler(obj); await h2.save(db)
+      const actual = await FileHandler.load(test, db)
+      await testUtils.resetTables(db)
+
+      expect(actual).toHaveLength(2)
+      expect(actual[0].name).toEqual(obj.name)
+      expect(actual[1].name).toEqual(obj.name)
+    })
+  })
+
   describe('handle', () => {
     it('handles file uploads', async () => {
       const files = { file: testUtils.mockTXT() }

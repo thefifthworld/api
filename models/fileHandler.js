@@ -27,6 +27,24 @@ class FileHandler {
   }
 
   /**
+   * Load files associated with a page.
+   * @param page {!Page} - A page that may have a file.
+   * @param db {!Pool} - The database connection.
+   * @returns {Promise<FileHandler[]>} - An array of FileHandler objects,
+   *   representing various versions of the file associated with the page.
+   */
+
+  static async load (page, db) {
+    if (page && page.id && !isNaN(page.id)) {
+      const rows = await db.run(`SELECT * FROM files WHERE page=${page.id} ORDER BY timestamp DESC, id DESC;`)
+      if (rows && rows.length > 0) {
+        return rows.map(row => new FileHandler(row))
+      }
+    }
+    return []
+  }
+
+  /**
    * Handles file uploads.
    * @param files {{}} - An object containing uploaded files.
    * @param page {?Page} - The page object that the files are associated with.
