@@ -7,6 +7,15 @@ const Page = require('./models/page')
 const db = require('./db')
 const utils = require('./test-utils')
 
+describe('mockTXT', () => {
+  it('returns a mock plain ASCII text file', () => {
+    const file = utils.mockTXT()
+    expect(file.data.byteLength).toEqual(file.size)
+    expect(file.md5).toEqual(md5(file.data))
+    expect(file.mimetype).toEqual('text/plain')
+  })
+})
+
 describe('mockGIF', () => {
   it('returns a mock GIF file', () => {
     const file = utils.mockGIF()

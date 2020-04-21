@@ -3,6 +3,23 @@ const sqlstring = require('sqlstring')
 const { escape } = sqlstring
 
 /**
+ * Return a mock plain ASCII text file.
+ * @returns {{ name: string, data: Buffer, size: number, encoding: string,
+ *   mimetype: string, md5: string }} - A mock plain ASCII text file.
+ */
+
+const mockTXT = () => {
+  return {
+    name: 'test.txt',
+    data: Buffer.from([72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]),
+    size: 13,
+    encoding: '7bit',
+    mimetype: 'text/plain',
+    md5: '59ca0efa9f5633cb0371bbc0355478d8'
+  }
+}
+
+/**
  * Return a mock GIF file.
  * @returns {{ name: string, data: Buffer, size: number, encoding: string,
  *   mimetype: string, md5: string }} - A mock GIF file.
@@ -84,6 +101,7 @@ const resetTables = async (db) => {
 }
 
 module.exports = {
+  mockTXT,
   mockGIF,
   mockJPEG,
   populateMembers,
