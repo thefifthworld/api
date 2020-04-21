@@ -59,7 +59,7 @@ describe('FileHandler', () => {
   describe('handle', () => {
     it('handles file uploads', async () => {
       const files = { file: testUtils.mockTXT() }
-      const handler = await FileHandler.handle(files)
+      const handler = await FileHandler.handle(files, { id: 3 }, { id: 4 })
       const fileCheckBefore = await check(FileHandler.getURL(handler.name))
       const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
       await FileHandler.remove(handler.name)
@@ -69,6 +69,8 @@ describe('FileHandler', () => {
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
+      expect(handler.page).toEqual(3)
+      expect(handler.uploader).toEqual(4)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(403)
       expect(fileCheckAfter.status).toEqual(403)

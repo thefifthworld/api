@@ -7,7 +7,7 @@ class FileHandler {
   constructor (obj) {
     if (obj) {
       const keys = ['name', 'thumbnail', 'mime', 'size', 'page', 'timestamp', 'uploader']
-      keys.forEach(key => { if (obj[key]) this[key] = obj[key] })
+      keys.forEach(key => { if (obj[key] !== undefined) this[key] = obj[key] })
       if (obj.mimetype) this.mime = obj.mimetype
     }
   }
@@ -15,16 +15,18 @@ class FileHandler {
   /**
    * Handles file uploads.
    * @param files {{}} - An object containing uploaded files.
+   * @param page {?Page} - The page object that the files are associated with.
+   * @param uploader {?Member} - The member uploading the files.
    * @returns {Promise<FileHandler>} - A Promise that resolves with a new
    *   FileHandler instance for the uploaded files.
    */
 
-  static async handle (files) {
+  static async handle (files, page, uploader) {
     if (files.file && files.file.mimetype && files.file.size) {
       const { size } = files.file
       const mime = files.file.mimetype
       const now = new Date()
-      const timestamp = now.getTime() / 1000
+      const timestamp = Math.ceil(now.getTime() / 1000)
       let name, thumbnail
 
       if (mime.startsWith('image/')) {
@@ -36,7 +38,10 @@ class FileHandler {
         name = res.key
       }
 
-      if (name) return new FileHandler({ name, thumbnail, mime, size, timestamp })
+      const obj = { name, thumbnail, mime, size, timestamp }
+      if (page && page.id && !isNaN(page.id)) obj.page = page.id
+      if (uploader && uploader.id && !isNaN(uploader.id)) obj.uploader = uploader.id
+      if (name) return new FileHandler(obj)
     }
   }
 
