@@ -2,6 +2,7 @@
 
 const fetch = require('node-fetch')
 const sizeOf = require('buffer-image-size')
+const config = require('../config')
 const testUtils = require('../test-utils')
 const FileHandler = require('./fileHandler')
 
@@ -26,6 +27,49 @@ describe('FileHandler', () => {
     it('creates a new FileHandler', () => {
       const actual = new FileHandler()
       expect(actual).toBeInstanceOf(FileHandler)
+    })
+  })
+
+  describe('handleArt', () => {
+    it('uploads the art and its thumbnail', async () => {
+      const art = testUtils.mockJPEG()
+      const thumb = testUtils.mockGIF()
+      const res = await FileHandler.handleArt(art, thumb)
+      const a = await check(FileHandler.getURL(res.file))
+      const b = await check(FileHandler.getURL(res.thumbnail))
+      await FileHandler.remove(res.file)
+      await FileHandler.remove(res.thumbnail)
+      const c = await check(FileHandler.getURL(res.file))
+      const d = await check(FileHandler.getURL(res.thumbnail))
+
+      expect(res.file).toBeDefined()
+      expect(res.thumbnail).toBeDefined()
+      expect(res.file.startsWith('uploads/test.')).toEqual(true)
+      expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(a.status).toEqual(200)
+      expect(b.status).toEqual(200)
+      expect(c.status).toEqual(403)
+      expect(d.status).toEqual(403)
+    })
+
+    it('generates a thumbnail', async () => {
+      const art = testUtils.mockJPEG()
+      const res = await FileHandler.handleArt(art)
+      const a = await check(FileHandler.getURL(res.file))
+      const b = await check(FileHandler.getURL(res.thumbnail))
+      await FileHandler.remove(res.file)
+      await FileHandler.remove(res.thumbnail)
+      const c = await check(FileHandler.getURL(res.file))
+      const d = await check(FileHandler.getURL(res.thumbnail))
+
+      expect(res.file).toBeDefined()
+      expect(res.thumbnail).toBeDefined()
+      expect(res.file.startsWith('uploads/test.')).toEqual(true)
+      expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(a.status).toEqual(200)
+      expect(b.status).toEqual(200)
+      expect(c.status).toEqual(403)
+      expect(d.status).toEqual(403)
     })
   })
 

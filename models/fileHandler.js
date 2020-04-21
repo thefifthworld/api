@@ -12,6 +12,29 @@ class FileHandler {
   }
 
   /**
+   * Handles uploading art.
+   * @param art {!{ name: string, data: Buffer, mimetype: string }} - The image
+   *   to upload.
+   * @param thumbnail {?{ name: string, data: Buffer, mimetype: string }} - A
+   *   thumbnail for the image to upload. If left undefined, a thumbnail is
+   *   created from the image.
+   * @returns {Promise<{thumbnail: string, file: string}>} - A Promise that
+   *   resolves with an object providing the location of the uploaded image
+   *   (`file`) and its thumbnail (`thumbnail`).
+   */
+
+  static async handleArt (art, thumbnail) {
+    try {
+      const thumb = thumbnail || await FileHandler.thumbnail(art)
+      const a = await FileHandler.upload(art)
+      const b = await FileHandler.upload(thumb, true)
+      return { file: a.key, thumbnail: b.key }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  /**
    * Upload a file to an Amazon Web Services S3 Bucket specified in the
    * configuration file.
    * @param file {!{ name: string, data: Buffer, mimetype: string }} - The file
@@ -110,6 +133,16 @@ class FileHandler {
     } else {
       return false
     }
+  }
+
+  /**
+   * Return the URL for a particular key in Amazon Web Services S3 storage.
+   * @param key {string} - A key to find the URL for.
+   * @returns {string} - The URL for a given key.
+   */
+
+  static getURL (key) {
+    return `https://${config.aws.bucket}.s3.amazonaws.com/${key}`
   }
 }
 
