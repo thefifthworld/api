@@ -114,7 +114,7 @@ describe('FileHandler', () => {
 
     it('uploads a thumbnail', async () => {
       const file = testUtils.mockJPEG()
-      const thumb = await FileHandler.thumbnail(file)
+      const thumb = await FileHandler.createThumbnail(file)
       const res = await FileHandler.upload(thumb, true)
       const url = res.Location
       const a = await check(url)
