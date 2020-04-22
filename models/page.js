@@ -1,5 +1,6 @@
 const { escape } = require('sqlstring')
 const History = require('./history')
+const FileHandler = require('./fileHandler')
 const TagHandler = require('./taghandler')
 const LikesHandler = require('./likesHandler')
 const LocationHandler = require('./locationHandler')
@@ -10,7 +11,7 @@ const parsePlainText = require('../parser/plain')
 class Page {
   constructor (page = {}, changes = []) {
     const toCopy = [ 'id', 'title', 'description', 'slug', 'path', 'parent', 'depth', 'permissions',
-      'type', 'tags', 'location', 'likes' ]
+      'type', 'tags', 'location', 'likes', 'files' ]
     toCopy.forEach(key => {
       this[key] = page[key]
     })
@@ -215,7 +216,7 @@ class Page {
         row.location = await LocationHandler.load(row.id, db)
         const tagHandler = await TagHandler.load(row.id, db)
         row.tags = tagHandler.tags
-        // TODO: Fetch file data
+        row.files = await FileHandler.load(row, db)
         row.likes = await LikesHandler.load(row, db)
         const page = new Page(row, changes)
         page.saved = true
