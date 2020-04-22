@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const fileUpload = require('express-fileupload')
 
 const db = require('./db')
 const members = require('./routes/members')
@@ -10,6 +11,7 @@ const router = express.Router()
 
 api.use(bodyParser.urlencoded({ extended: true }))
 api.use(bodyParser.json())
+api.use(fileUpload())
 
 api.use('/', router)
 api.use('/', members)

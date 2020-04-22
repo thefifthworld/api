@@ -3,6 +3,7 @@
 const db = require('../db')
 const testUtils = require('../test-utils')
 
+const FileHandler = require('./fileHandler')
 const LikesHandler = require('./likesHandler')
 const Member = require('./member')
 const Page = require('./page')
@@ -391,6 +392,20 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(page.likes.ids).toHaveLength(1)
       expect(page.likes.ids).toContain(member.id)
+    })
+
+    it('loads the page\'s files', async () => {
+      expect.assertions(3)
+      const before = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: before.id, uploader: member.id }
+      const h1 = new FileHandler(file); await h1.save(db)
+      const h2 = new FileHandler(file); await h2.save(db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.files).toHaveLength(2)
+      expect(page.files[0].name).toEqual(file.name)
+      expect(page.files[1].name).toEqual(file.name)
     })
   })
 
