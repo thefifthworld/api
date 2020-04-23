@@ -249,4 +249,18 @@ describe('FileHandler', () => {
       expect(thumbnail.size).toBeLessThan(file.size)
     })
   })
+
+  describe('createKey', () => {
+    it('creates a key', () => {
+      const actual = FileHandler.createKey('test.jpg')
+      const regex = /^uploads\/test\.\d\d\d\d\d\d\d\d\.\d\d\d\d\d\d\.jpg$/
+      expect(actual.match(regex)).toHaveLength(1)
+    })
+
+    it('creates a key for a thumbnail', () => {
+      const actual = FileHandler.createKey('test.jpg', true)
+      const regex = /^uploads\/test\.thumb\.\d\d\d\d\d\d\d\d\.\d\d\d\d\d\d\.jpg$/
+      expect(actual.match(regex)).toHaveLength(1)
+    })
+  })
 })
