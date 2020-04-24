@@ -201,6 +201,20 @@ describe('parseTemplates', () => {
       await testUtils.resetTables(db)
       expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
+
+    it('doesn\'t show a file you don\'t have permission to see', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}', permissions: 700 }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual('')
+    })
   })
 
   describe('{{Art}}', () => {

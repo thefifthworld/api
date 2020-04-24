@@ -72,26 +72,25 @@ const loadChildren = async (template, params, path, member, db, asGallery = fals
  * @param params {?Object} - An object defining the parameters for the template
  *   in key/value pairs.
  * @param path {?string} - The path of the page being parsed.
+ * @param member {?Member} - The member we're parsing the tempalte for.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
  *   with an object with two properties: `str` (the string that should replace
  *   the template expression) and `match` (the template expression to replace).
  */
 
-const loadFile = async (template, params, path, db) => {
+const loadFile = async (template, params, path, member, db) => {
   const p = params.file ? params.file : path ? path : null
-  if (p) {
-    const rows = await db.run(`SELECT f.name, f.size, f.mime FROM files f, pages p WHERE p.id=f.page AND (p.title=${escape(p)} OR p.path=${escape(p)});`)
-    if (rows && rows.length > 0) {
-      const row = rows[0]
-      const url = FileHandler.getURL(row.name)
-      const filesize = FileHandler.getFileSizeStr(row.size)
-      const name = `<span class="label">${row.name}</span>`
-      const size = `<span class="details">${row.mime}; ${filesize}</span>`
-      return { match: template, str: `<a href="${url}" class="download">${name}${size}</a>` }
-    } else {
-      return { match: template, str: '' }
-    }
+  const page = p ? await Page.getIfAllowed(p, member, db) : null
+  if (page && page.files && Array.isArray(page.files) && page.files.length > 0) {
+    const file = page.files[0]
+    const url = FileHandler.getURL(file.name)
+    const filesize = FileHandler.getFileSizeStr(file.size)
+    const name = `<span class="label">${file.name}</span>`
+    const size = `<span class="details">${file.mime}; ${filesize}</span>`
+    return { match: template, str: `<a href="${url}" class="download">${name}${size}</a>` }
+  } else {
+    return { match: template, str: '' }
   }
 }
 
@@ -181,7 +180,7 @@ const parseTemplate = async (template, path, member, db) => {
     case 'gallery':
       res = await loadChildren(template, params, path, member, db, true); break
     case 'download':
-      res = await loadFile(template, params, path, db); break
+      res = await loadFile(template, params, path, member, db); break
     case 'art':
       res = await loadArt(template, params, path, db); break
     default:
