@@ -287,5 +287,19 @@ describe('parseTemplates', () => {
       await testUtils.resetTables(db)
       expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
     })
+
+    it('doesn\'t show art you don\'t have permission to', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}', permissions: 700 }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual('')
+    })
   })
 })
