@@ -2,6 +2,7 @@
 
 const fetch = require('node-fetch')
 const sizeOf = require('buffer-image-size')
+const config = require('../config')
 const db = require('../db')
 const testUtils = require('../test-utils')
 const Member = require('./member')
@@ -261,6 +262,14 @@ describe('FileHandler', () => {
       const actual = FileHandler.createKey('test.jpg', true)
       const regex = /^uploads\/test\.thumb\.\d\d\d\d\d\d\d\d\.\d\d\d\d\d\d\.jpg$/
       expect(actual.match(regex)).toHaveLength(1)
+    })
+  })
+
+  describe('getURL', () => {
+    it('returns a URL', () => {
+      const actual = FileHandler.getURL('test.jpg')
+      const expected = `https://${config.aws.bucket}.s3.amazonaws.com/test.jpg`
+      expect(actual).toEqual(expected)
     })
   })
 })
