@@ -195,7 +195,7 @@ class Page {
 
   /**
    * Returns a page from the database.
-   * @param id {!int|string|Page} - The ID or the path of a page, or a Page
+   * @param id {!int|string|Page} - The ID, path, or title of a page, or a Page
    *   instance (in which case, it simply returns the page). This allows the
    *   method to take a wide range of identifiers and reliably return the
    *   correct object.
@@ -207,8 +207,8 @@ class Page {
   static async get (id, db) {
     if (id instanceof Page) return id
     if (id) {
-      const column = typeof id === 'string' ? 'path' : 'id'
-      const rows = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE p.${column}=${escape(id)} AND p.owner=m.id;`)
+      const cond = typeof id === 'string' ? `(p.path=${escape(id)} OR p.title=${escape(id)})` : `p.id=${id}`
+      const rows = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE ${cond} AND p.owner=m.id;`)
       const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : undefined
       if (row) {
         const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${row.id} ORDER BY c.timestamp DESC;`)
@@ -242,7 +242,7 @@ class Page {
 
   static async getIfAllowed (id, requester, db) {
     const page = await Page.get(id, db)
-    return page.checkPermissions(requester, 4) ? page : undefined
+    return page && page.checkPermissions(requester, 4) ? page : undefined
   }
 
   /**
