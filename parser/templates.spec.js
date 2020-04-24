@@ -160,4 +160,69 @@ describe('parseTemplates', () => {
     await testUtils.resetTables(db)
     expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
   })
+
+  it('can parse art', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Art', body: '{{Art}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates(page.history.getBody(), page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+  })
+
+  it('can add a caption', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Art', body: '{{Art caption="This is not an upload."}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates(page.history.getBody(), page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
+  })
+
+  it('can use a thumbnail', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Art', body: '{{Art useThumbnail="true"}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates(page.history.getBody(), page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.thumb.jpg" alt="Art" /></a></figure>`)
+  })
+
+  it('can parse a different page\'s art, identified by title', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Art', body: '{{Art}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates('{{Art src="Art"}}', page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+  })
+
+  it('can parse a different page\'s art, identified by path', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Art', body: '{{Art}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates('{{Art src="/art"}}', page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+  })
 })

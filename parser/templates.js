@@ -78,6 +78,38 @@ const loadFile = async (template, params, path, db) => {
 }
 
 /**
+ * Parse an {{Art}} template.
+ * @param template {!string} - The template expression.
+ * @param params {?Object} - An object defining the parameters for the template
+ *   in key/value pairs.
+ * @param path {?string} - The path of the page being parsed.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadArt = async (template, params, path, db) => {
+  const p = params.file ? params.file : path ? path : null
+  if (p) {
+    const rows = await db.run(`SELECT p.title, p.path, f.name, f.thumbnail, f.size, f.mime FROM files f, pages p WHERE p.id=f.page AND (p.title=${escape(p)} OR p.path=${escape(p)});`)
+    if (rows && rows.length > 0) {
+      const row = rows[0]
+      const caption = params.caption ? `<figcaption>${params.caption}</figcaption>` : null
+      const alt = params.caption ? params.caption : row.title
+      const img = params.useThumbnail && row.thumbnail
+        ? `<img src="${FileHandler.getURL(row.thumbnail)}" alt="${alt}" />`
+        : `<img src="${FileHandler.getURL(row.name)}" alt="${alt}" />`
+      const link = `<a href="${row.path}">${img}</a>`
+      const str = caption ? `<figure>${link}${caption}</figure>` : `<figure>${link}</figure>`
+      return { match: template, str }
+    } else {
+      return { match: template, str: '' }
+    }
+  }
+}
+
+/**
  * Load template from database and parse in parameter values.
  * @param template {!string} - A template expression.
  * @param name {!string} - The name of the template to load.
@@ -129,6 +161,8 @@ const parseTemplate = async (template, path, db) => {
       res = await loadChildren(template, params, path, db); break
     case 'download':
       res = await loadFile(template, params, path, db); break
+    case 'art':
+      res = await loadArt(template, params, path, db); break
     default:
       res = await loadTemplate(template, name, params, db); break
   }
