@@ -83,146 +83,160 @@ describe('parseTemplates', () => {
     expect(actual).toEqual('Hello world!')
   })
 
-  it('can parse a list of child pages', async () => {
-    expect.assertions(1)
-    const editor = await Member.load(2, db)
-    const pdata = { title: 'Parent', body: 'This is a parent page.' }
-    await Page.create(pdata, editor, 'Initial text', db)
-    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
-    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
-    await Page.create(c1data, editor, 'Initial text', db)
-    await Page.create(c2data, editor, 'Initial text', db)
-    const actual = await parseTemplates('{{Children}}', '/parent', db)
-    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+  describe('{{Children}}', () => {
+    it('can parse a list of child pages', async () => {
+      expect.assertions(1)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is a parent page.' }
+      await Page.create(pdata, editor, 'Initial text', db)
+      const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+      const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+      await Page.create(c1data, editor, 'Initial text', db)
+      await Page.create(c2data, editor, 'Initial text', db)
+      const actual = await parseTemplates('{{Children}}', '/parent', db)
+      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+    })
+
+    it('can parse a list of child pages restricted by type', async () => {
+      expect.assertions(1)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is a parent page.' }
+      await Page.create(pdata, editor, 'Initial text', db)
+      const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+      const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+      await Page.create(c1data, editor, 'Initial text', db)
+      await Page.create(c2data, editor, 'Initial text', db)
+      const actual = await parseTemplates('{{Children type="Test"}}', '/parent', db)
+      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n</ul>')
+    })
+
+    it('can parse a list of a different page\'s children', async () => {
+      expect.assertions(1)
+      const editor = await Member.load(2, db)
+      const pdata = { title: 'Parent', body: 'This is a parent page.' }
+      await Page.create(pdata, editor, 'Initial text', db)
+      const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
+      const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+      await Page.create(c1data, editor, 'Initial text', db)
+      await Page.create(c2data, editor, 'Initial text', db)
+      const actual = await parseTemplates('{{Children of="/parent"}}', '/parent/child-1', db)
+      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+    })
   })
 
-  it('can parse a list of child pages restricted by type', async () => {
-    expect.assertions(1)
-    const editor = await Member.load(2, db)
-    const pdata = { title: 'Parent', body: 'This is a parent page.' }
-    await Page.create(pdata, editor, 'Initial text', db)
-    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
-    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
-    await Page.create(c1data, editor, 'Initial text', db)
-    await Page.create(c2data, editor, 'Initial text', db)
-    const actual = await parseTemplates('{{Children type="Test"}}', '/parent', db)
-    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n</ul>')
+  describe('{{Download}}', () => {
+    it('can parse a file', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
+    it('can parse a file from a different page identified by title', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates('{{Download file="Test Page"}}', page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
+    it('can parse a file from a different page identified by path', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates('{{Download file="/test-page"}}', page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
   })
 
-  it('can parse a list of a different page\'s children', async () => {
-    expect.assertions(1)
-    const editor = await Member.load(2, db)
-    const pdata = { title: 'Parent', body: 'This is a parent page.' }
-    await Page.create(pdata, editor, 'Initial text', db)
-    const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
-    const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
-    await Page.create(c1data, editor, 'Initial text', db)
-    await Page.create(c2data, editor, 'Initial text', db)
-    const actual = await parseTemplates('{{Children of="/parent"}}', '/parent/child-1', db)
-    expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
-  })
+  describe('{{Art}}', () => {
+    it('can parse art', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+    })
 
-  it('can parse a file', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Test Page', body: '{{Download}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates(page.history.getBody(), page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
-  })
+    it('can add a caption', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art caption="This is not an upload."}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
+    })
 
-  it('can parse a file from a different page identified by title', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Test Page', body: '{{Download}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates('{{Download file="Test Page"}}', page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
-  })
+    it('can use a thumbnail', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art useThumbnail="true"}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates(page.history.getBody(), page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.thumb.jpg" alt="Art" /></a></figure>`)
+    })
 
-  it('can parse a file from a different page identified by path', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Test Page', body: '{{Download}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates('{{Download file="/test-page"}}', page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
-  })
+    it('can parse a different page\'s art, identified by title', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates('{{Art src="Art"}}', page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+    })
 
-  it('can parse art', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Art', body: '{{Art}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates(page.history.getBody(), page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
-  })
-
-  it('can add a caption', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Art', body: '{{Art caption="This is not an upload."}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates(page.history.getBody(), page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
-  })
-
-  it('can use a thumbnail', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Art', body: '{{Art useThumbnail="true"}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates(page.history.getBody(), page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.thumb.jpg" alt="Art" /></a></figure>`)
-  })
-
-  it('can parse a different page\'s art, identified by title', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Art', body: '{{Art}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates('{{Art src="Art"}}', page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
-  })
-
-  it('can parse a different page\'s art, identified by path', async () => {
-    expect.assertions(1)
-    await testUtils.populateMembers(db)
-    const editor = await Member.load(2, db)
-    const data = { title: 'Art', body: '{{Art}}' }
-    const page = await Page.create(data, editor, 'Initial text', db)
-    const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
-    const handler = new FileHandler(file); await handler.save(db)
-    const actual = await parseTemplates('{{Art src="/art"}}', page.path, db)
-    await testUtils.resetTables(db)
-    expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+    it('can parse a different page\'s art, identified by path', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const handler = new FileHandler(file);
+      await handler.save(db)
+      const actual = await parseTemplates('{{Art src="/art"}}', page.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+    })
   })
 })
