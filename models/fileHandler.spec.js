@@ -272,4 +272,13 @@ describe('FileHandler', () => {
       expect(actual).toEqual(expected)
     })
   })
+
+  describe('getFileSizeStr', () => {
+    it('describes a file size', () => {
+      const sizes = [ 900, 900000, 900000000, 1100000000 ]
+      const actual = sizes.map(size => FileHandler.getFileSizeStr(size))
+      const expected = [ '900 B', '900 kB', '900 MB', '1.1 GB' ]
+      expect(actual).toEqual(expected)
+    })
+  })
 })

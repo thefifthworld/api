@@ -212,6 +212,30 @@ class FileHandler {
   static getURL (key) {
     return `https://${config.aws.bucket}.s3.amazonaws.com/${key}`
   }
+
+  /**
+   * Returns a string expressing the size of a file.
+   * @param bytes {int} - The size of the file in bytes.
+   * @returns {string} - The size of the file expressed as a string (e.g.,
+   *   3 MB or 72 kB).
+   */
+
+  static getFileSizeStr (bytes) {
+    if (bytes < 1000) {
+      return `${bytes} B`
+    } else if (bytes < 1000000) {
+      const kb = bytes / 1000
+      return `${Math.round(kb * 10) / 10} kB`
+    } else if (bytes < 1000000000) {
+      const mb = bytes / 1000000
+      return `${Math.round(mb * 10) / 10} MB`
+    } else if (bytes) {
+      const gb = bytes / 1000000000
+      return `${Math.round(gb * 10) / 10} GB`
+    } else {
+      return '0 B'
+    }
+  }
 }
 
 module.exports = FileHandler
