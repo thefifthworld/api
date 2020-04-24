@@ -30,19 +30,36 @@ const getParams = tpl => {
  *   in key/value pairs.
  * @param path {?string} - The path of the page being parsed.
  * @param db {!Pool} - The database connection.
+ * @param asGallery {?boolean} - If `true`, the children are returned as a
+ *   gallery of images (Default: `false`).
  * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
  *   with an object with two properties: `str` (the string that should replace
  *   the template expression) and `match` (the template expression to replace).
  */
 
-const loadChildren = async (template, params, path, db) => {
+const loadChildren = async (template, params, path, db, asGallery = false) => {
   const parentPath = params.of ? params.of : path
-  const type = params.type ? params.type : null
+  const type = asGallery? 'Art' : params.type ? params.type : null
   const children = parentPath ? await Page.getChildrenOf(parentPath, type, db) : false
-  if (children) {
+  if (children && asGallery) {
+    const items = children.map(child => {
+      if (Array.isArray(child.files) && child.files.length > 0) {
+        const { name, thumbnail } = child.files[0]
+        const src = thumbnail ? FileHandler.getURL(thumbnail) : name ? FileHandler.getURL(name) : null
+        const img = src ? `<img src="${src}" alt="${child.title}" />` : null
+        return img ? `<li><a href="${child.path}">${img}</a></li>` : null
+      } else {
+        return null
+      }
+    }).filter(c => c !== null)
+    const str = items.length > 0
+      ? `<ul class="gallery">${items.join()}</ul>`
+      : ''
+    return { match: template, str }
+  } else if (children) {
     const items = children.map(child => `<li><a href="${child.path}">${child.title}</a></li>`)
     const tag = params.ordered ? 'ol' : 'ul'
-    return { match: template, str: `<${tag}>\n  ${items.join('\n  ')}\n</${tag}>` }
+    return { match: template, str: `<${tag}>${items.join('')}</${tag}>` }
   } else {
     return { match: template, str: '' }
   }
@@ -159,6 +176,8 @@ const parseTemplate = async (template, path, db) => {
   switch (name.toLowerCase()) {
     case 'children':
       res = await loadChildren(template, params, path, db); break
+    case 'gallery':
+      res = await loadChildren(template, params, path, db, true); break
     case 'download':
       res = await loadFile(template, params, path, db); break
     case 'art':

@@ -94,7 +94,7 @@ describe('parseTemplates', () => {
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
       const actual = await parseTemplates('{{Children}}', '/parent', db)
-      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+      expect(actual).toEqual('<ul><li><a href="/parent/child-1">Child 1</a></li><li><a href="/parent/child-2">Child 2</a></li></ul>')
     })
 
     it('can parse a list of child pages restricted by type', async () => {
@@ -107,7 +107,7 @@ describe('parseTemplates', () => {
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
       const actual = await parseTemplates('{{Children type="Test"}}', '/parent', db)
-      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n</ul>')
+      expect(actual).toEqual('<ul><li><a href="/parent/child-1">Child 1</a></li></ul>')
     })
 
     it('can parse a list of a different page\'s children', async () => {
@@ -120,7 +120,37 @@ describe('parseTemplates', () => {
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
       const actual = await parseTemplates('{{Children of="/parent"}}', '/parent/child-1', db)
-      expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+      expect(actual).toEqual('<ul><li><a href="/parent/child-1">Child 1</a></li><li><a href="/parent/child-2">Child 2</a></li></ul>')
+    })
+  })
+
+  describe('{{Gallery}}', () => {
+    it('creates a gallery of art child pages', async () => {
+      expect.assertions(1)
+      const parent = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const c1 = await Page.create({ title: 'Child 1', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
+      const c2 = await Page.create({ title: 'Child 2', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child 3', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child 4', body: 'Not art', parent: parent.id }, editor, 'Initial text', db)
+      const h1 = new FileHandler({ name: 'c1.jpg', thumbnail: 'c1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c1.id, uploader: editor.id }); await h1.save(db)
+      const h2 = new FileHandler({ name: 'c2.jpg', thumbnail: 'c2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c2.id, uploader: editor.id }); await h2.save(db)
+      const actual = await parseTemplates('{{Gallery}}', parent.path, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
+    })
+
+    it('creates a gallery of a specified parent', async () => {
+      expect.assertions(1)
+      const parent = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const c1 = await Page.create({ title: 'Child 1', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
+      const c2 = await Page.create({ title: 'Child 2', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
+      const h1 = new FileHandler({ name: 'c1.jpg', thumbnail: 'c1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c1.id, uploader: editor.id }); await h1.save(db)
+      const h2 = new FileHandler({ name: 'c2.jpg', thumbnail: 'c2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c2.id, uploader: editor.id }); await h2.save(db)
+      const actual = await parseTemplates('{{Gallery of="/test-page"}}', null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
     })
   })
 
