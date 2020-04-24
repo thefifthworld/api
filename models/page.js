@@ -299,8 +299,8 @@ class Page {
     if (rows && rows.length > 0) {
       const pages = []
       for (let row of rows) {
-        const page = await Page.get(row.id, db)
-        if (page.checkPermissions(searcher, 4)) pages.push(page)
+        const page = await Page.getIfAllowed(row.id, searcher, db)
+        if (page) pages.push(page)
       }
       return pages
     } else {
@@ -336,8 +336,8 @@ class Page {
     const clause = conditions.join(logic)
     const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
     for (let row of rows) {
-      const page = await Page.get(row.id, db)
-      if (page.checkPermissions(searcher, 4)) pages.push(page)
+      const page = await Page.getIfAllowed(row.id, searcher, db)
+      if (page) pages.push(page)
     }
     return pages
   }
