@@ -87,12 +87,15 @@ describe('parseTemplates', () => {
     it('can parse a list of child pages', async () => {
       expect.assertions(1)
       const editor = await Member.load(2, db)
+      const other = await Member.load(3, db)
       const pdata = { title: 'Parent', body: 'This is a parent page.' }
       await Page.create(pdata, editor, 'Initial text', db)
       const c1data = { title: 'Child 1', body: 'This is a child page. [[Type: Test]]', parent: '/parent' }
       const c2data = { title: 'Child 2', body: 'This is a different child page.', parent: '/parent' }
+      const c3data = { title: 'Child 3', body: 'This is a hidden child page.', parent: '/parent', permissions: 700 }
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
+      await Page.create(c3data, editor, 'Initial text', db)
       const actual = await parseTemplates('{{Children}}', '/parent', null, db)
       expect(actual).toEqual('<ul><li><a href="/parent/child-1">Child 1</a></li><li><a href="/parent/child-2">Child 2</a></li></ul>')
     })
@@ -133,8 +136,10 @@ describe('parseTemplates', () => {
       const c2 = await Page.create({ title: 'Child 2', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
       await Page.create({ title: 'Child 3', body: 'Art [[Type:Art]]', parent: parent.id }, editor, 'Initial text', db)
       await Page.create({ title: 'Child 4', body: 'Not art', parent: parent.id }, editor, 'Initial text', db)
+      const c5 = await Page.create({ title: 'Child 5', body: 'Art [[Type:Art]]', parent: parent.id, permissions: 700 }, editor, 'Initial text', db)
       const h1 = new FileHandler({ name: 'c1.jpg', thumbnail: 'c1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c1.id, uploader: editor.id }); await h1.save(db)
       const h2 = new FileHandler({ name: 'c2.jpg', thumbnail: 'c2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c2.id, uploader: editor.id }); await h2.save(db)
+      const h5 = new FileHandler({ name: 'c5.jpg', thumbnail: 'c5.thumb.jpg', mime: 'image/jpeg', size: 50000, page: c5.id, uploader: editor.id }); await h5.save(db)
       const actual = await parseTemplates('{{Gallery}}', parent.path, null, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
