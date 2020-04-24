@@ -1,3 +1,5 @@
+const { escape } = require('sqlstring')
+const FileHandler = require('../models/fileHandler')
 const Page = require('../models/page')
 
 /**
@@ -43,6 +45,35 @@ const loadChildren = async (template, params, path, db) => {
     return { match: template, str: `<${tag}>\n  ${items.join('\n  ')}\n</${tag}>` }
   } else {
     return { match: template, str: '' }
+  }
+}
+
+/**
+ * Parse a {{Download}} template.
+ * @param template {!string} - The template expression.
+ * @param params {?Object} - An object defining the parameters for the template
+ *   in key/value pairs.
+ * @param path {?string} - The path of the page being parsed.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadFile = async (template, params, path, db) => {
+  const p = params.file ? params.file : path ? path : null
+  if (p) {
+    const rows = await db.run(`SELECT f.name, f.size, f.mime FROM files f, pages p WHERE p.id=f.page AND (p.title=${escape(p)} OR p.path=${escape(p)});`)
+    if (rows && rows.length > 0) {
+      const row = rows[0]
+      const url = FileHandler.getURL(row.name)
+      const filesize = FileHandler.getFileSizeStr(row.size)
+      const name = `<span class="label">${row.name}</span>`
+      const size = `<span class="details">${row.mime}; ${filesize}</span>`
+      return { match: template, str: `<a href="${url}" class="download">${name}${size}</a>` }
+    } else {
+      return { match: template, str: '' }
+    }
   }
 }
 
@@ -96,6 +127,8 @@ const parseTemplate = async (template, path, db) => {
   switch (name.toLowerCase()) {
     case 'children':
       res = await loadChildren(template, params, path, db); break
+    case 'download':
+      res = await loadFile(template, params, path, db); break
     default:
       res = await loadTemplate(template, name, params, db); break
   }

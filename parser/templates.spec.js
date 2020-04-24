@@ -1,7 +1,9 @@
 /* global describe, it, expect, beforeEach, afterEach, afterAll */
 
+const FileHandler = require('../models/fileHandler')
 const Page = require('../models/page')
 const Member = require('../models/member')
+const config = require('../config')
 const db = require('../db')
 const parseTemplates = require('./templates')
 const testUtils = require('../test-utils')
@@ -118,5 +120,44 @@ describe('parseTemplates', () => {
     await Page.create(c2data, editor, 'Initial text', db)
     const actual = await parseTemplates('{{Children of="/parent"}}', '/parent/child-1', db)
     expect(actual).toEqual('<ul>\n  <li><a href="/parent/child-1">Child 1</a></li>\n  <li><a href="/parent/child-2">Child 2</a></li>\n</ul>')
+  })
+
+  it('can parse a file', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Test Page', body: '{{Download}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates(page.history.getBody(), page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+  })
+
+  it('can parse a file from a different page identified by title', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Test Page', body: '{{Download}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates('{{Download file="Test Page"}}', page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+  })
+
+  it('can parse a file from a different page identified by path', async () => {
+    expect.assertions(1)
+    await testUtils.populateMembers(db)
+    const editor = await Member.load(2, db)
+    const data = { title: 'Test Page', body: '{{Download}}' }
+    const page = await Page.create(data, editor, 'Initial text', db)
+    const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+    const handler = new FileHandler(file); await handler.save(db)
+    const actual = await parseTemplates('{{Download file="/test-page"}}', page.path, db)
+    await testUtils.resetTables(db)
+    expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
   })
 })
