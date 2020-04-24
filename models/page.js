@@ -253,13 +253,15 @@ class Page {
    *   correct object.
    * @param type {?string} - Optional. If provided, then only child pages that
    *   match this type will be returned.
+   * @param member {?Member} - Optional. The member requesting the list of
+   *   children.
    * @param db {!Pool} - The database connection.
    * @returns {Promise<Page[]>} - An array of Page objects that are child pages
    *   of the page identified by the `id` parameter (and optionally restricted
    *   to those that match the `type` parameter).
    */
 
-  static async getChildrenOf (id, type, db) {
+  static async getChildrenOf (id, type, member, db) {
     const parent = await Page.get(id, db)
     if (parent) {
       const query = type
@@ -268,8 +270,8 @@ class Page {
       const rows = await db.run(query)
       const children = []
       for (const row of rows) {
-        const child = await Page.get(row.id, db)
-        children.push(child)
+        const child = await Page.getIfAllowed(row.id, member, db)
+        if (child) children.push(child)
       }
       return children
     }

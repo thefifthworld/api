@@ -29,6 +29,7 @@ const getParams = tpl => {
  * @param params {?Object} - An object defining the parameters for the template
  *   in key/value pairs.
  * @param path {?string} - The path of the page being parsed.
+ * @param member {?Member} - The member we're loading children for.
  * @param db {!Pool} - The database connection.
  * @param asGallery {?boolean} - If `true`, the children are returned as a
  *   gallery of images (Default: `false`).
@@ -37,10 +38,10 @@ const getParams = tpl => {
  *   the template expression) and `match` (the template expression to replace).
  */
 
-const loadChildren = async (template, params, path, db, asGallery = false) => {
+const loadChildren = async (template, params, path, member, db, asGallery = false) => {
   const parentPath = params.of ? params.of : path
   const type = asGallery? 'Art' : params.type ? params.type : null
-  const children = parentPath ? await Page.getChildrenOf(parentPath, type, db) : false
+  const children = parentPath ? await Page.getChildrenOf(parentPath, type, member, db) : false
   if (children && asGallery) {
     const items = children.map(child => {
       if (Array.isArray(child.files) && child.files.length > 0) {
@@ -160,6 +161,7 @@ const loadTemplate = async (template, name, params, db) => {
  * Parse a single template expression.
  * @param template {!string} - The template expression to parse.
  * @param path {?string} - The path of the page we're parsing.
+ * @param member {?Member} - The member we're parsing this tempalte for.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
@@ -167,7 +169,7 @@ const loadTemplate = async (template, name, params, db) => {
  *   replace). If no template could be loaded, it resolves with `false`.
  */
 
-const parseTemplate = async (template, path, db) => {
+const parseTemplate = async (template, path, member, db) => {
   const tpl = template.replace(/\n/g, '')
   const name = tpl.substr(2, tpl.length - 4).replace(/\s(.*?)=["“”](.*?)["“”]/g, '')
   const params = getParams(tpl)
@@ -175,9 +177,9 @@ const parseTemplate = async (template, path, db) => {
   let res
   switch (name.toLowerCase()) {
     case 'children':
-      res = await loadChildren(template, params, path, db); break
+      res = await loadChildren(template, params, path, member, db); break
     case 'gallery':
-      res = await loadChildren(template, params, path, db, true); break
+      res = await loadChildren(template, params, path, member, db, true); break
     case 'download':
       res = await loadFile(template, params, path, db); break
     case 'art':
@@ -186,7 +188,7 @@ const parseTemplate = async (template, path, db) => {
       res = await loadTemplate(template, name, params, db); break
   }
 
-  res.str = await parseTemplates(res.str, path, db)
+  res.str = await parseTemplates(res.str, path, member, db)
   return res
 }
 
@@ -194,17 +196,18 @@ const parseTemplate = async (template, path, db) => {
  * Parses templates.
  * @param str {!string} - The string to parse.
  * @param path {?string} - The path of the page that we're parsing.
+ * @param member {?Member} - The person we're rendering these templates for.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<string>} - A Promise that resolves with the string parsed,
  *   such that any template calls are replaced with the appropriate values for
  *   those templates.
  */
 
-const parseTemplates = async (str, path, db) => {
+const parseTemplates = async (str, path, member, db) => {
   let templates = str.match(/{{((.*?)\n?)*?}}/gm)
   if (templates) {
     for (const template of templates) {
-      const tpl = await parseTemplate(template, path, db)
+      const tpl = await parseTemplate(template, path, member, db)
       str = str.replace(tpl.match, tpl.str)
     }
   }
