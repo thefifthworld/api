@@ -496,15 +496,14 @@ describe('Page', () => {
       expect.assertions(3)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const pdata = { title: 'Parent', body: 'This is the parent.' }
-      const cdata = { title: 'Child', body: 'This is the child.' }
-      const parent = await Page.create(pdata, editor, 'Initial text', db)
-      cdata.parent = parent.path
-      await Page.create(cdata, editor, 'Initial text', db)
-      const children = await Page.getChildrenOf(parent, null, db)
+      const other = await Member.load(3, db)
+      const parent = await Page.create({ title: 'Parent', body: 'This is the parent.' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child', body: 'This is the child.', parent: parent.id }, editor, 'Initial text', db)
+      await Page.create({ title: 'Hidden child', body: 'This one is hidden', parent: parent.id, permissions: 700 }, editor, 'Initial text', db)
+      const children = await Page.getChildrenOf(parent, null, other, db)
       await testUtils.resetTables(db)
       expect(children).toHaveLength(1)
-      expect(children[0].title).toEqual(cdata.title)
+      expect(children[0].title).toEqual('Child')
       expect(children[0].parent).toEqual(parent.id)
     })
 
@@ -519,7 +518,7 @@ describe('Page', () => {
       c1data.parent = parent.path; c2data.parent = parent.path
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
-      const children = await Page.getChildrenOf(parent, 'Test', db)
+      const children = await Page.getChildrenOf(parent, 'Test', editor, db)
       await testUtils.resetTables(db)
       expect(children).toHaveLength(1)
       expect(children[0].title).toEqual(c1data.title)
