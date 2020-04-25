@@ -24,6 +24,24 @@ const getParams = tpl => {
 }
 
 /**
+ * Render a page as an item in a gallery.
+ * @param page {!Page} - The page to render.
+ * @returns {string|null} - A string providing the HTML needed to render the
+ *   page as a gallery item, or `null` if this was not possible.
+ */
+
+const renderAsGalleryItem = page => {
+  if (Array.isArray(page.files) && page.files.length > 0) {
+    const { name, thumbnail } = page.files[0]
+    const src = thumbnail ? FileHandler.getURL(thumbnail) : name ? FileHandler.getURL(name) : null
+    const img = src ? `<img src="${src}" alt="${page.title}" />` : null
+    return img ? `<li><a href="${page.path}">${img}</a></li>` : null
+  } else {
+    return null
+  }
+}
+
+/**
  * Parse a {{Children}} template.
  * @param template {!string} - The template expression.
  * @param params {?Object} - An object defining the parameters for the template
@@ -43,16 +61,7 @@ const loadChildren = async (template, params, path, member, db, asGallery = fals
   const type = asGallery? 'Art' : params.type ? params.type : null
   const children = parentPath ? await Page.getChildrenOf(parentPath, type, member, db) : false
   if (children && asGallery) {
-    const items = children.map(child => {
-      if (Array.isArray(child.files) && child.files.length > 0) {
-        const { name, thumbnail } = child.files[0]
-        const src = thumbnail ? FileHandler.getURL(thumbnail) : name ? FileHandler.getURL(name) : null
-        const img = src ? `<img src="${src}" alt="${child.title}" />` : null
-        return img ? `<li><a href="${child.path}">${img}</a></li>` : null
-      } else {
-        return null
-      }
-    }).filter(c => c !== null)
+    const items = children.map(child => renderAsGalleryItem(child)).filter(c => c !== null)
     const str = items.length > 0
       ? `<ul class="gallery">${items.join()}</ul>`
       : ''
@@ -141,7 +150,7 @@ const loadArt = async (template, params, path, member, db) => {
 
 const loadTemplate = async (template, name, params, member, db) => {
   const matches = await Page.find({ title: name, type: 'Template' }, member, db)
-  const match = matches && Array.isArray(matches) && matches.length > 0 ? matches[0] : null
+  const match = matches && matches.length > 0 ? matches[0] : null
   if (match) {
     const body = match.history.getBody()
     const tagged = body.match(/{{Template}}(.+?){{\/Template}}/g)
@@ -176,6 +185,8 @@ const parseTemplate = async (template, path, member, db) => {
 
   let res
   switch (name.toLowerCase()) {
+    case 'artists':
+      res = await loadArtists(template, member, db); break
     case 'children':
       res = await loadChildren(template, params, path, member, db); break
     case 'gallery':
