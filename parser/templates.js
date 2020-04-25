@@ -189,6 +189,25 @@ const loadArt = async (template, params, path, member, db) => {
 }
 
 /**
+ * Parse a {{Form}} template.
+ * @param template {!string} - The template expression.
+ * @param params {?Object} - An object defining the parameters for the template
+ *   in key/value pairs.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadForm = async (template, params) => {
+  if (params.name) {
+    const id = `<input type="hidden" name="form" value="${params.name}" />`
+    const str = `<form action="/save-form" method="post">${id}</form>`
+    return { match: template, str }
+  }
+  return { match: template, str: '' }
+}
+
+/**
  * Load template from database and parse in parameter values.
  * @param template {!string} - A template expression.
  * @param name {!string} - The name of the template to load.
@@ -251,6 +270,8 @@ const parseTemplate = async (template, path, member, db) => {
       res = await loadFile(template, params, path, member, db); break
     case 'art':
       res = await loadArt(template, params, path, member, db); break
+    case 'form':
+      res = await loadForm(template, params); break
     default:
       res = await loadTemplate(template, name, params, member, db); break
   }

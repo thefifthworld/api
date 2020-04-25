@@ -364,4 +364,12 @@ describe('parseTemplates', () => {
       expect(actual).toEqual('')
     })
   })
+
+  describe('{{Form}}', () => {
+    it('creates a form', async () => {
+      expect.assertions(1)
+      const actual = await parseTemplates('{{Form name="Test"}}', null, null, db)
+      expect(actual).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /></form>')
+    })
+  })
 })
