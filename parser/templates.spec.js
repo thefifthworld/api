@@ -377,8 +377,8 @@ describe('parseTemplates', () => {
   describe('{{Form}}', () => {
     it('creates a form', async () => {
       expect.assertions(1)
-      const actual = await parseTemplates('{{Form name="Test"}}', null, null, db)
-      expect(actual).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /></form>')
+      const actual = await parseTemplates('{{Form name="Test" fields="{Email||email}{Reason|Why do you want to join the Fifth World?|textarea}"}}', null, null, db)
+      expect(actual).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /><label for="form-test-email">Email</label><input type="email" id="form-test-email" name="email" /><label for="form-test-reason">Reason<p class="note">Why do you want to join the Fifth World?</p></label><textarea id="form-test-reason" name="reason"></textarea><button>Send</button></form>')
     })
   })
 })

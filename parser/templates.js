@@ -201,7 +201,24 @@ const loadArt = async (template, params, path, member, db) => {
 const loadForm = async (template, params) => {
   if (params.name) {
     const id = `<input type="hidden" name="form" value="${params.name}" />`
-    const str = `<form action="/save-form" method="post">${id}</form>`
+    const fields = params.fields.match(/{(.*?)}/g).map(str => {
+      const components = str.slice(1, str.length - 1).split('|').map(s => s.trim())
+      if (components.length === 3) {
+        const id = Page.slugify(`form ${params.name} ${components[0]}`)
+        const name = Page.slugify(components[0])
+        const note = components[1] && components[1] !== ''
+          ? `<p class="note">${components[1]}</p>`
+          : ''
+        const label = `<label for="${id}">${components[0]}${note}</label>`
+        const field = components[2] === 'textarea'
+          ? `<textarea id="${id}" name="${name}"></textarea>`
+          : `<input type="${components[2]}" id="${id}" name="${name}" />`
+        return `${label}${field}`
+      } else {
+        return null
+      }
+    }).filter(f => f !== null)
+    const str = `<form action="/save-form" method="post">${id}${fields.join('')}<button>Send</button></form>`
     return { match: template, str }
   }
   return { match: template, str: '' }
