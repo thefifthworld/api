@@ -24,6 +24,15 @@ describe('parseTemplates', () => {
     expect(actual).toEqual('Hello world!')
   })
 
+  it('parses multiple templates', async () => {
+    expect.assertions(1)
+    const member = await Member.load(2, db)
+    await Page.create({ title: 'Template:Hello',  body: '{{Template}}Hello!{{/Template}} [[Type:Template]]' }, member, 'Initial text', db)
+    await Page.create({ title: 'Template:Goodbye',  body: '{{Template}}Goodbye!{{/Template}} [[Type:Template]]' }, member, 'Initial text', db)
+    const actual = await parseTemplates('{{Template:Hello}} {{Template:Goodbye}}', null, null, db)
+    expect(actual).toEqual('Hello! Goodbye!')
+  })
+
   it('can take a parameter', async () => {
     expect.assertions(1)
     const member = await Member.load(2, db)
