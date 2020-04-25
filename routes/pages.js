@@ -2,6 +2,7 @@ const express = require('express')
 const LinkHandler = require('../models/linkhandler')
 const Page = require('../models/page')
 const { loadPage, requireLogIn, optionalLogIn } = require('../security')
+const parser = require('../parser')
 const db = require('../db')
 const pages = express.Router()
 
@@ -98,8 +99,9 @@ pages.patch('/pages/*/unhide', requireLogIn, loadPage, async (req, res) => {
 })
 
 // GET /pages/*
-pages.get('/pages/*', loadPage, async (req, res) => {
-  res.status(200).json(req.page)
+pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
+  const parsed = await parser(req.page.history.getBody(), req.page.path, req.user, db)
+  res.status(200).json({ page: req.page, markup: parsed.html })
 })
 
 // GET /near/:lat/:lon/:dist*?

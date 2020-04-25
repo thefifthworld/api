@@ -296,12 +296,14 @@ describe('Pages API', () => {
 
   describe('GET /pages/*', () => {
     it('returns 200', async () => {
-      expect.assertions(4)
+      expect.assertions(5)
       const res = await request.get('/pages/test-page')
+      const { page, markup } = res.body
       expect(res.status).toEqual(200)
-      expect(res.body.path).toEqual('/test-page')
-      expect(res.body.title).toEqual('Test Page')
-      expect(res.body.history.changes).toHaveLength(1)
+      expect(page.path).toEqual('/test-page')
+      expect(page.title).toEqual('Test Page')
+      expect(page.history.changes).toHaveLength(1)
+      expect(markup).toEqual('<p>This is a test page.</p>\n')
     })
 
     it('returns 401 if you don\'t have permission', async () => {
