@@ -46,6 +46,7 @@ const restoreBlocks = (str, blocks) => {
  * Parse markdown.
  * @param str {!string} - The markdown to parse.
  * @param path {?string} - The path of the page being parsed.
+ * @param member {?member} - The member that we're parsing for.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<Object>} - An object detailing the results of the parsing.
  *   It has the following properties:
@@ -55,11 +56,11 @@ const restoreBlocks = (str, blocks) => {
  *         array of all the values assigned to that tag throughout the string.
  */
 
-const parser = async (str, path, db) => {
+const parser = async (str, path, member, db) => {
   const md = new Remarkable()
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = parseTags(blocked)
-  const templated = await parseTemplates(stripped, path, db)
+  const templated = await parseTemplates(stripped, path, member, db)
   let html = md.render(templated)
   const { str: linked, linkHandler } = await parseLinks(html, db)
   html = restoreBlocks(linked, blocks)
