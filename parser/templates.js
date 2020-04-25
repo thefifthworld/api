@@ -42,6 +42,33 @@ const renderAsGalleryItem = page => {
 }
 
 /**
+ * Show a listing of all artists, with a sample of their work.
+ * @param template {!string} - The template expression.
+ * @param member {?Member} - The member we're loading children for.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadArtists = async (template, member, db) => {
+  const artists = await Page.find({ type: 'Artist' }, member, db)
+  if (artists.length > 0) {
+    const sections = []
+    for (const artist of artists) {
+      const work = await Page.getChildrenOf(artist.id, 'Art', member, db)
+      const show = work ? work.slice(0, 4) : []
+      const gallery = show && show.length > 0
+        ? `<ul class="gallery">${show.map(piece => renderAsGalleryItem(piece)).join('')}</ul>`
+        : null
+      if (gallery) sections.push(`<section class="artist"><h2><a href="${artist.path}">${artist.title}</a></h2>${gallery}</section>`)
+    }
+    return { match: template, str: sections.join('') }
+  }
+  return { match: template, str: '' }
+}
+
+/**
  * Parse a {{Children}} template.
  * @param template {!string} - The template expression.
  * @param params {?Object} - An object defining the parameters for the template
