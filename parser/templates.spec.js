@@ -154,6 +154,21 @@ describe('parseTemplates', () => {
     })
   })
 
+  describe('{{Tagged}}', () => {
+    it('lists all pages with a given tag', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: 'Nope' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #3', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #4', body: '[[Test:Yes]]', permissions: 700 }, editor, 'Initial text', db)
+      const actual = await parseTemplates('{{Tagged tag="Test" value="Yes"}}', null, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual('<ul><li><a href="/page-2">Page #2</a></li><li><a href="/page-3">Page #3</a></li></ul>')
+    })
+  })
+
   describe('{{Children}}', () => {
     it('can parse a list of child pages', async () => {
       expect.assertions(1)

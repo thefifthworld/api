@@ -96,6 +96,31 @@ const loadNovels = async (template, member, db) => {
 }
 
 /**
+ * Show a listing of all pages that match a given tag value.
+ * @param template {!string} - The template expression.
+ * @param params {?Object} - An object defining the parameters for the template
+ *   in key/value pairs.
+ * @param member {?Member} - The member we're loading pages for.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadTagged = async (template, params, member, db) => {
+  if (params.tag && params.value) {
+    const tags = {}
+    tags[params.tag.toLowerCase()] = params.value
+    const pages = await Page.find({ tags }, member, db)
+    if (pages.length > 0) {
+      const items = pages.map(p => `<li><a href="${p.path}">${p.title}</a></li>`)
+      return { match: template, str: `<ul>${items.join('')}</ul>` }
+    }
+  }
+  return { match: template, str: '' }
+}
+
+/**
  * Parse a {{Children}} template.
  * @param template {!string} - The template expression.
  * @param params {?Object} - An object defining the parameters for the template
@@ -279,6 +304,8 @@ const parseTemplate = async (template, path, member, db) => {
       res = await loadArtists(template, member, db); break
     case 'novels':
       res = await loadNovels(template, member, db); break
+    case 'tagged':
+      res = await loadTagged(template, params, member, db); break
     case 'children':
       res = await loadChildren(template, params, path, member, db); break
     case 'gallery':
