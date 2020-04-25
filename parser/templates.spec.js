@@ -131,6 +131,20 @@ describe('parseTemplates', () => {
     })
   })
 
+  describe('{{Novels}}', () => {
+    it('lists all novels', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const novel = await Page.create({ title: 'Children of Wormwood', body: '[[Type:Novel]]' }, editor, 'Initial text', db)
+      const cover = await Page.create({ title: 'Cover', body: '[[Type:Art]] [[Cover:Children of Wormwood]]', parent: novel.id }, editor, 'Initial text', db)
+      const art = new FileHandler({ name: 'cover.jpg', thumbnail: 'cover.thumb.jpg', mime: 'image/jpeg', size: 20000, page: cover.id, uploader: editor.id }); await art.save(db)
+      const actual = await parseTemplates('{{Novels}}', null, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<ul class="novel-listing"><li><a href="/children-of-wormwood"><img src="https://${config.aws.bucket}.s3.amazonaws.com/cover.jpg" alt="Children of Wormwood" /></a></li></ul>`)
+    })
+  })
+
   describe('{{Children}}', () => {
     it('can parse a list of child pages', async () => {
       expect.assertions(1)

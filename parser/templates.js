@@ -69,6 +69,33 @@ const loadArtists = async (template, member, db) => {
 }
 
 /**
+ * Show a listing of all novels.
+ * @param template {!string} - The template expression.
+ * @param member {?Member} - The member we're loading children for.
+ * @param db {!Pool} - The database connection.
+ * @returns {Promise<{str: string, match: string}>} - A Promise that resolves
+ *   with an object with two properties: `str` (the string that should replace
+ *   the template expression) and `match` (the template expression to replace).
+ */
+
+const loadNovels = async (template, member, db) => {
+  const novels = await Page.find({ type: 'Novel' }, member, db)
+  if (novels.length > 0) {
+    const list = []
+    for (const novel of novels) {
+      const art = await Page.getChildrenOf(novel, 'Art', member, db)
+      const covers = art ? art.filter(a => Object.keys(a.tags).includes('cover')) : []
+      const cover = covers.length > 0 ? covers[0] : null
+      if (cover && cover.files && cover.files.length > 0) {
+        list.push(`<li><a href="${novel.path}"><img src="${FileHandler.getURL(cover.files[0].name)}" alt="${novel.title}" /></a></li>`)
+      }
+    }
+    if (list.length > 0) return { match: template, str: `<ul class="novel-listing">${list.join('')}</ul>` }
+  }
+  return { match: template, str: '' }
+}
+
+/**
  * Parse a {{Children}} template.
  * @param template {!string} - The template expression.
  * @param params {?Object} - An object defining the parameters for the template
@@ -214,6 +241,8 @@ const parseTemplate = async (template, path, member, db) => {
   switch (name.toLowerCase()) {
     case 'artists':
       res = await loadArtists(template, member, db); break
+    case 'novels':
+      res = await loadNovels(template, member, db); break
     case 'children':
       res = await loadChildren(template, params, path, member, db); break
     case 'gallery':
