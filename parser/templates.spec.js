@@ -83,6 +83,18 @@ describe('parseTemplates', () => {
     expect(actual).toEqual('Hello world!')
   })
 
+  it('won\'t reander a template that you don\'t have permission to see', async () => {
+    expect.assertions(1)
+    const member = await Member.load(2, db)
+    await Page.create({
+      title: 'Template:Hello',
+      body: '{{Template}}Hello world!{{/Template}} [[Type:Template]]',
+      permissions: 700
+    }, member, 'Initial text', db)
+    const actual = await parseTemplates('{{Template:Hello}}', null, null, db)
+    expect(actual).toEqual('')
+  })
+
   describe('{{Children}}', () => {
     it('can parse a list of child pages', async () => {
       expect.assertions(1)

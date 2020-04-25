@@ -131,6 +131,7 @@ const loadArt = async (template, params, path, member, db) => {
  * @param name {!string} - The name of the template to load.
  * @param params {!Object} - An object that defines the parameters to use for
  *   the template as key/value pairs.
+ * @param member {?Member} - The member that we're parsing this template for.
  * @param db {!Pool} - The database connection.
  * @returns {Promise<{str: string, match: *}|boolean>} - A Promise that
  *   resolves with an object with two properties: `str` (the string that should
@@ -138,11 +139,12 @@ const loadArt = async (template, params, path, member, db) => {
  *   replace). If no template could be loaded, it resolves with `false`.
  */
 
-const loadTemplate = async (template, name, params, db) => {
-  const res = await db.run(`SELECT c.json AS json FROM changes c, pages p WHERE p.id=c.page AND p.type='Template' AND p.title='${name}' ORDER BY p.depth ASC, c.timestamp DESC;`)
-  if (res.length > 0) {
-    const full = JSON.parse(res[0].json).body.replace(/\[\[Type:(.*?)\]\]/g, '').trim()
-    const tagged = full.match(/{{Template}}(.+?){{\/Template}}/g)
+const loadTemplate = async (template, name, params, member, db) => {
+  const matches = await Page.find({ title: name, type: 'Template' }, member, db)
+  const match = matches && Array.isArray(matches) && matches.length > 0 ? matches[0] : null
+  if (match) {
+    const body = match.history.getBody()
+    const tagged = body.match(/{{Template}}(.+?){{\/Template}}/g)
     if (tagged) {
       let str = tagged[0].substr(12, tagged[0].length - 25)
       Object.keys(params).forEach(param => {
@@ -152,7 +154,7 @@ const loadTemplate = async (template, name, params, db) => {
       return { match: template, str }
     }
   }
-  return false
+  return { match: template, str: '' }
 }
 
 /**
@@ -183,7 +185,7 @@ const parseTemplate = async (template, path, member, db) => {
     case 'art':
       res = await loadArt(template, params, path, member, db); break
     default:
-      res = await loadTemplate(template, name, params, db); break
+      res = await loadTemplate(template, name, params, member, db); break
   }
 
   res.str = await parseTemplates(res.str, path, member, db)
