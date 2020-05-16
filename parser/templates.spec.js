@@ -136,7 +136,7 @@ describe('parseTemplates', () => {
       const a3p2h = new FileHandler({ name: 'a3p2.jpg', thumbnail: 'a3p2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a3p2.id, uploader: editor.id }); await a3p2h.save(db)
       const actual = await parseTemplates('{{Artists}}', null, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<section class="artist"><h2><a href="/giulianna-maria-lamanna">Giulianna Maria Lamanna</a></h2><ul class="gallery"><li><a href="/giulianna-maria-lamanna/giulianna-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a1p1.thumb.jpg" alt="Giulianna #1" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-3"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a1p3.thumb.jpg" alt="Giulianna #3" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-4"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a1p4.thumb.jpg" alt="Giulianna #4" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-5"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a1p5.thumb.jpg" alt="Giulianna #5" /></a></li></ul></section><section class="artist"><h2><a href="/jason-godesky">Jason Godesky</a></h2><ul class="gallery"><li><a href="/jason-godesky/jason-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a2p1.thumb.jpg" alt="Jason #1" /></a></li><li><a href="/jason-godesky/jason-3"><img src="https://${config.aws.bucket}.s3.amazonaws.com/a2p3.thumb.jpg" alt="Jason #3" /></a></li></ul></section>`)
+      expect(actual).toEqual(`<section class="artist"><h2><a href="/giulianna-maria-lamanna">Giulianna Maria Lamanna</a></h2><ul class="gallery"><li><a href="/giulianna-maria-lamanna/giulianna-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a1p1.thumb.jpg" alt="Giulianna #1" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-3"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a1p3.thumb.jpg" alt="Giulianna #3" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-4"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a1p4.thumb.jpg" alt="Giulianna #4" /></a></li><li><a href="/giulianna-maria-lamanna/giulianna-5"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a1p5.thumb.jpg" alt="Giulianna #5" /></a></li></ul></section><section class="artist"><h2><a href="/jason-godesky">Jason Godesky</a></h2><ul class="gallery"><li><a href="/jason-godesky/jason-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a2p1.thumb.jpg" alt="Jason #1" /></a></li><li><a href="/jason-godesky/jason-3"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/a2p3.thumb.jpg" alt="Jason #3" /></a></li></ul></section>`)
     })
   })
 
@@ -150,7 +150,7 @@ describe('parseTemplates', () => {
       const art = new FileHandler({ name: 'cover.jpg', thumbnail: 'cover.thumb.jpg', mime: 'image/jpeg', size: 20000, page: cover.id, uploader: editor.id }); await art.save(db)
       const actual = await parseTemplates('{{Novels}}', null, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<ul class="novel-listing"><li><a href="/children-of-wormwood"><img src="https://${config.aws.bucket}.s3.amazonaws.com/cover.jpg" alt="Children of Wormwood" /></a></li></ul>`)
+      expect(actual).toEqual(`<ul class="novel-listing"><li><a href="/children-of-wormwood"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/cover.jpg" alt="Children of Wormwood" /></a></li></ul>`)
     })
   })
 
@@ -228,7 +228,7 @@ describe('parseTemplates', () => {
       const h5 = new FileHandler({ name: 'c5.jpg', thumbnail: 'c5.thumb.jpg', mime: 'image/jpeg', size: 50000, page: c5.id, uploader: editor.id }); await h5.save(db)
       const actual = await parseTemplates('{{Gallery}}', parent.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
+      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
     })
 
     it('creates a gallery of a specified parent', async () => {
@@ -241,7 +241,7 @@ describe('parseTemplates', () => {
       const h2 = new FileHandler({ name: 'c2.jpg', thumbnail: 'c2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c2.id, uploader: editor.id }); await h2.save(db)
       const actual = await parseTemplates('{{Gallery of="/test-page"}}', null, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.amazonaws.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
+      expect(actual).toEqual(`<ul class="gallery"><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li>,<li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li></ul>`)
     })
   })
 
@@ -257,7 +257,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
     it('can parse a file from a different page identified by title', async () => {
@@ -271,7 +271,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates('{{Download file="Test Page"}}', page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
     it('can parse a file from a different page identified by path', async () => {
@@ -285,7 +285,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates('{{Download file="/test-page"}}', page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.amazonaws.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+      expect(actual).toEqual(`<a href="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.txt" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
     it('doesn\'t show a file you don\'t have permission to see', async () => {
@@ -315,7 +315,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg" alt="Art" /></a></figure>`)
     })
 
     it('can add a caption', async () => {
@@ -329,7 +329,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
     })
 
     it('can use a thumbnail', async () => {
@@ -343,7 +343,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates(page.history.getBody(), page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.thumb.jpg" alt="Art" /></a></figure>`)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.thumb.jpg" alt="Art" /></a></figure>`)
     })
 
     it('can parse a different page\'s art, identified by title', async () => {
@@ -357,7 +357,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates('{{Art src="Art"}}', page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg" alt="Art" /></a></figure>`)
     })
 
     it('can parse a different page\'s art, identified by path', async () => {
@@ -371,7 +371,7 @@ describe('parseTemplates', () => {
       await handler.save(db)
       const actual = await parseTemplates('{{Art src="/art"}}', page.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.amazonaws.com/test.jpg" alt="Art" /></a></figure>`)
+      expect(actual).toEqual(`<figure><a href="/art"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg" alt="Art" /></a></figure>`)
     })
 
     it('doesn\'t show art you don\'t have permission to', async () => {
