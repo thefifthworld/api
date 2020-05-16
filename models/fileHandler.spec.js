@@ -268,7 +268,7 @@ describe('FileHandler', () => {
   describe('getURL', () => {
     it('returns a URL', () => {
       const actual = FileHandler.getURL('test.jpg')
-      const expected = `https://${config.aws.bucket}.s3.amazonaws.com/test.jpg`
+      const expected = `https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg`
       expect(actual).toEqual(expected)
     })
   })
