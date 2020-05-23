@@ -1,6 +1,7 @@
-const Member = require('./models/member')
+const fetch = require('node-fetch')
 const sqlstring = require('sqlstring')
 const { escape } = sqlstring
+const Member = require('./models/member')
 
 /**
  * Return a mock plain ASCII text file.
@@ -100,11 +101,28 @@ const resetTables = async (db) => {
   }
 }
 
+/**
+ * Request a URL and return the response.
+ * @param url {!string} - A URL to request.
+ * @returns {Promise<{}>} - A Promise that resolves with the response obtained
+ *   from requesting the given URL.
+ */
+
+const checkURL = async url => {
+  try {
+    const res = await fetch(url)
+    return res
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 module.exports = {
   mockTXT,
   mockGIF,
   mockJPEG,
   populateMembers,
   createTestPage,
-  resetTables
+  resetTables,
+  checkURL
 }

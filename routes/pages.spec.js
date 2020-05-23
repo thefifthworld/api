@@ -1,6 +1,7 @@
 /* global describe, it, expect, beforeAll, beforeEach, afterEach, afterAll */
 
 const supertest = require('supertest')
+const FileHandler = require('../models/fileHandler')
 const Page = require('../models/page')
 const Member = require('../models/member')
 const db = require('../db')
@@ -54,6 +55,64 @@ describe('Pages API', () => {
       const check = await db.run(`SELECT title FROM pages WHERE path='/new-page';`)
       expect(res.status).toEqual(401)
       expect(check).toHaveLength(0)
+    })
+
+    it('handles files', async () => {
+      expect.assertions(5)
+      const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockTXT() } }
+      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
+      const url = file && file.name ? FileHandler.getURL(file.name) : null
+      const check = url ? await testUtils.checkURL(url) : { status: null }
+      if (file) await FileHandler.remove(file.name, db)
+
+      expect(res.status).toEqual(200)
+      expect(check.status).toEqual(200)
+      expect(file.name.substr(file.name.length - 4)).toEqual('.txt')
+      expect(file.name.startsWith('uploads/test.')).toEqual(true)
+      expect(file.mime).toEqual('text/plain')
+    })
+
+    it('creates a thumbnail', async () => {
+      expect.assertions(8)
+      const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockJPEG() } }
+      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
+      const imgURL = file && file.name ? FileHandler.getURL(file.name) : null
+      const thumbURL = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
+      const checkImg = imgURL ? await testUtils.checkURL(imgURL) : { status: null }
+      const checkThumb = thumbURL ? await testUtils.checkURL(thumbURL) : { status: null }
+      if (file) await FileHandler.remove(file.name, db)
+
+      expect(res.status).toEqual(200)
+      expect(checkImg.status).toEqual(200)
+      expect(checkThumb.status).toEqual(200)
+      expect(file.name.substr(file.name.length - 4)).toEqual('.jpg')
+      expect(file.name.startsWith('uploads/test.')).toEqual(true)
+      expect(file.thumbnail.substr(file.thumbnail.length - 4)).toEqual('.jpg')
+      expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(file.mime).toEqual('image/jpeg')
+    })
+
+    it('can accept a thumbnail', async () => {
+      expect.assertions(8)
+      const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockJPEG(), thumbnail: testUtils.mockGIF() } }
+      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
+      const imgURL = file && file.name ? FileHandler.getURL(file.name) : null
+      const thumbURL = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
+      const checkImg = imgURL ? await testUtils.checkURL(imgURL) : { status: null }
+      const checkThumb = thumbURL ? await testUtils.checkURL(thumbURL) : { status: null }
+      if (file) await FileHandler.remove(file.name, db)
+
+      expect(res.status).toEqual(200)
+      expect(checkImg.status).toEqual(200)
+      expect(checkThumb.status).toEqual(200)
+      expect(file.name.substr(file.name.length - 4)).toEqual('.jpg')
+      expect(file.name.startsWith('uploads/test.')).toEqual(true)
+      expect(file.thumbnail.substr(file.thumbnail.length - 4)).toEqual('.gif')
+      expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(file.mime).toEqual('image/jpeg')
     })
   })
 
@@ -313,6 +372,27 @@ describe('Pages API', () => {
       const page = await Page.create(data, editor, 'Initial text', db)
       const res = await request.get(`/pages${page.path}`)
       expect(res.status).toEqual(401)
+    })
+  })
+
+  describe('POST /autocomplete', () => {
+    it('returns matching pages', async () => {
+      expect.assertions(4)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test' })
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.found).toEqual(res.body.pages.length)
+      expect(res.body.pages[0].path).toEqual('/test-page')
+      expect(res.body.pages[0].title).toEqual('Test Page')
+    })
+
+    it('can be restricted to a specific type', async () => {
+      expect.assertions(2)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', path: '/test-page-typed', body: 'This is a new page. [[Type:Test]]' }
+      await Page.create(data, editor, 'Initial text', db)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test', type: 'Test' })
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.pages[0].path).toEqual('/test-page-typed')
     })
   })
 

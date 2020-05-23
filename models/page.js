@@ -134,20 +134,27 @@ class Page {
       const assign = { title, slug, path, type }
       Object.keys(assign).forEach(key => { this[key] = assign[key] })
       this.parent = parent && parent.id ? parent.id : 0
-      this.tags = tagHandler
-      this.location = locationHandler
-      const links = await parseLinks(data.body, db)
-      this.links = links.linkHandler
       this.depth = parent ? parent.depth + 1 : 0
       this.description = data.description || Page.getDescription(data.body)
       this.image = data.image
       this.header = data.header
       this.permissions = data.permissions || 774
 
+      this.tags = tagHandler
+      this.location = locationHandler
+      const links = await parseLinks(data.body, db)
+      this.links = links.linkHandler
+
       if (!this.saved) {
         await this.insert(data, editor, msg, db)
       } else {
         await this.update(data, editor, msg, db)
+      }
+
+      if (data.files) {
+        const fileHandler = await FileHandler.handle(data.files, this, editor)
+        await fileHandler.save(db)
+        this.files = await FileHandler.load(this, db)
       }
 
       if (this.location) await this.location.save(this.id, db)
