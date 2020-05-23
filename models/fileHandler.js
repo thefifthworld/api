@@ -134,6 +134,10 @@ class FileHandler {
 
   static async remove (key, db) {
     if (key) {
+      const row = await db.run(`SELECT thumbnail FROM files WHERE name=${escape(key)};`)
+      const thumbnail = row && row.length > 0 ? row[0].thumbnail : null
+      if (thumbnail) await FileHandler.remove(thumbnail, db)
+
       await db.run(`DELETE FROM files WHERE name=${escape(key)};`)
       const s3 = FileHandler.instantiateS3()
       const params = {Bucket: config.aws.bucket, Key: key}
