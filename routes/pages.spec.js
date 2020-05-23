@@ -351,6 +351,64 @@ describe('Pages API', () => {
       expect(check).toBeInstanceOf(Page)
       expect(check.history.getBody()).not.toEqual(update.body)
     })
+
+    it('updates a file', async () => {
+      expect.assertions(9)
+      const data = { title: 'Image', body: 'This is an image.', msg: 'Initial text', files: { file: testUtils.mockGIF() } }
+      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      data.files = { file: testUtils.mockJPEG() }
+      const after = await request.post('/pages/image').auth('normal@thefifthworld.com', 'password').send(data)
+
+      const file = after && after.body && after.body.files && after.body.files.length > 0 ? after.body.files[0] : null
+      const main = file && file.name ? FileHandler.getURL(file.name) : null
+      const checkMain = main ? await testUtils.checkURL(main) : { status: null }
+      const thumb = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
+      const checkThumb = thumb ? await testUtils.checkURL(thumb) : { status: null }
+      if (after && after.body && after.body.files) {
+        for (const file of after.body.files) {
+          await FileHandler.remove(file.name, db)
+        }
+      }
+
+      expect(after.status).toEqual(200)
+      expect(checkMain.status).toEqual(200)
+      expect(checkThumb.status).toEqual(200)
+      expect(after.body.files).toHaveLength(2)
+      expect(file.mime).toEqual('image/jpeg')
+      expect(file.name.startsWith('uploads/test.')).toEqual(true)
+      expect(file.name.substr(file.name.length - 4)).toEqual('.jpg')
+      expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(file.thumbnail.substr(file.thumbnail.length - 4)).toEqual('.jpg')
+    })
+
+    it('can accept a thumbnail', async () => {
+      expect.assertions(9)
+      const data = { title: 'Image', body: 'This is an image.', msg: 'Initial text', files: { file: testUtils.mockGIF(), thumbnail: testUtils.mockJPEG() } }
+      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      data.files = { file: testUtils.mockJPEG(), thumbnail: testUtils.mockGIF() }
+      const after = await request.post('/pages/image').auth('normal@thefifthworld.com', 'password').send(data)
+
+      const file = after && after.body && after.body.files && after.body.files.length > 0 ? after.body.files[0] : null
+      const main = file && file.name ? FileHandler.getURL(file.name) : null
+      const checkMain = main ? await testUtils.checkURL(main) : { status: null }
+      const thumb = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
+      const checkThumb = thumb ? await testUtils.checkURL(thumb) : { status: null }
+      if (after && after.body && after.body.files) {
+        for (const file of after.body.files) {
+          await FileHandler.remove(file.name, db)
+        }
+      }
+
+      expect(after.status).toEqual(200)
+      expect(checkMain.status).toEqual(200)
+      expect(checkThumb.status).toEqual(200)
+      expect(after.body.files).toHaveLength(2)
+      expect(file.mime).toEqual('image/jpeg')
+      expect(file.name.startsWith('uploads/test.')).toEqual(true)
+      expect(file.name.substr(file.name.length - 4)).toEqual('.jpg')
+      expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
+      expect(file.thumbnail.substr(file.thumbnail.length - 4)).toEqual('.gif')
+    })
   })
 
   describe('GET /pages/*', () => {
