@@ -319,6 +319,26 @@ describe('Page', () => {
       expect(page.likes.path).toEqual(page.path)
       expect(page.likes.ids).toEqual([])
     })
+
+    it('uploads a file', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.',
+        files: { file: testUtils.mockTXT() }
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = page && page.files && page.files.length > 0 ? page.files[0] : null
+      const url = file ? FileHandler.getURL(file.name) : null
+      const check = url ? await testUtils.checkURL(url) : { status: null }
+      await FileHandler.remove(file.name)
+      await testUtils.resetTables(db)
+      expect(page.files).toHaveLength(1)
+      expect(page.files[0].mime).toEqual('text/plain')
+      expect(check.status).toEqual(200)
+    })
   })
 
   describe('get', () => {
