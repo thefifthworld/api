@@ -1,6 +1,5 @@
 /* global describe, it, expect, afterAll */
 
-const fetch = require('node-fetch')
 const sizeOf = require('buffer-image-size')
 const config = require('../config')
 const db = require('../db')
@@ -8,22 +7,6 @@ const testUtils = require('../test-utils')
 const Member = require('./member')
 const Page = require('./page')
 const FileHandler = require('./fileHandler')
-
-/**
- * Request a URL and return the response.
- * @param url {!string} - A URL to request.
- * @returns {Promise<{}>} - A Promise that resolves with the response obtained
- *   from requesting the given URL.
- */
-
-const check = async url => {
-  try {
-    const res = await fetch(url)
-    return res
-  } catch (err) {
-    console.error(err)
-  }
-}
 
 describe('FileHandler', () => {
   afterAll(() => { db.end() })
@@ -108,12 +91,12 @@ describe('FileHandler', () => {
     it('handles file uploads', async () => {
       const files = { file: testUtils.mockTXT() }
       const handler = await FileHandler.handle(files, { id: 3 }, { id: 4 })
-      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
-      await FileHandler.remove(handler.name)
-      await FileHandler.remove(handler.thumbnail)
-      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+      const fileCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name, db)
+      await FileHandler.remove(handler.thumbnail, db)
+      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -128,12 +111,12 @@ describe('FileHandler', () => {
     it('handles art uploads that need a thumbnail', async () => {
       const files = { file: testUtils.mockJPEG() }
       const handler = await FileHandler.handle(files)
-      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
-      await FileHandler.remove(handler.name)
-      await FileHandler.remove(handler.thumbnail)
-      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+      const fileCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name, db)
+      await FileHandler.remove(handler.thumbnail, db)
+      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -151,12 +134,12 @@ describe('FileHandler', () => {
         thumbnail: testUtils.mockGIF()
       }
       const handler = await FileHandler.handle(files)
-      const fileCheckBefore = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckBefore = await check(FileHandler.getURL(handler.thumbnail))
-      await FileHandler.remove(handler.name)
-      await FileHandler.remove(handler.thumbnail)
-      const fileCheckAfter = await check(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await check(FileHandler.getURL(handler.thumbnail))
+      const fileCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
+      await FileHandler.remove(handler.name, db)
+      await FileHandler.remove(handler.thumbnail, db)
+      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
+      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -174,12 +157,12 @@ describe('FileHandler', () => {
       const art = testUtils.mockJPEG()
       const thumb = testUtils.mockGIF()
       const res = await FileHandler.handleArt(art, thumb)
-      const a = await check(FileHandler.getURL(res.file))
-      const b = await check(FileHandler.getURL(res.thumbnail))
-      await FileHandler.remove(res.file)
-      await FileHandler.remove(res.thumbnail)
-      const c = await check(FileHandler.getURL(res.file))
-      const d = await check(FileHandler.getURL(res.thumbnail))
+      const a = await testUtils.checkURL(FileHandler.getURL(res.file))
+      const b = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
+      await FileHandler.remove(res.file, db)
+      await FileHandler.remove(res.thumbnail, db)
+      const c = await testUtils.checkURL(FileHandler.getURL(res.file))
+      const d = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
 
       expect(res.file).toBeDefined()
       expect(res.thumbnail).toBeDefined()
@@ -194,12 +177,12 @@ describe('FileHandler', () => {
     it('generates a thumbnail', async () => {
       const art = testUtils.mockJPEG()
       const res = await FileHandler.handleArt(art)
-      const a = await check(FileHandler.getURL(res.file))
-      const b = await check(FileHandler.getURL(res.thumbnail))
-      await FileHandler.remove(res.file)
-      await FileHandler.remove(res.thumbnail)
-      const c = await check(FileHandler.getURL(res.file))
-      const d = await check(FileHandler.getURL(res.thumbnail))
+      const a = await testUtils.checkURL(FileHandler.getURL(res.file))
+      const b = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
+      await FileHandler.remove(res.file, db)
+      await FileHandler.remove(res.thumbnail, db)
+      const c = await testUtils.checkURL(FileHandler.getURL(res.file))
+      const d = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
 
       expect(res.file).toBeDefined()
       expect(res.thumbnail).toBeDefined()
@@ -217,9 +200,9 @@ describe('FileHandler', () => {
       const file = testUtils.mockGIF()
       const res = await FileHandler.upload(file)
       const url = res.Location
-      const a = await check(url)
-      await FileHandler.remove(res.key)
-      const b = await check(url)
+      const a = await testUtils.checkURL(url)
+      await FileHandler.remove(res.key, db)
+      const b = await testUtils.checkURL(url)
       expect(res.key).toBeDefined()
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(403)
@@ -230,9 +213,9 @@ describe('FileHandler', () => {
       const thumb = await FileHandler.createThumbnail(file)
       const res = await FileHandler.upload(thumb, true)
       const url = res.Location
-      const a = await check(url)
-      await FileHandler.remove(res.key)
-      const b = await check(url)
+      const a = await testUtils.checkURL(url)
+      await FileHandler.remove(res.key, db)
+      const b = await testUtils.checkURL(url, db)
       expect(res.key).toBeDefined()
       expect(res.key.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)

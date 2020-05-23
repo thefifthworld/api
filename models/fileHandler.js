@@ -55,6 +55,8 @@ class FileHandler {
 
   static async handle (files, page, uploader) {
     if (files.file && files.file.mimetype && files.file.size) {
+      if (files.file.data && !Buffer.isBuffer(files.file.data)) files.file.data = Buffer.from(files.file.data)
+      if (files.thumbnail && files.thumbnail.data && !Buffer.isBuffer(files.thumbnail.data)) files.thumbnail.data = Buffer.from(files.thumbnail.data)
       const { size } = files.file
       const mime = files.file.mimetype
       const now = new Date()
@@ -127,12 +129,18 @@ class FileHandler {
   /**
    * Delete an object from Amazon Web Services S3 storage.
    * @param key {string} - The key to the object to delete.
+   * @param db {Pool} - The database connection.
    * @returns {Promise<void>} - A Promise that resolves once the object has
    *   been deleted.
    */
 
-  static async remove (key) {
+  static async remove (key, db) {
     if (key) {
+      const row = await db.run(`SELECT thumbnail FROM files WHERE name=${escape(key)};`)
+      const thumbnail = row && row.length > 0 ? row[0].thumbnail : null
+      if (thumbnail) await FileHandler.remove(thumbnail, db)
+
+      await db.run(`DELETE FROM files WHERE name=${escape(key)};`)
       const s3 = FileHandler.instantiateS3()
       const params = {Bucket: config.aws.bucket, Key: key}
       await s3.deleteObject(params).promise()
