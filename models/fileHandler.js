@@ -127,12 +127,14 @@ class FileHandler {
   /**
    * Delete an object from Amazon Web Services S3 storage.
    * @param key {string} - The key to the object to delete.
+   * @param db {Pool} - The database connection.
    * @returns {Promise<void>} - A Promise that resolves once the object has
    *   been deleted.
    */
 
-  static async remove (key) {
+  static async remove (key, db) {
     if (key) {
+      await db.run(`DELETE FROM files WHERE name=${escape(key)};`)
       const s3 = FileHandler.instantiateS3()
       const params = {Bucket: config.aws.bucket, Key: key}
       await s3.deleteObject(params).promise()
