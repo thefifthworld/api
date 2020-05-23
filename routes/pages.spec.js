@@ -375,6 +375,27 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /autocomplete', () => {
+    it('returns matching pages', async () => {
+      expect.assertions(4)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test' })
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.found).toEqual(res.body.pages.length)
+      expect(res.body.pages[0].path).toEqual('/test-page')
+      expect(res.body.pages[0].title).toEqual('Test Page')
+    })
+
+    it('can be restricted to a specific type', async () => {
+      expect.assertions(2)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', path: '/test-page-typed', body: 'This is a new page. [[Type:Test]]' }
+      await Page.create(data, editor, 'Initial text', db)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test', type: 'Test' })
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.pages[0].path).toEqual('/test-page-typed')
+    })
+  })
+
   describe('GET /near/:lat/:lon/:dist*?', () => {
     it('returns places near a point', async () => {
       expect.assertions(10)
