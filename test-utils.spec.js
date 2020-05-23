@@ -99,4 +99,11 @@ describe('resetTables', () => {
   })
 })
 
+describe('checkURL', () => {
+  it('fetches a URL', async () => {
+    const res = await utils.checkURL('https://google.com')
+    expect(res.status).toEqual(200)
+  })
+})
+
 afterAll(() => { db.end() })
