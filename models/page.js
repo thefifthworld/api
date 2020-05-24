@@ -395,6 +395,7 @@ class Page {
       /^\/new(\/(.*))?$/g,
       /^\/upload(\/(.*))?$/g,
       /^\/autocomplete(\/(.*))?$/g,
+      /^\/checkpath(\/(.*))?$/g,
       /^\/like(\/(.*))?$/g,
       /^\/unlike(\/(.*))?$/g,
       /^\/explore(\/(.*))?$/g
