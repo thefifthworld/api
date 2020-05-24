@@ -1,3 +1,4 @@
+const { escape } = require('sqlstring')
 const express = require('express')
 const LinkHandler = require('../models/linkhandler')
 const Page = require('../models/page')
@@ -131,6 +132,26 @@ pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
 pages.get('/requested', async (eq, res) => {
   const links = await LinkHandler.loadRequested(db)
   res.status(200).json(links)
+})
+
+// POST /checkpath
+pages.post('/checkpath', optionalLogIn, async (req, res) => {
+  const { title, type } = req.body
+  const slug = req.body.slug || Page.slugify(title)
+  const parent = req.body.parent ? await Page.get(req.body.parent, db) : null
+  const path = req.body.path ? req.body.path : parent ? `${parent.path}/${slug}` : `/${slug}`
+  const check = await db.run(`SELECT id FROM pages WHERE path=${escape(path)};`)
+  const existing = check && check.length > 0
+
+  if (Page.isReservedPath(path)) {
+    res.status(200).json({ ok: false, error: `We reserve <code>${path}</code> for internal use.` })
+  } else if (Page.isReservedTemplate(type, title)) {
+    res.status(200).json({ ok: false, error: `We use <code>{{${title}}}</code> internally. You cannot create a template with that name.` })
+  } else if (existing) {
+    res.status(200).json({ ok: false, error: `A page with the path <code>${path}</code> already exists.` })
+  } else {
+    res.status(200).json({ ok: true })
+  }
 })
 
 module.exports = pages

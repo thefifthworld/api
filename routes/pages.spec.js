@@ -491,4 +491,48 @@ describe('Pages API', () => {
       expect(res.body[2]).toEqual({ title: 'Link Three', links: [ { id: 2, title: 'Test', path: '/test' } ] })
     })
   })
+
+  describe('POST /checkpath', () => {
+    it('tells you that you can\'t use a reserved name', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'Welcome' })
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('We reserve <code>/welcome</code> for internal use.')
+    })
+
+    it('tells you that you can\'t use a reserved template', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'Children', type: 'Template' })
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('We use <code>{{Children}}</code> internally. You cannot create a template with that name.')
+    })
+
+    it('tells you that you can\'t use a URL that\'s already in use', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'Test Page' })
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('A page with the path <code>/test-page</code> already exists.')
+    })
+
+    it('tells you that you can create a new page', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'New Page' })
+      expect(body.ok).toEqual(true)
+      expect(body.error).not.toBeDefined()
+    })
+
+    it('tells you that you can create a new page with an existing name if it\'s in a new scope', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'Test Page', parent: '/test-page' })
+      expect(body.ok).toEqual(true)
+      expect(body.error).not.toBeDefined()
+    })
+
+    it('tells you that you can\'t create a new page with an existing name in a new scope if that scope doesn\'t exist', async () => {
+      expect.assertions(2)
+      const { body } = await request.post('/checkpath').send({ title: 'Test Page', parent: '/new-page' })
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('A page with the path <code>/test-page</code> already exists.')
+    })
+  })
 })
