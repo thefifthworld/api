@@ -51,7 +51,8 @@
     "supertest": "^4.0.2"
   },
   "scripts": {
-    "start": "npm-run-all lint test serve",
+    "start": "NODE_ENV=production node index.js",
+    "dev": "npm-run-all lint test serve",
     "serve": "node index.js",
     "test": "jest --detectOpenHandles",
     "lint": "eslint './*.js'"
