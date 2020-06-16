@@ -629,6 +629,12 @@ describe('Page', () => {
   })
 
   describe('find', () => {
+    it('returns an empty array if not given a query', async () => {
+      expect.assertions(1)
+      const found = await Page.find({}, null, db)
+      expect(found).toHaveLength(0)
+    })
+
     it('returns pages that start with the given path', async () => {
       expect.assertions(5)
       const t1 = await testUtils.createTestPage(Page, Member, db)
