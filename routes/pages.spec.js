@@ -15,6 +15,7 @@ describe('Pages API', () => {
   beforeAll(async () => { server = await api.listen(8888) })
   beforeEach(async done => {
     request = supertest(server)
+    await testUtils.resetTables(db)
     await testUtils.createTestPage(Page, Member, db)
     done()
   })
@@ -434,9 +435,25 @@ describe('Pages API', () => {
   })
 
   describe('POST /autocomplete', () => {
-    it('returns matching pages', async () => {
+    it('returns a null set if not given anything', async () => {
+      expect.assertions(2)
+      const res = await request.post('/autocomplete')
+      expect(res.body.found).toEqual(res.body.pages.length)
+      expect(res.body.pages).toHaveLength(0)
+    })
+
+    it('searches by title', async () => {
       expect.assertions(4)
       const res = await request.post('/autocomplete').send({ fragment: 'Test' })
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.found).toEqual(res.body.pages.length)
+      expect(res.body.pages[0].path).toEqual('/test-page')
+      expect(res.body.pages[0].title).toEqual('Test Page')
+    })
+
+    it('searches by path', async () => {
+      expect.assertions(4)
+      const res = await request.post('/autocomplete').send({ path: '/test' })
       expect(res.body.pages).toHaveLength(1)
       expect(res.body.found).toEqual(res.body.pages.length)
       expect(res.body.pages[0].path).toEqual('/test-page')

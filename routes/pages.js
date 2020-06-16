@@ -109,6 +109,7 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
 pages.post('/autocomplete', optionalLogIn, async (req, res) => {
   const query = {}
   if (req.body.fragment) query.title = req.body.fragment
+  if (req.body.path) query.path = req.body.path
   if (req.body.type) query.type = req.body.type
   const pages = await Page.find(query, req.user, db)
   res.status(200).json({
