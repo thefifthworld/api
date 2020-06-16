@@ -343,10 +343,12 @@ class Page {
     if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
     const logic = query.logic === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
-    const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
-    for (let row of rows) {
-      const page = await Page.getIfAllowed(row.id, searcher, db)
-      if (page) pages.push(page)
+    if (clause.length > 0) {
+      const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
+      for (let row of rows) {
+        const page = await Page.getIfAllowed(row.id, searcher, db)
+        if (page) pages.push(page)
+      }
     }
     return pages
   }
