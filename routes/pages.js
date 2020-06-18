@@ -105,19 +105,6 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
   res.status(200).json({ page: req.page, markup: parsed.html })
 })
 
-// POST /autocomplete
-pages.post('/autocomplete', optionalLogIn, async (req, res) => {
-  const query = {}
-  if (req.body.fragment) query.title = req.body.fragment
-  if (req.body.path) query.path = req.body.path
-  if (req.body.type) query.type = req.body.type
-  const pages = await Page.find(query, req.user, db)
-  res.status(200).json({
-    pages: pages.map(p => ({ id: p.id, path: p.path, title: p.title })),
-    found: pages.length
-  })
-})
-
 // GET /near/:lat/:lon/:dist*?
 pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
   const { lat, lon, dist } = req.params
