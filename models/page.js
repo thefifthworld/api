@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const slugify = require('slugify')
 const History = require('./history')
 const FileHandler = require('./fileHandler')
 const TagHandler = require('./taghandler')
@@ -121,7 +122,7 @@ class Page {
       : undefined
 
     const title = data.title || ''
-    const slug = data.slug || Page.slugify(title)
+    const slug = data.slug || slugify(title, { lower: true })
     const parent = data.parent ? await Page.get(data.parent, db) : null
     const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
     const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
@@ -408,29 +409,6 @@ class Page {
       /^\/explore(\/(.*))?$/g
     ]
     return reservedPaths.reduce((acc, curr) => acc || (path.match(curr) !== null), false)
-  }
-
-  /**
-   * Returns a "slugified" version of the original string.
-   * @param str {!string} - A string to "slugify."
-   * @returns {string} - The "slugified" version of the original string.
-   */
-
-  static slugify (str) {
-    const a = 'àáäâèéëêìíïîòóöôùúüûñçßÿœæŕśńṕẃǵǹḿǘẍźḧ·/_,:;'
-    const b = 'aaaaeeeeiiiioooouuuuncsyoarsnpwgnmuxzh------'
-    const p = new RegExp(a.split('').join('|'), 'g')
-
-    if (!str) { return '' }
-
-    return str.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(p, c => b.charAt(a.indexOf(c)))
-      .replace(/&/g, '-and-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '')
   }
 
   /**

@@ -1,4 +1,4 @@
-const { escape } = require('sqlstring')
+const slugify = require('slugify')
 const FileHandler = require('../models/fileHandler')
 const Page = require('../models/page')
 
@@ -229,8 +229,8 @@ const loadForm = async (template, params) => {
     const fields = params.fields.match(/{(.*?)}/g).map(str => {
       const components = str.slice(1, str.length - 1).split('|').map(s => s.trim())
       if (components.length === 3) {
-        const id = Page.slugify(`form ${params.name} ${components[0]}`)
-        const name = Page.slugify(components[0])
+        const id = slugify(`form ${params.name} ${components[0]}`, { lower: true })
+        const name = slugify(components[0], { lower: true })
         const note = components[1] && components[1] !== ''
           ? `<p class="note">${components[1]}</p>`
           : ''
