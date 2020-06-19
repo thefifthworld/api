@@ -739,14 +739,6 @@ describe('Page', () => {
     })
   })
 
-  describe('slugify', () => {
-    it('slugifies a string', async () => {
-      const actual = Page.slugify('Csíkszentmihályi’s name includes some diacritics!')
-      const expected = 'csikszentmihalyis-name-includes-some-diacritics'
-      expect(actual).toEqual(expected)
-    })
-  })
-
   describe('getDescription', () => {
     it('returns the default if not given a string', () => {
       const actual = Page.getDescription()

@@ -411,29 +411,6 @@ class Page {
   }
 
   /**
-   * Returns a "slugified" version of the original string.
-   * @param str {!string} - A string to "slugify."
-   * @returns {string} - The "slugified" version of the original string.
-   */
-
-  static slugify (str) {
-    const a = 'àáäâèéëêìíïîòóöôùúüûñçßÿœæŕśńṕẃǵǹḿǘẍźḧ·/_,:;'
-    const b = 'aaaaeeeeiiiioooouuuuncsyoarsnpwgnmuxzh------'
-    const p = new RegExp(a.split('').join('|'), 'g')
-
-    if (!str) { return '' }
-
-    return str.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(p, c => b.charAt(a.indexOf(c)))
-      .replace(/&/g, '-and-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '')
-  }
-
-  /**
    * Return a description from a given string.
    * @param str {string} - The string to use to derive a description.
    * @returns {string} - A description derived from this string, by returning
