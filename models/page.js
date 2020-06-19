@@ -320,7 +320,8 @@ class Page {
   /**
    * Find pages that match a query.
    * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
-   *   ?logic: string }} - An object representing the query being made.
+   *   ?logic: string, ?limit: number, ?offset: number }} - An object
+   *   representing the query being made.
    *   - `path` finds any pages that begin with that string.
    *   - `title` finds any pages that match that regex.
    *   - `type` finds any pages that match the given type.
@@ -328,6 +329,8 @@ class Page {
    *   - `logic` can be either `and` or `or`, setting the query to either
    *       return any page that matches any of these criteria (`or`) or
    *       all of them (`and`). (Default: `and`)
+   *   - `limit` is the maximum number of results to return.
+   *   - `offset` is the number of results to skip.
    * @param searcher {?Member} - The person who is searching.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of
@@ -341,10 +344,12 @@ class Page {
     if (query.title) { conditions.push(`p.title LIKE ${escape(`%${query.title}%`)}`) }
     if (query.type) { conditions.push(`p.type=${escape(query.type)}`) }
     if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
+    const limit = query.limit || 10
+    const offset = query.offset || 0
     const logic = query.logic === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
     if (clause.length > 0) {
-      const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause};`)
+      const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
       for (let row of rows) {
         const page = await Page.getIfAllowed(row.id, searcher, db)
         if (page) pages.push(page)
