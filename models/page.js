@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const slugify = require('slugify')
 const History = require('./history')
 const FileHandler = require('./fileHandler')
 const TagHandler = require('./taghandler')
@@ -121,7 +122,7 @@ class Page {
       : undefined
 
     const title = data.title || ''
-    const slug = data.slug || Page.slugify(title)
+    const slug = data.slug || slugify(title, { lower: true })
     const parent = data.parent ? await Page.get(data.parent, db) : null
     const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
     const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
