@@ -103,9 +103,9 @@ describe('FileHandler', () => {
       expect(handler.page).toEqual(3)
       expect(handler.uploader).toEqual(4)
       expect(fileCheckBefore.status).toEqual(200)
-      expect(thumbnailCheckBefore.status).toEqual(403)
-      expect(fileCheckAfter.status).toEqual(403)
-      expect(thumbnailCheckAfter.status).toEqual(403)
+      expect(thumbnailCheckBefore.status).toEqual(404)
+      expect(fileCheckAfter.status).toEqual(404)
+      expect(thumbnailCheckAfter.status).toEqual(404)
     })
 
     it('handles art uploads that need a thumbnail', async () => {
@@ -124,8 +124,8 @@ describe('FileHandler', () => {
       expect(handler.thumbnail.endsWith('.jpg')).toEqual(true)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(200)
-      expect(fileCheckAfter.status).toEqual(403)
-      expect(thumbnailCheckAfter.status).toEqual(403)
+      expect(fileCheckAfter.status).toEqual(404)
+      expect(thumbnailCheckAfter.status).toEqual(404)
     })
 
     it('handles art uploads that come with a thumbnail', async () => {
@@ -147,8 +147,8 @@ describe('FileHandler', () => {
       expect(handler.thumbnail.endsWith('.gif')).toEqual(true)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(200)
-      expect(fileCheckAfter.status).toEqual(403)
-      expect(thumbnailCheckAfter.status).toEqual(403)
+      expect(fileCheckAfter.status).toEqual(404)
+      expect(thumbnailCheckAfter.status).toEqual(404)
     })
   })
 
@@ -170,8 +170,8 @@ describe('FileHandler', () => {
       expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(200)
-      expect(c.status).toEqual(403)
-      expect(d.status).toEqual(403)
+      expect(c.status).toEqual(404)
+      expect(d.status).toEqual(404)
     })
 
     it('generates a thumbnail', async () => {
@@ -190,8 +190,8 @@ describe('FileHandler', () => {
       expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(200)
-      expect(c.status).toEqual(403)
-      expect(d.status).toEqual(403)
+      expect(c.status).toEqual(404)
+      expect(d.status).toEqual(404)
     })
   })
 
@@ -205,7 +205,7 @@ describe('FileHandler', () => {
       const b = await testUtils.checkURL(url)
       expect(res.key).toBeDefined()
       expect(a.status).toEqual(200)
-      expect(b.status).toEqual(403)
+      expect(b.status).toEqual(404)
     })
 
     it('uploads a thumbnail', async () => {
@@ -219,7 +219,7 @@ describe('FileHandler', () => {
       expect(res.key).toBeDefined()
       expect(res.key.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)
-      expect(b.status).toEqual(403)
+      expect(b.status).toEqual(404)
     })
   })
 
