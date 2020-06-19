@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const slugify = require('slugify')
 const express = require('express')
 const LinkHandler = require('../models/linkhandler')
 const Page = require('../models/page')
@@ -138,7 +139,7 @@ pages.get('/requested', async (eq, res) => {
 // POST /checkpath
 pages.post('/checkpath', optionalLogIn, async (req, res) => {
   const { title, type } = req.body
-  const slug = req.body.slug || Page.slugify(title)
+  const slug = req.body.slug || slugify(title, { lower: true })
   const parent = req.body.parent ? await Page.get(req.body.parent, db) : null
   const path = req.body.path ? req.body.path : parent ? `${parent.path}/${slug}` : `/${slug}`
   const check = await db.run(`SELECT id FROM pages WHERE path=${escape(path)};`)
