@@ -122,7 +122,7 @@ class Page {
       : undefined
 
     const title = data.title || ''
-    const slug = data.slug || slugify(title, { lower: true })
+    const slug = data.slug || slugify(title, { lower: true, strict: true })
     const parent = data.parent ? await Page.get(data.parent, db) : null
     const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
     const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)

@@ -229,8 +229,8 @@ const loadForm = async (template, params) => {
     const fields = params.fields.match(/{(.*?)}/g).map(str => {
       const components = str.slice(1, str.length - 1).split('|').map(s => s.trim())
       if (components.length === 3) {
-        const id = slugify(`form ${params.name} ${components[0]}`, { lower: true })
-        const name = slugify(components[0], { lower: true })
+        const id = slugify(`form ${params.name} ${components[0]}`, { lower: true, strict: true })
+        const name = slugify(components[0], { lower: true, strict: true })
         const note = components[1] && components[1] !== ''
           ? `<p class="note">${components[1]}</p>`
           : ''
