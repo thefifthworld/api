@@ -21,6 +21,11 @@ members.post('/members/auth', async (req, res) => {
   }
 })
 
+// POST /members/reauth
+members.post('/members/reauth', requireLogIn, async (req, res) => {
+  res.status(200).send(req.user.generateJWT())
+})
+
 // GET /members/:id
 members.get('/members/:id', async (req, res) => {
   const id = parseInt(req.params.id)

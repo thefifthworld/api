@@ -62,6 +62,21 @@ describe('Members API', () => {
     })
   })
 
+  describe('POST /members/reauth', () => {
+    it('returns a new JSON Web Token if you have an old one', async () => {
+      expect.assertions(6)
+      const init = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
+      const res = await request.post('/members/reauth').set('Authorization', `Bearer ${init.text}`)
+      const token = await jwt.verify(res.text, config.jwt.secret)
+      expect(res.status).toEqual(200)
+      expect(token.id).toEqual(2)
+      expect(token.name).toEqual('Normal')
+      expect(token.admin).toEqual(false)
+      expect(token.iss).toEqual(config.jwt.domain)
+      expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
+    })
+  })
+
   describe('GET /members/:id', () => {
     it('returns 200', async () => {
       expect.assertions(1)

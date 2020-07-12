@@ -268,7 +268,7 @@ class Member {
 
   generateJWT () {
     const options = {
-      expiresIn: '1800s',
+      expiresIn: '900s',
       issuer: config.jwt.domain,
       subject: `${config.jwt.domain}/members/${this.id}`
     }
