@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt')
 const { escape } = require('sqlstring')
+const jwt = require('jsonwebtoken')
+const config = require('../config')
 
 class Member {
   constructor (obj) {
@@ -246,6 +248,34 @@ class Member {
   }
 
   /**
+   * Return an object representing the member's data, sans private attributes
+   * like password, email, number of invitations, and active status.
+   * @returns {Object} - An object representing the member's data, sans private
+   *   attributes like password and email.
+   */
+
+  privatize () {
+    const cpy = JSON.parse(JSON.stringify(this))
+    const priv = [ 'password', 'email', 'invitations', 'active' ]
+    priv.forEach(key => { delete cpy[key] })
+    return cpy
+  }
+
+  /**
+   * Generate a new JSON Web Token for the user.
+   * @returns {undefined|*}
+   */
+
+  generateJWT () {
+    const options = {
+      expiresIn: '900s',
+      issuer: config.jwt.domain,
+      subject: `${config.jwt.domain}/members/${this.id}`
+    }
+    return jwt.sign(this.privatize(), config.jwt.secret, options)
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {!number|string} - Either the primary key or the email address of
    *   the member to load.
@@ -265,6 +295,22 @@ class Member {
     } else {
       return undefined
     }
+  }
+
+  /**
+   * Convenience function that gets the Member ID from the JSON Web Token and
+   * passes it to Member.load, allowing you to get a Member instance directly
+   * from a JSON Web Token.
+   * @param token {string} - A JSON Web Token.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member|undefined>} - A Promise that resolves either with
+   *   the Member instance of the logged in member if the JSON Web Token can be
+   *   verified and matched, or `undefined` if it could not be.
+   */
+
+  static async loadFromJWT (token, db) {
+    const payload = await jwt.verify(token, config.jwt.secret)
+    return payload && payload.id ? Member.load(payload.id, db) : null
   }
 
   /**

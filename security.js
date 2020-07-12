@@ -1,23 +1,22 @@
-const basicAuth = require('basic-auth')
+const jwt = require('jsonwebtoken')
 const Member = require('./models/member')
 const Page = require('./models/page')
 const db = require('./db')
 
 /**
- * Prompt HTTP basic authentication.
+ * Verrifies JSON Web Token.
  * @param req {!Object} - The Express.js request object.
- * @returns {Promise<boolean|number>} - A Promise that resolves with the
- *   primary key of the member if she successfully authenticated, or `false` if
- *   she did not.
+ * @returns {Promise<Member|boolean>} - A Promise that resolves with the
+ *   Member instance of the user if she has presented a valid JSON Web Token,
+ *   or `false` if she has not.
  */
 
-const promptAuth = async req => {
-  const auth = basicAuth(req)
-  if (auth && auth.name && auth.pass) {
-    return await Member.authenticate(auth.name, auth.pass, db)
-  } else {
-    return false
-  }
+const verifyJWT = async req => {
+  const {authorization} = req.headers
+  const token = authorization ? authorization.split(' ')[1] : null
+  return token
+    ? await Member.loadFromJWT(token, db)
+    : null
 }
 
 /**
@@ -32,9 +31,9 @@ const promptAuth = async req => {
  */
 
 const requireLogIn = async (req, res, next) => {
-  const id = await promptAuth(req)
-  if (id) {
-    req.user = await Member.load(id, db)
+  const member = await verifyJWT(req)
+  if (member) {
+    req.user = member
     next()
   } else {
     res.sendStatus(401)
@@ -53,8 +52,8 @@ const requireLogIn = async (req, res, next) => {
  */
 
 const optionalLogIn = async (req, res, next) => {
-  const id = await promptAuth(req)
-  if (id) req.user = await Member.load(id, db)
+  const member = await verifyJWT(req)
+  if (member) req.user = member
   next()
 }
 
@@ -80,9 +79,9 @@ const loadPage = async (req, res, next) => {
     req.page = page
     next()
   } else if (page) {
-    const id = await promptAuth(req)
-    if (id) {
-      req.user = await Member.load(id, db)
+    const member = await verifyJWT(req)
+    if (member) {
+      req.user = member
       if (page.checkPermissions(req.user, 4)) {
         req.page = page
         next()
