@@ -117,22 +117,28 @@ describe('Members API', () => {
   describe('PATCH /members/:id', () => {
     it('returns 200', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2').auth('normal@thefifthworld.com', 'password')
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const res = await request.patch('/members/2').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
     })
 
     it('updates the member\'s data', async () => {
       expect.assertions(1)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const updates = { bio: 'New bio' }
-      await request.patch('/members/2').auth('normal@thefifthworld.com', 'password').send(updates)
+      await request.patch('/members/2').set('Authorization', `Bearer ${token}`).send(updates)
       const acct = await Member.load(2, db)
       expect(acct.bio).toEqual(updates.bio)
     })
 
     it('returns the member\'s data', async () => {
       expect.assertions(5)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const updates = { bio: 'New bio' }
-      const res = await request.patch('/members/2').auth('normal@thefifthworld.com', 'password').send(updates)
+      const res = await request.patch('/members/2').set('Authorization', `Bearer ${token}`).send(updates)
       expect(res.body.id).toEqual(2)
       expect(res.body.email).toEqual('normal@thefifthworld.com')
       expect(res.body.active).toEqual(true)
@@ -142,13 +148,17 @@ describe('Members API', () => {
 
     it('won\'t let you update someone else\'s account', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2').auth('other@thefifthworld.com', 'password')
+      const member = await Member.load(3, db)
+      const token = member.generateJWT()
+      const res = await request.patch('/members/2').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
 
     it('lets an admin update someone else\'s account', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2').auth('admin@thefifthworld.com', 'password')
+      const admin = await Member.load(1, db)
+      const token = admin.generateJWT()
+      const res = await request.patch('/members/2').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
     })
   })
@@ -165,7 +175,8 @@ describe('Members API', () => {
       const msg = 'Test message'
       const normal = await Member.load(2, db)
       await normal.logMessage('info', msg, db)
-      const res = await request.get('/members/2/messages').auth('normal@thefifthworld.com', 'password')
+      const token = normal.generateJWT()
+      const res = await request.get('/members/2/messages').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
       expect(res.body.info).toEqual([ msg ])
     })
@@ -183,7 +194,8 @@ describe('Members API', () => {
       const normal = await Member.load(2, db)
       const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
       await normal.sendInvitations(emails, () => {}, db)
-      const res = await request.get('/members/2/invited').auth('normal@thefifthworld.com', 'password')
+      const token = normal.generateJWT()
+      const res = await request.get('/members/2/invited').set('Authorization', `Bearer ${token}`)
 
       expect(res.status).toEqual(200)
       expect(res.body).toHaveLength(2)
@@ -201,26 +213,34 @@ describe('Members API', () => {
   describe('PATCH /members/:id/deactivate', () => {
     it('returns 200', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2/deactivate').auth('admin@thefifthworld.com', 'password')
+      const admin = await Member.load(1, db)
+      const token = admin.generateJWT()
+      const res = await request.patch('/members/2/deactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
     })
 
     it('sets the user\'s active flag to false', async () => {
       expect.assertions(1)
-      await request.patch('/members/2/deactivate').auth('admin@thefifthworld.com', 'password')
+      const admin = await Member.load(1, db)
+      const token = admin.generateJWT()
+      await request.patch('/members/2/deactivate').set('Authorization', `Bearer ${token}`)
       const acct = await Member.load(2, db)
       expect(acct.active).toEqual(false)
     })
 
     it('returns 401 if you\'re not an admin', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2/deactivate').auth('other@thefifthworld.com', 'password')
+      const other = await Member.load(3, db)
+      const token = other.generateJWT()
+      const res = await request.patch('/members/2/deactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
 
     it('returns 401 even if you try to deactivate yourself', async () => {
       expect.assertions(1)
-      const res = await request.patch('/members/2/deactivate').auth('normal@thefifthworld.com', 'password')
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const res = await request.patch('/members/2/deactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
   })
@@ -230,9 +250,10 @@ describe('Members API', () => {
       expect.assertions(1)
       const admin = await Member.load(1, db)
       const normal = await Member.load(2, db)
+      const token = admin.generateJWT()
       await normal.deactivate(admin, db)
 
-      const res = await request.patch('/members/2/reactivate').auth('admin@thefifthworld.com', 'password')
+      const res = await request.patch('/members/2/reactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
     })
 
@@ -240,9 +261,10 @@ describe('Members API', () => {
       expect.assertions(1)
       const admin = await Member.load(1, db)
       const normal = await Member.load(2, db)
+      const token = admin.generateJWT()
       await normal.deactivate(admin, db)
 
-      await request.patch('/members/2/reactivate').auth('admin@thefifthworld.com', 'password')
+      await request.patch('/members/2/reactivate').set('Authorization', `Bearer ${token}`)
       const acct = await Member.load(2, db)
       expect(acct.active).toEqual(true)
     })
@@ -251,9 +273,11 @@ describe('Members API', () => {
       expect.assertions(1)
       const admin = await Member.load(1, db)
       const normal = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      const token = other.generateJWT()
       await normal.deactivate(admin, db)
 
-      const res = await request.patch('/members/2/reactivate').auth('other@thefifthworld.com', 'password')
+      const res = await request.patch('/members/2/reactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
 
@@ -261,9 +285,10 @@ describe('Members API', () => {
       expect.assertions(1)
       const admin = await Member.load(1, db)
       const normal = await Member.load(2, db)
+      const token = normal.generateJWT()
       await normal.deactivate(admin, db)
 
-      const res = await request.patch('/members/2/reactivate').auth('normal@thefifthworld.com', 'password')
+      const res = await request.patch('/members/2/reactivate').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
   })
@@ -276,8 +301,10 @@ describe('Members API', () => {
 
     it('returns the emails you tried to invite and your messages', async () => {
       expect.assertions(3)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const invites = { emails: [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com' ], test: true }
-      const res = await request.post('/invitations/send').auth('normal@thefifthworld.com', 'password').send(invites)
+      const res = await request.post('/invitations/send').set('Authorization', `Bearer ${token}`).send(invites)
       expect(res.status).toEqual(200)
       expect(res.body.emails).toEqual(invites.emails)
       expect(res.body.messages.confirmation).toHaveLength(2)
