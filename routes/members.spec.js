@@ -1,8 +1,10 @@
 /* global describe, it, expect, beforeAll, beforeEach, afterEach, afterAll */
 
 const supertest = require('supertest')
+const jwt = require('jsonwebtoken')
 const Member = require('../models/member')
 const db = require('../db')
+const config = require('../config')
 const api = require('../api')
 const testUtils = require('../test-utils')
 
@@ -29,6 +31,34 @@ describe('Members API', () => {
           db.close(done)
         })
       })
+    })
+  })
+
+  describe('POST /members/auth', () => {
+    it('returns 401 if credentials aren\'t found', async () => {
+      expect.assertions(2)
+      const res = await request.post('/members/auth').send({ email: 'nope@thefifthworld.com', pass: 'nope' })
+      expect(res.status).toEqual(401)
+      expect(res.body).toEqual({})
+    })
+
+    it('returns 401 if credentials don\'t match', async () => {
+      expect.assertions(2)
+      const res = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'nope' })
+      expect(res.status).toEqual(401)
+      expect(res.body).toEqual({})
+    })
+
+    it('returns a JSON Web Token if credentials match', async () => {
+      expect.assertions(6)
+      const res = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
+      const token = await jwt.verify(res.text, config.jwt.secret)
+      expect(res.status).toEqual(200)
+      expect(token.id).toEqual(2)
+      expect(token.name).toEqual('Normal')
+      expect(token.admin).toEqual(false)
+      expect(token.iss).toEqual(config.jwt.domain)
+      expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
     })
   })
 
