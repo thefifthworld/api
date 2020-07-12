@@ -31,6 +31,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.1.7-alpha.3",
     "image-thumbnail": "^1.0.8",
+    "jsonwebtoken": "^8.5.1",
     "mailgun-js": "^0.22.0",
     "md5": "^2.2.1",
     "mysql": "^2.18.1",
