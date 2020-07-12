@@ -1,4 +1,3 @@
-const basicAuth = require('basic-auth')
 const Member = require('./models/member')
 const Page = require('./models/page')
 const db = require('./db')
