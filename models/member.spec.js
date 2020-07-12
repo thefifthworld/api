@@ -2,7 +2,9 @@
 
 const bcrypt = require('bcrypt')
 const { escape } = require('sqlstring')
+const jwt = require('jsonwebtoken')
 const db = require('../db')
+const config = require('../config')
 const testUtils = require('../test-utils')
 
 const Member = require('./member')
@@ -634,6 +636,23 @@ describe('Member', () => {
       expect(actual.password).not.toBeDefined()
       expect(actual.invitations).not.toBeDefined()
       expect(actual.active).not.toBeDefined()
+    })
+  })
+
+  describe('generateJWT', () => {
+    it('returns a JSON Web Token', async () => {
+      expect.assertions(6)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const token = await member.generateJWT()
+      const actual = await jwt.verify(token, config.jwt.secret)
+      await testUtils.resetTables(db)
+      expect(actual).toBeDefined()
+      expect(actual.id).toEqual(2)
+      expect(actual.name).toEqual('Normal')
+      expect(actual.admin).toEqual(false)
+      expect(actual.iss).toEqual(config.jwt.domain)
+      expect(actual.sub).toEqual(`${config.jwt.domain}/members/2`)
     })
   })
 

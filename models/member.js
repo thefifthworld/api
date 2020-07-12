@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt')
 const { escape } = require('sqlstring')
+const jwt = require('jsonwebtoken')
+const config = require('../config')
 
 class Member {
   constructor (obj) {
@@ -257,6 +259,20 @@ class Member {
     const priv = [ 'password', 'email', 'invitations', 'active' ]
     priv.forEach(key => { delete cpy[key] })
     return cpy
+  }
+
+  /**
+   * Generate a new JSON Web Token for the user.
+   * @returns {undefined|*}
+   */
+
+  generateJWT () {
+    const options = {
+      expiresIn: '1800s',
+      issuer: config.jwt.domain,
+      subject: `${config.jwt.domain}/members/${this.id}`
+    }
+    return jwt.sign(this.privatize(), config.jwt.secret, options)
   }
 
   /**
