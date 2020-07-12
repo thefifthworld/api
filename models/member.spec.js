@@ -680,6 +680,21 @@ describe('Member', () => {
     })
   })
 
+  describe('loadFromJWT', () => {
+    it('loads a Member instance from a JSON Web Token', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const member = await Member.load('admin@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const actual = await Member.loadFromJWT(token, db)
+      await testUtils.resetTables(db)
+      expect(actual.id).toEqual(member.id)
+      expect(actual.name).toEqual(member.name)
+      expect(actual.email).toEqual(member.email)
+      expect(actual.admin).toEqual(actual.admin)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)

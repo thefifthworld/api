@@ -298,6 +298,22 @@ class Member {
   }
 
   /**
+   * Convenience function that gets the Member ID from the JSON Web Token and
+   * passes it to Member.load, allowing you to get a Member instance directly
+   * from a JSON Web Token.
+   * @param token {string} - A JSON Web Token.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member|undefined>} - A Promise that resolves either with
+   *   the Member instance of the logged in member if the JSON Web Token can be
+   *   verified and matched, or `undefined` if it could not be.
+   */
+
+  static async loadFromJWT (token, db) {
+    const payload = await jwt.verify(token, config.jwt.secret)
+    return payload && payload.id ? Member.load(payload.id, db) : null
+  }
+
+  /**
    * Checks if a member with the given email and password exists. If she does,
    * it returns her ID. If not — either because the email is not associated
    * with any member account, or it is associated with a member account but the
