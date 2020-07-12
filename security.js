@@ -53,7 +53,7 @@ const requireLogIn = async (req, res, next) => {
 
 const optionalLogIn = async (req, res, next) => {
   const member = await verifyJWT(req)
-  if (id) req.user = member
+  if (member) req.user = member
   next()
 }
 

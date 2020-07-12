@@ -38,8 +38,10 @@ describe('Pages API', () => {
   describe('POST /pages', () => {
     it('creates a page', async () => {
       expect.assertions(6)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
-      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const check = await db.run(`SELECT title FROM pages WHERE id=${res.body.id};`)
       expect(res.status).toEqual(200)
       expect(res.body.path).toEqual('/new-page')
@@ -60,8 +62,10 @@ describe('Pages API', () => {
 
     it('handles files', async () => {
       expect.assertions(5)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockTXT() } }
-      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
       const url = file && file.name ? FileHandler.getURL(file.name) : null
       const check = url ? await testUtils.checkURL(url) : { status: null }
@@ -76,8 +80,10 @@ describe('Pages API', () => {
 
     it('creates a thumbnail', async () => {
       expect.assertions(8)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockJPEG() } }
-      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
       const imgURL = file && file.name ? FileHandler.getURL(file.name) : null
       const thumbURL = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
@@ -97,8 +103,10 @@ describe('Pages API', () => {
 
     it('can accept a thumbnail', async () => {
       expect.assertions(8)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockJPEG(), thumbnail: testUtils.mockGIF() } }
-      const res = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const file = res && res.body && res.body.files && res.body.files.length > 0 ? res.body.files[0] : null
       const imgURL = file && file.name ? FileHandler.getURL(file.name) : null
       const thumbURL = file && file.thumbnail ? FileHandler.getURL(file.thumbnail) : null
@@ -120,17 +128,27 @@ describe('Pages API', () => {
   describe('GET /pages/*/like', () => {
     it('saves a like', async () => {
       expect.assertions(2)
-      const res = await request.get('/pages/test-page/like').auth('normal@thefifthworld.com', 'password')
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const res = await request.get('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
       expect(res.body.likes.ids).toHaveLength(1)
+    })
+
+    it('returns a 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/pages/test-page/like')
+      expect(res.status).toEqual(401)
     })
   })
 
   describe('GET /pages/*/unlike', () => {
     it('removes a like', async () => {
       expect.assertions(2)
-      await request.get('/pages/test-page/like').auth('normal@thefifthworld.com', 'password')
-      const res = await request.get('/pages/test-page/unlike').auth('normal@thefifthworld.com', 'password')
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.get('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
+      const res = await request.get('/pages/test-page/unlike').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
       expect(res.body.likes.ids).toHaveLength(0)
     })
@@ -139,11 +157,12 @@ describe('Pages API', () => {
   describe('PATCH /pages/*/lock', () => {
     it('locks a page', async () => {
       expect.assertions(6)
-      const res = await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const token = admin.generateJWT()
+      const res = await request.patch('/pages/test-page/lock').set('Authorization', `Bearer ${token}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(444)
       expect(page.checkPermissions(admin, 6)).toEqual(true)
@@ -154,11 +173,12 @@ describe('Pages API', () => {
 
     it('requires an admin', async () => {
       expect.assertions(6)
-      const res = await request.patch('/pages/test-page/lock').auth('normal@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const token = normal.generateJWT()
+      const res = await request.patch('/pages/test-page/lock').set('Authorization', `Bearer ${token}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(401)
       expect(res.body.permissions).toEqual(774)
       expect(page.checkPermissions(admin, 6)).toEqual(true)
@@ -171,12 +191,13 @@ describe('Pages API', () => {
   describe('PATCH /pages/*/unlock', () => {
     it('unlocks a page', async () => {
       expect.assertions(6)
-      await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
-      const res = await request.patch('/pages/test-page/unlock').auth('admin@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const token = admin.generateJWT()
+      await request.patch('/pages/test-page/lock').set('Authorization', `Bearer ${token}`)
+      const res = await request.patch('/pages/test-page/unlock').set('Authorization', `Bearer ${token}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(774)
       expect(page.checkPermissions(admin, 6)).toEqual(true)
@@ -187,12 +208,12 @@ describe('Pages API', () => {
 
     it('requires an admin', async () => {
       expect.assertions(6)
-      await request.patch('/pages/test-page/lock').auth('admin@thefifthworld.com', 'password')
-      const res = await request.patch('/pages/test-page/unlock').auth('normal@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      await request.patch('/pages/test-page/lock').set('Authorization', `Bearer ${admin.generateJWT()}`)
+      const res = await request.patch('/pages/test-page/unlock').set('Authorization', `Bearer ${normal.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(401)
       expect(res.body.permissions).toEqual(444)
       expect(page.checkPermissions(admin, 6)).toEqual(true)
@@ -205,11 +226,11 @@ describe('Pages API', () => {
   describe('PATCH /pages/*/hide', () => {
     it('allows an admin to hide a page', async () => {
       expect.assertions(6)
-      const res = await request.patch('/pages/test-page/hide').auth('admin@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const res = await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${admin.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(700)
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -220,11 +241,11 @@ describe('Pages API', () => {
 
     it('allows a page owner to hide her page', async () => {
       expect.assertions(6)
-      const res = await request.patch('/pages/test-page/hide').auth('normal@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const res = await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${normal.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(700)
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -235,11 +256,11 @@ describe('Pages API', () => {
 
     it('requires an admin or the page owner', async () => {
       expect.assertions(6)
-      const res = await request.patch('/pages/test-page/hide').auth('other@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      const res = await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${other.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(401)
       expect(res.body.permissions).toEqual(774)
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -252,12 +273,12 @@ describe('Pages API', () => {
   describe('PATCH /pages/*/unhide', () => {
     it('allows an admin to unhide a page', async () => {
       expect.assertions(6)
-      await request.patch('/pages/test-page/hide').auth('admin@thefifthworld.com', 'password')
-      const res = await request.patch('/pages/test-page/unhide').auth('admin@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${admin.generateJWT()}`)
+      const res = await request.patch('/pages/test-page/unhide').set('Authorization', `Bearer ${admin.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(774)
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -268,12 +289,12 @@ describe('Pages API', () => {
 
     it('allows a page owner to unhide her page', async () => {
       expect.assertions(6)
-      await request.patch('/pages/test-page/hide').auth('normal@thefifthworld.com', 'password')
-      const res = await request.patch('/pages/test-page/unhide').auth('normal@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${normal.generateJWT()}`)
+      const res = await request.patch('/pages/test-page/unhide').set('Authorization', `Bearer ${normal.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(200)
       expect(res.body.permissions).toEqual(774)
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -284,12 +305,12 @@ describe('Pages API', () => {
 
     it('requires an admin or the page owner', async () => {
       expect.assertions(6)
-      await request.patch('/pages/test-page/hide').auth('normal@thefifthworld.com', 'password')
-      const res = await request.patch('/pages/test-page/unhide').auth('other@thefifthworld.com', 'password')
-      const page = await Page.get('/test-page', db)
       const admin = await Member.load('admin@thefifthworld.com', db)
       const normal = await Member.load('normal@thefifthworld.com', db)
       const other = await Member.load('other@thefifthworld.com', db)
+      await request.patch('/pages/test-page/hide').set('Authorization', `Bearer ${normal.generateJWT()}`)
+      const res = await request.patch('/pages/test-page/unhide').set('Authorization', `Bearer ${other.generateJWT()}`)
+      const page = await Page.get('/test-page', db)
       expect(res.status).toEqual(401)
       expect(res.body).toEqual({})
       expect(page.checkPermissions(admin, 4)).toEqual(true)
@@ -302,9 +323,11 @@ describe('Pages API', () => {
   describe('GET /pages', () => {
     it('returns matching pages', async () => {
       expect.assertions(5)
-      const r1 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
-      const r2 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Child Page', body: 'This is the child.', parent: r1.body.id, msg: 'Initial text' })
-      const r3 = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child.', parent: r1.body.id, msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
       const actual = await request.get('/pages').send({ path: '/parent-page' })
       const ids = actual.body.map(p => p.id)
 
@@ -319,8 +342,10 @@ describe('Pages API', () => {
   describe('POST /pages/*', () => {
     it('updates a page', async () => {
       expect.assertions(9)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing update' }
-      const res = await request.post('/pages/test-page').auth('normal@thefifthworld.com', 'password').send(data)
+      const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
       const check = await Page.get(res.body.id, db)
       const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
         ? res.body.history.changes[0].content.body
@@ -339,9 +364,11 @@ describe('Pages API', () => {
 
     it('returns 401 if you don\'t have permission', async () => {
       expect.assertions(4)
-      await request.post('/pages/test-page').auth('normal@thefifthworld.com', 'password').send({ title: 'Test PAge', body: 'This is a test page.', msg: 'Locking out other editors', permissions: 700 })
+      const normal = await Member.load(2, db)
+      const other = await Member.load(3, db)
+      await request.post('/pages/test-page').set('Authorization', `Bearer ${normal.generateJWT()}`).send({ title: 'Test PAge', body: 'This is a test page.', msg: 'Locking out other editors', permissions: 700 })
       const update = { title: 'Test Page', body: 'This is an update.', msg: 'Locking out other editors' }
-      const res = await request.post('/pages/test-page').auth('other@thefifthworld.com', 'password').send(update)
+      const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${other.generateJWT()}`).send(update)
       const check = await Page.get('/test-page', db)
       const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
         ? res.body.history.changes[0].content.body
@@ -355,10 +382,12 @@ describe('Pages API', () => {
 
     it('updates a file', async () => {
       expect.assertions(9)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Image', body: 'This is an image.', msg: 'Initial text', files: { file: testUtils.mockGIF() } }
-      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       data.files = { file: testUtils.mockJPEG() }
-      const after = await request.post('/pages/image').auth('normal@thefifthworld.com', 'password').send(data)
+      const after = await request.post('/pages/image').set('Authorization', `Bearer ${token}`).send(data)
 
       const file = after && after.body && after.body.files && after.body.files.length > 0 ? after.body.files[0] : null
       const main = file && file.name ? FileHandler.getURL(file.name) : null
@@ -384,10 +413,12 @@ describe('Pages API', () => {
 
     it('can accept a thumbnail', async () => {
       expect.assertions(9)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
       const data = { title: 'Image', body: 'This is an image.', msg: 'Initial text', files: { file: testUtils.mockGIF(), thumbnail: testUtils.mockJPEG() } }
-      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send(data)
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       data.files = { file: testUtils.mockJPEG(), thumbnail: testUtils.mockGIF() }
-      const after = await request.post('/pages/image').auth('normal@thefifthworld.com', 'password').send(data)
+      const after = await request.post('/pages/image').set('Authorization', `Bearer ${token}`).send(data)
 
       const file = after && after.body && after.body.files && after.body.files.length > 0 ? after.body.files[0] : null
       const main = file && file.name ? FileHandler.getURL(file.name) : null
@@ -437,9 +468,11 @@ describe('Pages API', () => {
   describe('GET /near/:lat/:lon/:dist*?', () => {
     it('returns places near a point', async () => {
       expect.assertions(10)
-      const point = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'The Point', body: '[[Location:40.441800, -80.012772]]', msg: 'Initial text' })
-      const myland = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Three Myland', body: '[[Location:40.154507, -76.724877]]', msg: 'Initial text' })
-      const tower = await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'The Steel Tower', body: '[[Location:40.441399, -79.994673]]', permissions: 700, msg: 'Initial text' })
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const point = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'The Point', body: '[[Location:40.441800, -80.012772]]', msg: 'Initial text' })
+      const myland = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Three Myland', body: '[[Location:40.154507, -76.724877]]', msg: 'Initial text' })
+      const tower = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'The Steel Tower', body: '[[Location:40.441399, -79.994673]]', permissions: 700, msg: 'Initial text' })
       const r1 = await request.get('/near/40.440667/-80.002583')
       const r2 = await request.get('/near/40.440667/-80.002583/400000')
       const distDefault = r1.body.map(p => p.id)
@@ -461,7 +494,9 @@ describe('Pages API', () => {
   describe('GET /requested', () => {
     it('returns requested links', async () => {
       expect.assertions(5)
-      await request.post('/pages').auth('normal@thefifthworld.com', 'password').send({ title: 'Test', body: '[[Link One]] [[Link Two]] [[Link Three]]', msg: 'Initial text' })
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Test', body: '[[Link One]] [[Link Two]] [[Link Three]]', msg: 'Initial text' })
       const res = await request.get('/requested')
 
       expect(res.status).toEqual(200)
