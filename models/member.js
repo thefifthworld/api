@@ -246,6 +246,20 @@ class Member {
   }
 
   /**
+   * Return an object representing the member's data, sans private attributes
+   * like password, email, number of invitations, and active status.
+   * @returns {Object} - An object representing the member's data, sans private
+   *   attributes like password and email.
+   */
+
+  privatize () {
+    const cpy = JSON.parse(JSON.stringify(this))
+    const priv = [ 'password', 'email', 'invitations', 'active' ]
+    priv.forEach(key => { delete cpy[key] })
+    return cpy
+  }
+
+  /**
    * Load a Member instance from the database.
    * @param id {!number|string} - Either the primary key or the email address of
    *   the member to load.

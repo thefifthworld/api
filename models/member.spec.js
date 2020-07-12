@@ -621,6 +621,22 @@ describe('Member', () => {
     })
   })
 
+  describe('privatize', () => {
+    it('returns an object without private fields', async () => {
+      expect.assertions(6)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      const actual = await member.privatize(db)
+      await testUtils.resetTables(db)
+      expect(typeof actual).toEqual('object')
+      expect(actual.id).toBeDefined()
+      expect(actual.email).not.toBeDefined()
+      expect(actual.password).not.toBeDefined()
+      expect(actual.invitations).not.toBeDefined()
+      expect(actual.active).not.toBeDefined()
+    })
+  })
+
   describe('load', () => {
     it('loads an instance from the database', async () => {
       expect.assertions(4)
