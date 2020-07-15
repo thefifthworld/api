@@ -1,0 +1,25 @@
+{
+  "port": 8181,
+  "db": {
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "password",
+    "database": "thefifthworld",
+    "insecureAuth": true
+  },
+  "jwt": {
+    "domain": "https://yourdomain.com",
+    "secret": "Add a long, random string for your JWT secret here"
+  },
+  "mailgun": {
+    "key": "your-mailgun-key",
+    "domain": "yourdomain.com",
+    "from": "Your Name <name@yourdomain.com>"
+  },
+  "aws": {
+    "key": "Add your AWS Access ID here",
+    "secret": "Add your AWS secret key here",
+    "bucket": "bucket-name",
+    "region": "region-name"
+  }
+}
