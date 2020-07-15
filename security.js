@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken')
 const Member = require('./models/member')
 const Page = require('./models/page')
 const db = require('./db')
@@ -12,7 +11,7 @@ const db = require('./db')
  */
 
 const verifyJWT = async req => {
-  const {authorization} = req.headers
+  const { authorization } = req.headers
   const token = authorization ? authorization.split(' ')[1] : null
   return token
     ? await Member.loadFromJWT(token, db)
