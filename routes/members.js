@@ -13,7 +13,7 @@ members.post('/members/auth', async (req, res) => {
       ? await Member.authenticate(email, pass, db)
       : false
     const member = id ? await Member.load(id, db) : false
-    if (member) {
+    if (member && member.active) {
       res.status(200).send(member.generateJWT())
     } else {
       res.sendStatus(401)

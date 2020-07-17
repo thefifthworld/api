@@ -49,6 +49,16 @@ describe('Members API', () => {
       expect(res.body).toEqual({})
     })
 
+    it('returns 401 if member is not active', async () => {
+      expect.assertions(2)
+      const admin = await Member.load(1, db)
+      const member = await Member.load(2, db)
+      await member.deactivate(admin, db)
+      const res = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'nope' })
+      expect(res.status).toEqual(401)
+      expect(res.body).toEqual({})
+    })
+
     it('returns a JSON Web Token if credentials match', async () => {
       expect.assertions(6)
       const res = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
