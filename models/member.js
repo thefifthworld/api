@@ -276,7 +276,7 @@ class Member {
       issuer: config.jwt.domain,
       subject: `${config.jwt.domain}/members/${this.id}`
     }
-    return jwt.sign(this.privatize(), config.jwt.secret, options)
+    return jwt.sign(this.privatize(true), config.jwt.secret, options)
   }
 
   /**

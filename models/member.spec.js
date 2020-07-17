@@ -655,7 +655,7 @@ describe('Member', () => {
 
   describe('generateJWT', () => {
     it('returns a JSON Web Token', async () => {
-      expect.assertions(6)
+      expect.assertions(9)
       await testUtils.populateMembers(db)
       const member = await Member.load(2, db)
       const token = await member.generateJWT()
@@ -664,6 +664,9 @@ describe('Member', () => {
       expect(actual).toBeDefined()
       expect(actual.id).toEqual(2)
       expect(actual.name).toEqual('Normal')
+      expect(actual.email).toEqual('normal@thefifthworld.com')
+      expect(actual.invitations).toEqual(5)
+      expect(actual.active).toEqual(true)
       expect(actual.admin).toEqual(false)
       expect(actual.iss).toEqual(config.jwt.domain)
       expect(actual.sub).toEqual(`${config.jwt.domain}/members/2`)
