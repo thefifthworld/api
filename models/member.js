@@ -250,18 +250,16 @@ class Member {
   /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
-   * @params justPassword {boolean?} - Optional. If set to `true`, only the
-   *   member's password is removed. This is useful for when a member is
-   *   requesting her own account information, but we still don't want to be
-   *   jeopardizing a passphrase. (Default: `false`)
+   * @params fields {string[]?} - Optional. An array of fields to remove from
+   *   the returned object. (Default: `[ 'password', 'email', 'invitations',
+   *   'active' ]`)
    * @returns {Object} - An object representing the member's data, sans private
    *   attributes like password and email.
    */
 
-  privatize (justPassword = false) {
+  privatize (fields = [ 'password', 'email', 'invitations', 'active' ]) {
     const cpy = JSON.parse(JSON.stringify(this))
-    const priv = justPassword ? [ 'password' ] : [ 'password', 'email', 'invitations', 'active' ]
-    priv.forEach(key => { delete cpy[key] })
+    fields.forEach(key => { delete cpy[key] })
     return cpy
   }
 
@@ -276,7 +274,7 @@ class Member {
       issuer: config.jwt.domain,
       subject: `${config.jwt.domain}/members/${this.id}`
     }
-    return jwt.sign(this.privatize(true), config.jwt.secret, options)
+    return jwt.sign(this.privatize([ 'password' ]), config.jwt.secret, options)
   }
 
   /**

@@ -638,17 +638,17 @@ describe('Member', () => {
       expect(actual.active).not.toBeDefined()
     })
 
-    it('just removes the passphrase if told to', async () => {
+    it('just removes the fields it\'s told to', async () => {
       expect.assertions(6)
       await testUtils.populateMembers(db)
       const member = await Member.load(2, db)
-      const actual = member.privatize(true)
+      const actual = member.privatize([ 'password', 'invitations' ])
       await testUtils.resetTables(db)
       expect(typeof actual).toEqual('object')
       expect(actual.id).toBeDefined()
       expect(actual.email).toBeDefined()
       expect(actual.password).not.toBeDefined()
-      expect(actual.invitations).toBeDefined()
+      expect(actual.invitations).not.toBeDefined()
       expect(actual.active).toBeDefined()
     })
   })
