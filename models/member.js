@@ -250,13 +250,17 @@ class Member {
   /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
+   * @params justPassword {boolean?} - Optional. If set to `true`, only the
+   *   member's password is removed. This is useful for when a member is
+   *   requesting her own account information, but we still don't want to be
+   *   jeopardizing a passphrase. (Default: `false`)
    * @returns {Object} - An object representing the member's data, sans private
    *   attributes like password and email.
    */
 
-  privatize () {
+  privatize (justPassword = false) {
     const cpy = JSON.parse(JSON.stringify(this))
-    const priv = [ 'password', 'email', 'invitations', 'active' ]
+    const priv = justPassword ? [ 'password' ] : [ 'password', 'email', 'invitations', 'active' ]
     priv.forEach(key => { delete cpy[key] })
     return cpy
   }
