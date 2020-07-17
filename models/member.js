@@ -250,14 +250,16 @@ class Member {
   /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
+   * @params fields {string[]?} - Optional. An array of fields to remove from
+   *   the returned object. (Default: `[ 'password', 'email', 'invitations',
+   *   'active' ]`)
    * @returns {Object} - An object representing the member's data, sans private
    *   attributes like password and email.
    */
 
-  privatize () {
+  privatize (fields = [ 'password', 'email', 'invitations', 'active' ]) {
     const cpy = JSON.parse(JSON.stringify(this))
-    const priv = [ 'password', 'email', 'invitations', 'active' ]
-    priv.forEach(key => { delete cpy[key] })
+    fields.forEach(key => { delete cpy[key] })
     return cpy
   }
 
@@ -272,7 +274,7 @@ class Member {
       issuer: config.jwt.domain,
       subject: `${config.jwt.domain}/members/${this.id}`
     }
-    return jwt.sign(this.privatize(), config.jwt.secret, options)
+    return jwt.sign(this.privatize([ 'password' ]), config.jwt.secret, options)
   }
 
   /**
