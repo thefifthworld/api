@@ -3,7 +3,7 @@ const Page = require('./models/page')
 const db = require('./db')
 
 /**
- * Verrifies JSON Web Token.
+ * Verifies JSON Web Token.
  * @param req {!Object} - The Express.js request object.
  * @returns {Promise<Member|boolean>} - A Promise that resolves with the
  *   Member instance of the user if she has presented a valid JSON Web Token,
