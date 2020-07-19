@@ -1,6 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
-const { requireLogIn } = require('../security')
+const parser = require('../parser')
+const { requireLogIn, optionalLogIn } = require('../security')
 const sendEmail = require('../emailer')
 const db = require('../db')
 const members = express.Router()
@@ -27,10 +28,12 @@ members.post('/members/reauth', requireLogIn, async (req, res) => {
 })
 
 // GET /members/:id
-members.get('/members/:id', async (req, res) => {
+members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)
   const member = id && !isNaN(id) ? await Member.load(id, db) : undefined
   if (member && member.active) {
+    const parsed = await parser(member.bio, `/members/${id}`, req.user, db)
+    if (parsed && parsed.html) member.bio = parsed.html
     res.status(200).json(member.privatize())
   } else {
     res.status(404).json({ err: 'Member not found' })
