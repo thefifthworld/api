@@ -111,10 +111,11 @@ describe('Members API', () => {
     })
 
     it('parses a member\'s bio', async () => {
-      expect.assertions(1)
+      expect.assertions(2)
       await db.run('UPDATE members SET bio="This is **bold**." WHERE id=2;')
       const res = await request.get('/members/2')
-      expect(res.body.bio).toEqual('<p>This is <strong>bold</strong>.</p>\n')
+      expect(res.body.bio.markdown).toEqual('This is **bold**.')
+      expect(res.body.bio.html).toEqual('<p>This is <strong>bold</strong>.</p>\n')
     })
 
     it('returns 404 for a member that does not exist', async () => {
