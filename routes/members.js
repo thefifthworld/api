@@ -32,9 +32,11 @@ members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)
   const member = id && !isNaN(id) ? await Member.load(id, db) : undefined
   if (member && member.active) {
-    if (member.bio && member.bio.length > 0) {
-      const parsed = await parser(member.bio, `/members/${id}`, req.user, db)
-      if (parsed && parsed.html) member.bio = parsed.html
+    const { bio } = member
+    member.bio = { markdown: bio }
+    if (bio && bio.length > 0) {
+      const parsed = await parser(bio, `/members/${id}`, req.user, db)
+      if (parsed && parsed.html) member.bio.html = parsed.html
     }
     res.status(200).json(member.privatize())
   } else {
