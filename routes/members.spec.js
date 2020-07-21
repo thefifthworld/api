@@ -60,12 +60,13 @@ describe('Members API', () => {
     })
 
     it('returns a JSON Web Token if credentials match', async () => {
-      expect.assertions(6)
+      expect.assertions(7)
       const res = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
       const token = await jwt.verify(res.text, config.jwt.secret)
       expect(res.status).toEqual(200)
       expect(token.id).toEqual(2)
       expect(token.name).toEqual('Normal')
+      expect(token.nopass).toEqual(false)
       expect(token.admin).toEqual(false)
       expect(token.iss).toEqual(config.jwt.domain)
       expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
@@ -74,13 +75,14 @@ describe('Members API', () => {
 
   describe('POST /members/reauth', () => {
     it('returns a new JSON Web Token if you have an old one', async () => {
-      expect.assertions(6)
+      expect.assertions(7)
       const init = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
       const res = await request.post('/members/reauth').set('Authorization', `Bearer ${init.text}`)
       const token = await jwt.verify(res.text, config.jwt.secret)
       expect(res.status).toEqual(200)
       expect(token.id).toEqual(2)
       expect(token.name).toEqual('Normal')
+      expect(token.nopass).toEqual(false)
       expect(token.admin).toEqual(false)
       expect(token.iss).toEqual(config.jwt.domain)
       expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
