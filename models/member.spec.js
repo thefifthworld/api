@@ -123,6 +123,17 @@ describe('Member', () => {
       expect(actual.links.web).toEqual(web)
     })
 
+    it('tells us if it has no passphrase', () => {
+      const actual = new Member()
+      expect(actual.nopass).toEqual(true)
+    })
+
+    it('tells us if it has a passphrase', () => {
+      const password = 'password'
+      const actual = new Member({ password })
+      expect(actual.nopass).toEqual(false)
+    })
+
     it('defaults active to false', () => {
       const actual = new Member()
       expect(actual.active).toEqual(false)
