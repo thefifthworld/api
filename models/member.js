@@ -16,6 +16,7 @@ class Member {
       if (obj && obj[service]) this.links[service] = obj[service]
     })
 
+    this.nopass = obj ? !Boolean(obj.password) : true
     this.active = obj ? Boolean(obj.active) : false
     this.admin = obj ? Boolean(obj.admin) : false
     this.invitations = obj && !isNaN(obj.invitations) ? obj.invitations : 0
