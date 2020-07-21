@@ -11,7 +11,7 @@ members.post('/members/auth', async (req, res) => {
   if (req.body) {
     const { email, pass } = req.body
     const id = email && pass
-      ? await Member.authenticate(email, pass, db)
+      ? await Member.authenticate({ email, password: pass }, db)
       : false
     const member = id ? await Member.load(id, db) : false
     if (member && member.active) {

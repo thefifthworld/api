@@ -727,7 +727,7 @@ describe('Member', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('heckin@nope.com', 'password', db)
+      const actual = await Member.authenticate({ email: 'heckin@nope.com', password: 'password' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(false)
     })
@@ -735,7 +735,7 @@ describe('Member', () => {
     it('resolves with false if the password is incorrect', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('normal@thefifthworld.com', 'nope', db)
+      const actual = await Member.authenticate({ email: 'normal@thefifthworld.com', password: 'nope' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(false)
     })
@@ -743,7 +743,7 @@ describe('Member', () => {
     it('resolves with the ID if the password is correct', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('normal@thefifthworld.com', 'password', db)
+      const actual = await Member.authenticate({ email: 'normal@thefifthworld.com', password: 'password' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(2)
     })
