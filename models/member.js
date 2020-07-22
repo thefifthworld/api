@@ -423,6 +423,9 @@ class Member {
         if (row.length > 0) {
           if (bcrypt.compareSync(creds.password, row[0].password)) return row[0].id
         }
+      } else if (creds.provider && creds.id) {
+        const mid = await Member.getIDFromAuth(creds.provider, creds.id, db)
+        return mid || false
       }
     }
     return false

@@ -817,6 +817,24 @@ describe('Member', () => {
       await testUtils.resetTables(db)
       expect(actual).toEqual(2)
     })
+
+    it('resolves with false if there is no such OAuth 2.0 token', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.authenticate({ provider: 'provider', id: 'id' }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(false)
+    })
+
+    it('resolves with the ID if the OAuth 2.0 token could be found', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const actual = await Member.authenticate({ provider: 'provider', id: 'id' }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(2)
+    })
   })
 
   describe('acceptInvitation', () => {
