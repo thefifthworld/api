@@ -249,6 +249,48 @@ class Member {
   }
 
   /**
+   * Saves the OAuth 2.0 token that a user ha received.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The ID from the OAuth 2.0 token.
+   * @param token {string} - The token provided.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the OAuth 2.0
+   *   token has been saved to the database.
+   */
+
+  async saveAuth (provider, id, token, db) {
+    const existing = await db.run(`SELECT id FROM authorizations WHERE provider=${escape(provider)} AND member=${escape(this.id)};`)
+    if (existing && existing.length > 0) {
+      await db.run(`UPDATE authorizations SET oauth2_id=${escape(id)}, oauth2_token=${escape(token)} WHERE id=${existing[0].id};`)
+    } else {
+      await db.run(`INSERT INTO authorizations (member, provider, oauth2_id, oauth2_token) VALUES (${escape(this.id)}, ${escape(provider)}, ${escape(id)}, ${escape(token)});`)
+    }
+  }
+
+  /**
+   * Return the OAuth 2.0 token saved for a particular member from a particular
+   * provider.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param db {Pool} - The database connection
+   * @returns {Promise<{id: string, token: string}|null>} - A Promise that
+   *   resolves with an object that provides the `id` and `token` of the saved
+   *   OAuth 2.0 token if it could be retrieved, or `null` if it could not be.
+   */
+
+  async getAuth (provider, db) {
+    const rows = await db.run(`SELECT oauth2_id, oauth2_token FROM authorizations WHERE member=${escape(this.id)} AND provider=${escape(provider)};`)
+    if (rows && rows.length > 0) {
+      return { id: rows[0].oauth2_id, token: rows[0].oauth2_token }
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
    * @params fields {string[]?} - Optional. An array of fields to remove from
@@ -317,22 +359,74 @@ class Member {
   }
 
   /**
+   * Load a Member instance from an authorization.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The OAuth 2.0 token ID being submitted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member|null>} - The Member instance associated with
+   *   the authorization provided if it could be found, or `null` if it could
+   *   not be.
+   */
+
+  static async loadFromAuth (provider, id, db) {
+    const mid = await Member.getIDFromAuth(provider, id, db)
+    if (mid) {
+      return Member.load(mid, db)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Load a Member's ID from an authorization.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The OAuth 2.0 token ID being submitted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<number|null>} - The Member ID associated with the
+   *   authorization provided if it could be found, or `null` if it could
+   *   not be.
+   */
+
+  static async getIDFromAuth (provider, id, db) {
+    const rows = await db.run(`SELECT member FROM authorizations WHERE provider=${escape(provider)} AND oauth2_id=${escape(id)};`)
+    if (rows && rows.length > 0) {
+      return rows[0].member
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Checks if a member with the given email and password exists. If she does,
    * it returns her ID. If not — either because the email is not associated
    * with any member account, or it is associated with a member account but the
    * password provided does not match that account — it returns `false`.
-   * @param email {!string} - The member's email.
-   * @param password {!string} - The member's password (unencrypted).
+   * @param creds {!Object} - An object with the user's credentials. This can
+   *   provide two string properties, `email` and `password`, to provide the
+   *   email address and passphrase, or this can provide three string
+   *   properties, `service`, `id`, and `token`, indicating an OAuth 2.0
+   *   service, ID, and token that should be used to authenticate the user.
    * @param db {!Pool} - The database connection.
    * @returns {Promise<boolean|number>} - A Promise that resolves, either with
    *   the member's ID if she could be authenticated, or `false` if she could
    *   not be.
    */
 
-  static async authenticate (email, password, db) {
-    const row = await db.run(`SELECT id, password FROM members WHERE email=${escape(email)};`)
-    if (row.length > 0) {
-      if (bcrypt.compareSync(password, row[0].password)) return row[0].id
+  static async authenticate (creds, db) {
+    if (creds) {
+      if (creds.email && creds.password) {
+        const row = await db.run(`SELECT id, password FROM members WHERE email=${escape(creds.email)};`)
+        if (row.length > 0) {
+          if (bcrypt.compareSync(creds.password, row[0].password)) return row[0].id
+        }
+      } else if (creds.provider && creds.id) {
+        const mid = await Member.getIDFromAuth(creds.provider, creds.id, db)
+        return mid || false
+      }
     }
     return false
   }
