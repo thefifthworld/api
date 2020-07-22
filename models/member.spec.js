@@ -781,6 +781,18 @@ describe('Member', () => {
     })
   })
 
+  describe('getIDFromAuth', () => {
+    it('load member given an OAuth 2.0 token', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const actual = await Member.getIDFromAuth('provider', 'id', db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(2)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)

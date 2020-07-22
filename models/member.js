@@ -371,9 +371,30 @@ class Member {
    */
 
   static async loadFromAuth (provider, id, db) {
+    const mid = await Member.getIDFromAuth(provider, id, db)
+    if (mid) {
+      return Member.load(mid, db)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Load a Member's ID from an authorization.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The OAuth 2.0 token ID being submitted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<number|null>} - The Member ID associated with the
+   *   authorization provided if it could be found, or `null` if it could
+   *   not be.
+   */
+
+  static async getIDFromAuth (provider, id, db) {
     const rows = await db.run(`SELECT member FROM authorizations WHERE provider=${escape(provider)} AND oauth2_id=${escape(id)};`)
     if (rows && rows.length > 0) {
-      return Member.load(rows[0].member, db)
+      return rows[0].member
     } else {
       return null
     }
