@@ -9,11 +9,10 @@ const members = express.Router()
 // POST /members/auth
 members.post('/members/auth', async (req, res) => {
   if (req.body) {
-    const { email, pass } = req.body
-    const id = email && pass
-      ? await Member.authenticate({ email, password: pass }, db)
-      : false
-    const member = id ? await Member.load(id, db) : false
+    const { email, pass, provider, id } = req.body
+    const creds = email && pass ? { email, password: pass } : provider && id ? { provider, id } : false
+    const mid = creds ? await Member.authenticate(creds, db) : false
+    const member = mid ? await Member.load(mid, db) : false
     if (member && member.active) {
       res.status(200).send(member.generateJWT())
     } else {

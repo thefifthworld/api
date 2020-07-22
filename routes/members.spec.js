@@ -71,6 +71,28 @@ describe('Members API', () => {
       expect(token.iss).toEqual(config.jwt.domain)
       expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
     })
+
+    it('returns 401 if no such OAuth 2.0 token exists', async () => {
+      expect.assertions(2)
+      const res = await request.post('/members/auth').send({ provider: 'provider', id: 'id' })
+      expect(res.status).toEqual(401)
+      expect(res.body).toEqual({})
+    })
+
+    it('returns a JSON Web Token if OAuth 2.0 token is found', async () => {
+      expect.assertions(7)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const res = await request.post('/members/auth').send({ provider: 'provider', id: 'id' })
+      const token = await jwt.verify(res.text, config.jwt.secret)
+      expect(res.status).toEqual(200)
+      expect(token.id).toEqual(2)
+      expect(token.name).toEqual('Normal')
+      expect(token.nopass).toEqual(false)
+      expect(token.admin).toEqual(false)
+      expect(token.iss).toEqual(config.jwt.domain)
+      expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
+    })
   })
 
   describe('POST /members/reauth', () => {
