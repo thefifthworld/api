@@ -9,11 +9,10 @@ const members = express.Router()
 // POST /members/auth
 members.post('/members/auth', async (req, res) => {
   if (req.body) {
-    const { email, pass } = req.body
-    const id = email && pass
-      ? await Member.authenticate(email, pass, db)
-      : false
-    const member = id ? await Member.load(id, db) : false
+    const { email, pass, provider, id } = req.body
+    const creds = email && pass ? { email, password: pass } : provider && id ? { provider, id } : false
+    const mid = creds ? await Member.authenticate(creds, db) : false
+    const member = mid ? await Member.load(mid, db) : false
     if (member && member.active) {
       res.status(200).send(member.generateJWT())
     } else {
@@ -25,6 +24,17 @@ members.post('/members/auth', async (req, res) => {
 // POST /members/reauth
 members.post('/members/reauth', requireLogIn, async (req, res) => {
   res.status(200).send(req.user.generateJWT())
+})
+
+// POST /members/add-auth
+members.post('/members/add-auth', requireLogIn, async (req, res) => {
+  const { provider, id, token } = req.body
+  if (provider && id && token) {
+    await req.user.saveAuth(provider, id, token, db)
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(406)
+  }
 })
 
 // GET /members/:id

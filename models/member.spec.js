@@ -634,6 +634,50 @@ describe('Member', () => {
     })
   })
 
+  describe('saveAuth', () => {
+    it('saves an authorization', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const auth = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await testUtils.resetTables(db)
+      expect(auth).toHaveLength(1)
+      expect(auth[0].provider).toEqual('provider')
+      expect(auth[0].oauth2_id).toEqual('id')
+      expect(auth[0].oauth2_token).toEqual('token')
+    })
+
+    it('updates an authorization if one already exists', async () => {
+      expect.assertions(6)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const before = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await member.saveAuth('provider', 'newid', 'newtoken', db)
+      const after = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await testUtils.resetTables(db)
+      expect(before).toHaveLength(1)
+      expect(after).toHaveLength(1)
+      expect(before[0].member).toEqual(after[0].member)
+      expect(before[0].provider).toEqual(after[0].provider)
+      expect(after[0].oauth2_id).toEqual('newid')
+      expect(after[0].oauth2_token).toEqual('newtoken')
+    })
+  })
+
+  describe('getAuth', () => {
+    it('fetches an OAuth 2.0 token', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const auth = await member.getAuth('provider', db)
+      await testUtils.resetTables(db)
+      expect(auth).toEqual({ id: 'id', token: 'token' })
+    })
+  })
+
   describe('privatize', () => {
     it('returns an object without private fields', async () => {
       expect.assertions(6)
@@ -723,11 +767,37 @@ describe('Member', () => {
     })
   })
 
+  describe('loadFromAuth', () => {
+    it('load member given an OAuth 2.0 token', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const actual = await Member.loadFromAuth('provider', 'id', db)
+      await testUtils.resetTables(db)
+      expect(actual).toBeInstanceOf(Member)
+      expect(actual.id).toEqual(2)
+      expect(actual.email).toEqual(member.email)
+    })
+  })
+
+  describe('getIDFromAuth', () => {
+    it('load member given an OAuth 2.0 token', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const actual = await Member.getIDFromAuth('provider', 'id', db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(2)
+    })
+  })
+
   describe('authenticate', () => {
     it('resolves with false if the email is not associated with a record', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('heckin@nope.com', 'password', db)
+      const actual = await Member.authenticate({ email: 'heckin@nope.com', password: 'password' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(false)
     })
@@ -735,7 +805,7 @@ describe('Member', () => {
     it('resolves with false if the password is incorrect', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('normal@thefifthworld.com', 'nope', db)
+      const actual = await Member.authenticate({ email: 'normal@thefifthworld.com', password: 'nope' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(false)
     })
@@ -743,7 +813,25 @@ describe('Member', () => {
     it('resolves with the ID if the password is correct', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
-      const actual = await Member.authenticate('normal@thefifthworld.com', 'password', db)
+      const actual = await Member.authenticate({ email: 'normal@thefifthworld.com', password: 'password' }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(2)
+    })
+
+    it('resolves with false if there is no such OAuth 2.0 token', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const actual = await Member.authenticate({ provider: 'provider', id: 'id' }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(false)
+    })
+
+    it('resolves with the ID if the OAuth 2.0 token could be found', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const actual = await Member.authenticate({ provider: 'provider', id: 'id' }, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(2)
     })
