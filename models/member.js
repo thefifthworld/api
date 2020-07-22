@@ -359,6 +359,27 @@ class Member {
   }
 
   /**
+   * Load a Member instance from an authorization.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The OAuth 2.0 token ID being submitted.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<Member|null>} - The Member instance associated with
+   *   the authorization provided if it could be found, or `null` if it could
+   *   not be.
+   */
+
+  static async loadFromAuth (provider, id, db) {
+    const rows = await db.run(`SELECT member FROM authorizations WHERE provider=${escape(provider)} AND oauth2_id=${escape(id)};`)
+    if (rows && rows.length > 0) {
+      return Member.load(rows[0].member, db)
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Checks if a member with the given email and password exists. If she does,
    * it returns her ID. If not — either because the email is not associated
    * with any member account, or it is associated with a member account but the
