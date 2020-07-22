@@ -26,6 +26,17 @@ members.post('/members/reauth', requireLogIn, async (req, res) => {
   res.status(200).send(req.user.generateJWT())
 })
 
+// POST /members/add-auth
+members.post('/members/add-auth', requireLogIn, async (req, res) => {
+  const { provider, id, token } = req.body
+  if (provider && id && token) {
+    await req.user.saveAuth(provider, id, token, db)
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(406)
+  }
+})
+
 // GET /members/:id
 members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)
