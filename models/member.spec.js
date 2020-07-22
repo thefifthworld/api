@@ -634,6 +634,38 @@ describe('Member', () => {
     })
   })
 
+  describe('saveAuth', () => {
+    it('saves an authorization', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const auth = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await testUtils.resetTables(db)
+      expect(auth).toHaveLength(1)
+      expect(auth[0].provider).toEqual('provider')
+      expect(auth[0].oauth2_id).toEqual('id')
+      expect(auth[0].oauth2_token).toEqual('token')
+    })
+
+    it('updates an authorization if one already exists', async () => {
+      expect.assertions(6)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const before = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await member.saveAuth('provider', 'newid', 'newtoken', db)
+      const after = await db.run(`SELECT * FROM authorizations WHERE member=2;`)
+      await testUtils.resetTables(db)
+      expect(before).toHaveLength(1)
+      expect(after).toHaveLength(1)
+      expect(before[0].member).toEqual(after[0].member)
+      expect(before[0].provider).toEqual(after[0].provider)
+      expect(after[0].oauth2_id).toEqual('newid')
+      expect(after[0].oauth2_token).toEqual('newtoken')
+    })
+  })
+
   describe('privatize', () => {
     it('returns an object without private fields', async () => {
       expect.assertions(6)

@@ -249,6 +249,27 @@ class Member {
   }
 
   /**
+   * Saves the OAuth 2.0 token that a user ha received.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param id {string} - The ID from the OAuth 2.0 token.
+   * @param token {string} - The token provided.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the OAuth 2.0
+   *   token has been saved to the database.
+   */
+
+  async saveAuth (provider, id, token, db) {
+    const existing = await db.run(`SELECT id FROM authorizations WHERE provider=${escape(provider)} AND member=${escape(this.id)};`)
+    if (existing && existing.length > 0) {
+      await db.run(`UPDATE authorizations SET oauth2_id=${escape(id)}, oauth2_token=${escape(token)} WHERE id=${existing[0].id};`)
+    } else {
+      await db.run(`INSERT INTO authorizations (member, provider, oauth2_id, oauth2_token) VALUES (${escape(this.id)}, ${escape(provider)}, ${escape(id)}, ${escape(token)});`)
+    }
+  }
+
+  /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
    * @params fields {string[]?} - Optional. An array of fields to remove from
