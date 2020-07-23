@@ -1,5 +1,3 @@
-const { escape } = require('sqlstring')
-const slugify = require('slugify')
 const express = require('express')
 const LinkHandler = require('../models/linkhandler')
 const Page = require('../models/page')
