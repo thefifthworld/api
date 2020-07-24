@@ -84,26 +84,17 @@ members.patch('/members/:id', requireLogIn, async (req, res) => {
 })
 
 // PATCH /members/:id/deactivate
-members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
-  let done = false
-  let subject = false
-  if (req && req.user && req.user.admin) {
-    subject = await Member.load(parseInt(req.params.id), db)
-    if (subject) done = await subject.deactivate(req.user, db)
-  }
-
-  if (done && subject) {
-    res.status(200).json(subject)
-  } else {
-    res.status(401).json({ err: 'Unauthorized' })
-  }
+members.patch('/members/:id/deactivate', requireAdmin, async (req, res) => {
+  const subject = await Member.load(parseInt(req.params.id), db)
+  await subject.deactivate(req.user, db)
+  res.status(200).json(subject.privatize())
 })
 
 // PATCH /members/:id/reactivate
 members.patch('/members/:id/reactivate', requireAdmin, async (req, res) => {
   const subject = await Member.load(parseInt(req.params.id), db)
   await subject.reactivate(req.user, db)
-  res.status(200).json(subject)
+  res.status(200).json(subject.privatize())
 })
 
 // POST /invitations/send
