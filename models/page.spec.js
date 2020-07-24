@@ -741,6 +741,18 @@ describe('Page', () => {
       expect(actual[1].title).toEqual('New Page')
     })
 
+    it('can handle a null user', async () => {
+      expect.assertions(5)
+      await testUtils.createTestPage(Page, Member, db)
+      const actual = await Page.getUpdates(10, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].title).toEqual('Test Page')
+      expect(actual[0].path).toEqual('/test-page')
+      expect(actual[0].timestamp).not.toBeNaN()
+      expect(actual[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+
     it('returns a maximum of the number given', async () => {
       expect.assertions(2)
       await testUtils.createTestPage(Page, Member, db)
