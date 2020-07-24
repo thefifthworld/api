@@ -1,7 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
 const parser = require('../parser')
-const { requireLogIn, optionalLogIn } = require('../security')
+const { requireLogIn, requireAdmin, optionalLogIn } = require('../security')
 const sendEmail = require('../emailer')
 const db = require('../db')
 const members = express.Router()
@@ -100,19 +100,10 @@ members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
 })
 
 // PATCH /members/:id/reactivate
-members.patch('/members/:id/reactivate', requireLogIn, async (req, res) => {
-  let done = false
-  let subject = false
-  if (req && req.user && req.user.admin) {
-    subject = await Member.load(parseInt(req.params.id), db)
-    if (subject) done = await subject.reactivate(req.user, db)
-  }
-
-  if (done && subject) {
-    res.status(200).json(subject)
-  } else {
-    res.status(401).json({ err: 'Unauthorized' })
-  }
+members.patch('/members/:id/reactivate', requireAdmin, async (req, res) => {
+  const subject = await Member.load(parseInt(req.params.id), db)
+  await subject.reactivate(req.user, db)
+  res.status(200).json(subject)
 })
 
 // POST /invitations/send

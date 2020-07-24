@@ -24,14 +24,36 @@ const verifyJWT = async req => {
  * @param res {!Object} - The Express response object.
  * @param next {function} - The Express next middleware function.
  * @returns {Promise<void>} - A Promise that resolves once the username and
- *   password provided by Basic Auth have been authenticated. If the
- *   credentials provided can be authenticated, the matching Member account is
- *   loaded into `req.user`. If not, a 401 status is returned.
+ *   password provided by the JSON Web Token have been authenticated. If the
+ *   user can be authenticated, the matching Member account is loaded into
+ *   `req.user`. If not, a 401 status is returned.
  */
 
 const requireLogIn = async (req, res, next) => {
   const member = await verifyJWT(req)
   if (member) {
+    req.user = member
+    next()
+  } else {
+    res.sendStatus(401)
+  }
+}
+
+/**
+ * Express Middleware for requiring authentication from an administrator.
+ * @param req {!Object} - The Express request object.
+ * @param res {!Object} - The Express response object.
+ * @param next {function} - The Express next middleware function.
+ * @returns {Promise<void>} - A Promise that resolves once the username and
+ *   password provided by the JSON Web Token have been authenticated. If the
+ *   user can be authenticated and that user has administrator rights, the
+ *   matching Member account is loaded into `req.user`. If not, a 401 status is
+ *   returned.
+ */
+
+const requireAdmin = async (req, res, next) => {
+  const member = await verifyJWT(req)
+  if (member && member.admin) {
     req.user = member
     next()
   } else {
@@ -97,6 +119,7 @@ const loadPage = async (req, res, next) => {
 
 module.exports = {
   requireLogIn,
+  requireAdmin,
   optionalLogIn,
   loadPage
 }
