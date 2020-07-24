@@ -360,6 +360,50 @@ class Page {
   }
 
   /**
+   * Return the most recent changes that the user has permission to see.
+   * @param num {number} - The number of updates to return. (Default: `10`)
+   * @param searcher {?Member} - The Member instance for the person who is
+   *   making this request. A full Member instance is not strictly necessary,
+   *   though. An object with `id` (number) and `admin` (boolean) properties
+   *   can suffice.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<[{ title: string, path: string, timestamp: number,
+   *   editor: { id: number, name: string } }]>} - A Promise that resolves with
+   *   an array of the most recent updates found in the database that the given
+   *   user has permission to view.
+   */
+
+  static async getUpdates (num, searcher, db) {
+    const changes = []
+    const n = !isNaN(num) && num > 0 ? Math.min(num, 50) : 10
+    const permissions = searcher
+      ? searcher.admin
+        ? ''
+        : ` AND (p.owner=${escape(searcher.id)} OR LEFT(p.permissions, 1)='7' OR LEFT(p.permissions, 1)='6')`
+      : ` AND LEFT(p.permissions, 1)='7'`
+    const query = `SELECT DISTINCT p.id AS pid, MAX(c.id) AS cid FROM pages p, changes c WHERE p.id=c.page${permissions} GROUP BY p.id ORDER BY MAX(c.id) DESC LIMIT ${n}`;
+    const updates = await db.run(query)
+    if (updates && updates.length > 0) {
+      for (let i = 0; i < updates.length; i++) {
+        const q = `SELECT p.title, p.path, c.timestamp, m.id AS mid, m.name FROM pages p, changes c, members m WHERE p.id=c.page AND c.editor=m.id AND c.id=${updates[i].cid};`
+        const records = await db.run(q)
+        if (records && records.length > 0) {
+          changes.push({
+            title: records[0].title,
+            path: records[0].path,
+            timestamp: records[0].timestamp,
+            editor: {
+              id: records[0].mid,
+              name: records[0].name
+            }
+          })
+        }
+      }
+    }
+    return changes
+  }
+
+  /**
    * If passed the type and title to be used when saving a page, this method
    * returns `false` if the page is not a template or if it is a template with
    * a valid name (one that is not the name of an internal template). It will
