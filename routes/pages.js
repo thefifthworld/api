@@ -134,6 +134,12 @@ pages.get('/updates', async (req, res) => {
   res.status(200).json(updates)
 })
 
+// GET /updates/:num
+pages.get('/updates/:num', async (req, res) => {
+  const updates = await Page.getUpdates(req.params.num, req.user, db)
+  res.status(200).json(updates)
+})
+
 // GET /requested
 pages.get('/requested', async (req, res) => {
   const links = await LinkHandler.loadRequested(db)
