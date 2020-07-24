@@ -123,6 +123,53 @@ describe('Members API', () => {
     })
   })
 
+  describe('GET /members/messages', () => {
+    it('returns a 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/messages')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns your messages', async () => {
+      expect.assertions(2)
+      const msg = 'Test message'
+      const normal = await Member.load(2, db)
+      await normal.logMessage('info', msg, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/messages').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body.info).toEqual([ msg ])
+    })
+  })
+
+  describe('GET /members/invited', () => {
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/invited')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns members you\'ve invited', async () => {
+      expect.assertions(10)
+      const normal = await Member.load(2, db)
+      const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
+      await normal.sendInvitations(emails, () => {}, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/invited').set('Authorization', `Bearer ${token}`)
+
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(2)
+      expect(res.body[0].id).not.toBeNaN()
+      expect(res.body[0].links).toEqual({})
+      expect(res.body[0].admin).toEqual(false)
+      expect(res.body[0].accepted).toEqual(false)
+      expect(res.body[1].id).not.toBeNaN()
+      expect(res.body[1].links).toEqual({})
+      expect(res.body[1].admin).toEqual(false)
+      expect(res.body[1].accepted).toEqual(false)
+    })
+  })
+
   describe('GET /members/:id', () => {
     it('returns 200', async () => {
       expect.assertions(1)
@@ -214,53 +261,6 @@ describe('Members API', () => {
       const token = admin.generateJWT()
       const res = await request.patch('/members/2').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
-    })
-  })
-
-  describe('GET /members/messages', () => {
-    it('returns a 401 if you\'re not logged in', async () => {
-      expect.assertions(1)
-      const res = await request.get('/members/messages')
-      expect(res.status).toEqual(401)
-    })
-
-    it('returns your messages', async () => {
-      expect.assertions(2)
-      const msg = 'Test message'
-      const normal = await Member.load(2, db)
-      await normal.logMessage('info', msg, db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/messages').set('Authorization', `Bearer ${token}`)
-      expect(res.status).toEqual(200)
-      expect(res.body.info).toEqual([ msg ])
-    })
-  })
-
-  describe('GET /members/invited', () => {
-    it('returns 401 if you\'re not logged in', async () => {
-      expect.assertions(1)
-      const res = await request.get('/members/invited')
-      expect(res.status).toEqual(401)
-    })
-
-    it('returns members you\'ve invited', async () => {
-      expect.assertions(10)
-      const normal = await Member.load(2, db)
-      const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
-      await normal.sendInvitations(emails, () => {}, db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/invited').set('Authorization', `Bearer ${token}`)
-
-      expect(res.status).toEqual(200)
-      expect(res.body).toHaveLength(2)
-      expect(res.body[0].id).not.toBeNaN()
-      expect(res.body[0].links).toEqual({})
-      expect(res.body[0].admin).toEqual(false)
-      expect(res.body[0].accepted).toEqual(false)
-      expect(res.body[1].id).not.toBeNaN()
-      expect(res.body[1].links).toEqual({})
-      expect(res.body[1].admin).toEqual(false)
-      expect(res.body[1].accepted).toEqual(false)
     })
   })
 
