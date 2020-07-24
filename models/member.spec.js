@@ -680,6 +680,21 @@ describe('Member', () => {
     })
   })
 
+  describe('deleteAuth', () => {
+    it('deletes an authorization', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider1', 'id', 'token', db)
+      await member.saveAuth('provider2', 'id', 'token', db)
+      await member.saveAuth('provider3', 'id', 'token', db)
+      await member.deleteAuth('provider1', db)
+      const auths = await member.getAuths(db)
+      await testUtils.resetTables(db)
+      expect(auths).toEqual([ 'provider2', 'provider3' ])
+    })
+  })
+
   describe('privatize', () => {
     it('returns an object without private fields', async () => {
       expect.assertions(6)

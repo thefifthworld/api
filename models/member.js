@@ -284,6 +284,19 @@ class Member {
   }
 
   /**
+   * Delete an OAuth 2.0 token that has been saved.
+   * @param provider {string} - A string identifying the service that should
+   *   be deleted (e.g., `patreon`, `github`, `facebook`, or `twitter`).
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when any OAuth 2.0
+   *   tokens for the given provider and user are deleted.
+   */
+
+  async deleteAuth (provider, db) {
+    await db.run(`DELETE FROM authorizations WHERE provider=${escape(provider)} AND member=${this.id};`)
+  }
+
+  /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
    * @params fields {string[]?} - Optional. An array of fields to remove from
