@@ -270,24 +270,17 @@ class Member {
   }
 
   /**
-   * Return the OAuth 2.0 token saved for a particular member from a particular
-   * provider.
-   * @param provider {string} - A string identifying the service that has
-   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
-   *   `twitter`).
-   * @param db {Pool} - The database connection
-   * @returns {Promise<{id: string, token: string}|null>} - A Promise that
-   *   resolves with an object that provides the `id` and `token` of the saved
-   *   OAuth 2.0 token if it could be retrieved, or `null` if it could not be.
+   * Return an array of the providers that the member has saved authorizations
+   * for.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<string[]>} - A Promise that resolves with an array of
+   *   strings identifying the providers that the member has saved
+   *   authorizations for.
    */
 
-  async getAuth (provider, db) {
-    const rows = await db.run(`SELECT oauth2_id, oauth2_token FROM authorizations WHERE member=${escape(this.id)} AND provider=${escape(provider)};`)
-    if (rows && rows.length > 0) {
-      return { id: rows[0].oauth2_id, token: rows[0].oauth2_token }
-    } else {
-      return null
-    }
+  async getAuths (db) {
+    const existing = await db.run(`SELECT DISTINCT provider FROM authorizations WHERE member=${escape(this.id)};`)
+    return existing ? existing.map(a => a.provider) : []
   }
 
   /**
