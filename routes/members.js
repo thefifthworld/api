@@ -37,6 +37,18 @@ members.post('/members/add-auth', requireLogIn, async (req, res) => {
   }
 })
 
+// GET /members/messages
+members.get('/members/messages', requireLogIn, async (req, res) => {
+  const messages = await req.user.getMessages(db)
+  res.status(200).json(messages)
+})
+
+// GET /members/invited
+members.get('/members/invited', requireLogIn, async (req, res) => {
+  const invited = await req.user.getInvited(db)
+  res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
+})
+
 // GET /members/:id
 members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)
@@ -69,18 +81,6 @@ members.patch('/members/:id', requireLogIn, async (req, res) => {
   } else {
     res.status(401).json({ err: 'Unauthorized' })
   }
-})
-
-// GET /members/:id/messages
-members.get('/members/:id/messages', requireLogIn, async (req, res) => {
-  const messages = await req.user.getMessages(db)
-  res.status(200).json(messages)
-})
-
-// GET /members/:id/invited
-members.get('/members/:id/invited', requireLogIn, async (req, res) => {
-  const invited = await req.user.getInvited(db)
-  res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
 })
 
 // PATCH /members/:id/deactivate

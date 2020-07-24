@@ -220,10 +220,10 @@ describe('Members API', () => {
     })
   })
 
-  describe('GET /members/:id/messages', () => {
+  describe('GET /members/messages', () => {
     it('returns a 401 if you\'re not logged in', async () => {
       expect.assertions(1)
-      const res = await request.get('/members/2/messages')
+      const res = await request.get('/members/messages')
       expect(res.status).toEqual(401)
     })
 
@@ -233,16 +233,16 @@ describe('Members API', () => {
       const normal = await Member.load(2, db)
       await normal.logMessage('info', msg, db)
       const token = normal.generateJWT()
-      const res = await request.get('/members/2/messages').set('Authorization', `Bearer ${token}`)
+      const res = await request.get('/members/messages').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
       expect(res.body.info).toEqual([ msg ])
     })
   })
 
-  describe('GET /members/:id/invited', () => {
+  describe('GET /members/invited', () => {
     it('returns 401 if you\'re not logged in', async () => {
       expect.assertions(1)
-      const res = await request.get('/members/2/invited')
+      const res = await request.get('/members/invited')
       expect(res.status).toEqual(401)
     })
 
@@ -252,7 +252,7 @@ describe('Members API', () => {
       const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
       await normal.sendInvitations(emails, () => {}, db)
       const token = normal.generateJWT()
-      const res = await request.get('/members/2/invited').set('Authorization', `Bearer ${token}`)
+      const res = await request.get('/members/invited').set('Authorization', `Bearer ${token}`)
 
       expect(res.status).toEqual(200)
       expect(res.body).toHaveLength(2)
