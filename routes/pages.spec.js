@@ -491,6 +491,65 @@ describe('Pages API', () => {
     })
   })
 
+  describe('GET /updates', () => {
+    it('returns an array of updates', async () => {
+      expect.assertions(6)
+      const res = await request.get('/updates')
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(1)
+      expect(res.body[0].title).toEqual('Test Page')
+      expect(res.body[0].path).toEqual('/test-page')
+      expect(res.body[0].timestamp).not.toBeNaN()
+      expect(res.body[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+  })
+
+  describe('GET /updates/:num', () => {
+    it('returns an array of updates maximum the number provided', async () => {
+      expect.assertions(6)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Test', body: 'This is a test.', msg: 'Initial text' })
+      const res = await request.get('/updates/1')
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(1)
+      expect(res.body[0].title).toEqual('Test')
+      expect(res.body[0].path).toEqual('/test')
+      expect(res.body[0].timestamp).not.toBeNaN()
+      expect(res.body[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+
+    it('returns no more than 50 updates', async () => {
+      expect.assertions(6)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      for (let i = 1; i <= 60; i++) await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: `Test Page #${i}`, body: 'This is a test.', msg: 'Initial text' })
+      const res = await request.get('/updates/100')
+
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(50)
+      expect(res.body[0].title).toEqual('Test Page #60')
+      expect(res.body[0].path).toEqual('/test-page-60')
+      expect(res.body[0].timestamp).not.toBeNaN()
+      expect(res.body[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+
+    it('returns 10 updates if not given a valid number', async () => {
+      expect.assertions(6)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      for (let i = 1; i <= 20; i++) await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: `Test Page #${i}`, body: 'This is a test.', msg: 'Initial text' })
+      const res = await request.get('/updates/lulz')
+
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(10)
+      expect(res.body[0].title).toEqual('Test Page #20')
+      expect(res.body[0].path).toEqual('/test-page-20')
+      expect(res.body[0].timestamp).not.toBeNaN()
+      expect(res.body[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+  })
+
   describe('GET /requested', () => {
     it('returns requested links', async () => {
       expect.assertions(5)

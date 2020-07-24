@@ -715,6 +715,66 @@ describe('Page', () => {
     })
   })
 
+  describe('getUpdates', () => {
+    it('returns an array of recent updates', async () => {
+      expect.assertions(5)
+      await testUtils.createTestPage(Page, Member, db)
+      const actual = await Page.getUpdates(10, { id: 3, admin: false }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].title).toEqual('Test Page')
+      expect(actual[0].path).toEqual('/test-page')
+      expect(actual[0].timestamp).not.toBeNaN()
+      expect(actual[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+
+    it('returns the most recent updates at the front of the array', async () => {
+      expect.assertions(3)
+      const p1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'New Page', body: 'This is a new page.' }, editor, 'Initial text', db)
+      await p1.save({ title: 'Updated Page', body: 'This is an updated body.' }, editor, 'Test update', db)
+      const actual = await Page.getUpdates(10, { id: 3, admin: false }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+      expect(actual[0].title).toEqual('Updated Page')
+      expect(actual[1].title).toEqual('New Page')
+    })
+
+    it('can handle a null user', async () => {
+      expect.assertions(5)
+      await testUtils.createTestPage(Page, Member, db)
+      const actual = await Page.getUpdates(10, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].title).toEqual('Test Page')
+      expect(actual[0].path).toEqual('/test-page')
+      expect(actual[0].timestamp).not.toBeNaN()
+      expect(actual[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+
+    it('returns a maximum of the number given', async () => {
+      expect.assertions(2)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'New Page', body: 'This is a new page.' }, editor, 'Initial text', db)
+      const actual = await Page.getUpdates(1, { id: 3, admin: false }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].title).toEqual('New Page')
+    })
+
+    it('does not return pages you don\'t have permission to see', async () => {
+      expect.assertions(1)
+      const p1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await p1.save({ title: 'Updated Page', body: 'This is an updated body.', permissions: 444 }, editor, 'Test update', db)
+      const actual = await Page.getUpdates(10, { id: 3, admin: false }, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(0)
+    })
+  })
+
   describe('isReservedTemplate', () => {
     it('returns false if the type is not a template', () => {
       expect(Page.isReservedTemplate('NotTemplate', 'Test')).toEqual(false)
