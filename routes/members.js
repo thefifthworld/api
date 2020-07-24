@@ -89,6 +89,13 @@ members.patch('/members/:id', requireLogIn, async (req, res) => {
   }
 })
 
+// GET /members/:id/auths
+members.get('/members/:id/auths', requireAdmin, async (req, res) => {
+  const member = await Member.load(parseInt(req.params.id), db)
+  const auths = member ? await member.getAuths(db) : []
+  res.status(200).json(auths)
+})
+
 // PATCH /members/:id/deactivate
 members.patch('/members/:id/deactivate', requireAdmin, async (req, res) => {
   const subject = await Member.load(parseInt(req.params.id), db)
