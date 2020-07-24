@@ -111,15 +111,58 @@ describe('Members API', () => {
     })
   })
 
-  describe('POST /members/add-auth', () => {
+  describe('POST /members/providers', () => {
     it('adds an OAuth 2.0 token', async () => {
       expect.assertions(3)
       const login = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
-      const res = await request.post('/members/add-auth').set('Authorization', `Bearer ${login.text}`).send({ provider: 'provider', id: 'id', token: 'token' })
+      const res = await request.post('/members/providers').set('Authorization', `Bearer ${login.text}`).send({ provider: 'provider', id: 'id', token: 'token' })
       const actual = await Member.loadFromAuth('provider', 'id', db)
       expect(res.status).toEqual(200)
       expect(actual).toBeInstanceOf(Member)
       expect(actual.id).toEqual(2)
+    })
+  })
+
+  describe('GET /members/providers', () => {
+    it('returns an empty array if you have no authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/providers').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([])
+    })
+
+    it('returns an array of your authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/providers').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider1', 'provider2', 'provider3' ])
+    })
+
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/providers')
+      expect(res.status).toEqual(401)
+    })
+  })
+
+  describe('DELETE /members/providers/:provider', () => {
+    it('removes the specified provider', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = normal.generateJWT()
+      const res = await request.delete('/members/providers/provider1').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider2', 'provider3' ])
     })
   })
 
@@ -167,49 +210,6 @@ describe('Members API', () => {
       expect(res.body[1].links).toEqual({})
       expect(res.body[1].admin).toEqual(false)
       expect(res.body[1].accepted).toEqual(false)
-    })
-  })
-
-  describe('GET /members/auths', () => {
-    it('returns an empty array if you have no authorizations', async () => {
-      expect.assertions(2)
-      const normal = await Member.load(2, db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
-      expect(res.status).toEqual(200)
-      expect(res.body).toEqual([])
-    })
-
-    it('returns an array of your authorizations', async () => {
-      expect.assertions(2)
-      const normal = await Member.load(2, db)
-      await normal.saveAuth('provider1', 'id', 'token', db)
-      await normal.saveAuth('provider2', 'id', 'token', db)
-      await normal.saveAuth('provider3', 'id', 'token', db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
-      expect(res.status).toEqual(200)
-      expect(res.body).toEqual([ 'provider1', 'provider2', 'provider3' ])
-    })
-
-    it('returns 401 if you\'re not logged in', async () => {
-      expect.assertions(1)
-      const res = await request.get('/members/auths')
-      expect(res.status).toEqual(401)
-    })
-  })
-
-  describe('DELETE /members/auths/:provider', () => {
-    it('removes the specified provider', async () => {
-      expect.assertions(2)
-      const normal = await Member.load(2, db)
-      await normal.saveAuth('provider1', 'id', 'token', db)
-      await normal.saveAuth('provider2', 'id', 'token', db)
-      await normal.saveAuth('provider3', 'id', 'token', db)
-      const token = normal.generateJWT()
-      const res = await request.delete('/members/auths/provider1').set('Authorization', `Bearer ${token}`)
-      expect(res.status).toEqual(200)
-      expect(res.body).toEqual([ 'provider2', 'provider3' ])
     })
   })
 
