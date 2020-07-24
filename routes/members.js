@@ -26,8 +26,8 @@ members.post('/members/reauth', requireLogIn, async (req, res) => {
   res.status(200).send(req.user.generateJWT())
 })
 
-// POST /members/add-auth
-members.post('/members/add-auth', requireLogIn, async (req, res) => {
+// POST /members/providers
+members.post('/members/providers', requireLogIn, async (req, res) => {
   const { provider, id, token } = req.body
   if (provider && id && token) {
     await req.user.saveAuth(provider, id, token, db)
@@ -35,6 +35,19 @@ members.post('/members/add-auth', requireLogIn, async (req, res) => {
   } else {
     res.sendStatus(406)
   }
+})
+
+// GET /members/providers
+members.get('/members/providers', requireLogIn, async (req, res) => {
+  const auths = await req.user.getAuths(db)
+  res.status(200).json(auths)
+})
+
+// DELETE /members/providers/:provider
+members.delete('/members/providers/:provider', requireLogIn, async (req, res) => {
+  await req.user.deleteAuth(req.params.provider, db)
+  const auths = await req.user.getAuths(db)
+  res.status(200).json(auths)
 })
 
 // GET /members/messages
@@ -47,19 +60,6 @@ members.get('/members/messages', requireLogIn, async (req, res) => {
 members.get('/members/invited', requireLogIn, async (req, res) => {
   const invited = await req.user.getInvited(db)
   res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
-})
-
-// GET /members/auths
-members.get('/members/auths', requireLogIn, async (req, res) => {
-  const auths = await req.user.getAuths(db)
-  res.status(200).json(auths)
-})
-
-// DELETE /members/auths/:provider
-members.delete('/members/auths/:provider', requireLogIn, async (req, res) => {
-  await req.user.deleteAuth(req.params.provider, db)
-  const auths = await req.user.getAuths(db)
-  res.status(200).json(auths)
 })
 
 // GET /members/:id
