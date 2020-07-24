@@ -113,14 +113,11 @@ describe('Members API', () => {
 
   describe('POST /members/add-auth', () => {
     it('adds an OAuth 2.0 token', async () => {
-      expect.assertions(4)
+      expect.assertions(3)
       const login = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
       const res = await request.post('/members/add-auth').set('Authorization', `Bearer ${login.text}`).send({ provider: 'provider', id: 'id', token: 'token' })
-      const member = await Member.load(2, db)
-      const auth = await member.getAuth('provider', db)
       const actual = await Member.loadFromAuth('provider', 'id', db)
       expect(res.status).toEqual(200)
-      expect(auth).toEqual({ id: 'id', token: 'token' })
       expect(actual).toBeInstanceOf(Member)
       expect(actual.id).toEqual(2)
     })
