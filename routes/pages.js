@@ -128,8 +128,14 @@ pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
   }
 })
 
+// GET /updates
+pages.get('/updates', async (req, res) => {
+  const updates = await Page.getUpdates(10, req.user, db)
+  res.status(200).json(updates)
+})
+
 // GET /requested
-pages.get('/requested', async (eq, res) => {
+pages.get('/requested', async (req, res) => {
   const links = await LinkHandler.loadRequested(db)
   res.status(200).json(links)
 })

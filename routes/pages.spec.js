@@ -491,6 +491,19 @@ describe('Pages API', () => {
     })
   })
 
+  describe('GET /updates', () => {
+    it('returns an array of updates', async () => {
+      expect.assertions(6)
+      const res = await request.get('/updates')
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(1)
+      expect(res.body[0].title).toEqual('Test Page')
+      expect(res.body[0].path).toEqual('/test-page')
+      expect(res.body[0].timestamp).not.toBeNaN()
+      expect(res.body[0].editor).toEqual({ id: 2, name: 'Normal' })
+    })
+  })
+
   describe('GET /requested', () => {
     it('returns requested links', async () => {
       expect.assertions(5)
