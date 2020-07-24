@@ -49,6 +49,12 @@ members.get('/members/invited', requireLogIn, async (req, res) => {
   res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
 })
 
+// GET /members/auths
+members.get('/members/auths', requireLogIn, async (req, res) => {
+  const auths = await req.user.getAuths(db)
+  res.status(200).json(auths)
+})
+
 // GET /members/:id
 members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)

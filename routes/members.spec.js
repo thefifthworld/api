@@ -170,6 +170,35 @@ describe('Members API', () => {
     })
   })
 
+  describe('GET /members/auths', () => {
+    it('returns an empty array if you have no authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([])
+    })
+
+    it('returns an array of your authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider1', 'provider2', 'provider3' ])
+    })
+
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/auths')
+      expect(res.status).toEqual(401)
+    })
+  })
+
   describe('GET /members/:id', () => {
     it('returns 200', async () => {
       expect.assertions(1)
