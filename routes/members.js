@@ -55,6 +55,13 @@ members.get('/members/auths', requireLogIn, async (req, res) => {
   res.status(200).json(auths)
 })
 
+// DELETE /members/auths/:provider
+members.delete('/members/auths/:provider', requireLogIn, async (req, res) => {
+  await req.user.deleteAuth(req.params.provider, db)
+  const auths = await req.user.getAuths(db)
+  res.status(200).json(auths)
+})
+
 // GET /members/:id
 members.get('/members/:id', optionalLogIn, async (req, res) => {
   const id = parseInt(req.params.id)
