@@ -270,6 +270,20 @@ class Member {
   }
 
   /**
+   * Return an array of the providers that the member has saved authorizations
+   * for.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<string[]>} - A Promise that resolves with an array of
+   *   strings identifying the providers that the member has saved
+   *   authorizations for.
+   */
+
+  async getAuths (db) {
+    const existing = await db.run(`SELECT DISTINCT provider FROM authorizations WHERE member=${escape(this.id)};`)
+    return existing ? existing.map(a => a.provider) : []
+  }
+
+  /**
    * Return an object representing the member's data, sans private attributes
    * like password, email, number of invitations, and active status.
    * @params fields {string[]?} - Optional. An array of fields to remove from

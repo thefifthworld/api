@@ -666,6 +666,20 @@ describe('Member', () => {
     })
   })
 
+  describe('getAuths', () => {
+    it('returns a user\'s authorizations', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider1', 'id', 'token', db)
+      await member.saveAuth('provider2', 'id', 'token', db)
+      await member.saveAuth('provider3', 'id', 'token', db)
+      const actual = await member.getAuths(db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual([ 'provider1', 'provider2', 'provider3' ])
+    })
+  })
+
   describe('privatize', () => {
     it('returns an object without private fields', async () => {
       expect.assertions(6)
