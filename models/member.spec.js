@@ -666,15 +666,17 @@ describe('Member', () => {
     })
   })
 
-  describe('getAuth', () => {
-    it('fetches an OAuth 2.0 token', async () => {
+  describe('getAuths', () => {
+    it('returns a user\'s authorizations', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const member = await Member.load(2, db)
-      await member.saveAuth('provider', 'id', 'token', db)
-      const auth = await member.getAuth('provider', db)
+      await member.saveAuth('provider1', 'id', 'token', db)
+      await member.saveAuth('provider2', 'id', 'token', db)
+      await member.saveAuth('provider3', 'id', 'token', db)
+      const actual = await member.getAuths(db)
       await testUtils.resetTables(db)
-      expect(auth).toEqual({ id: 'id', token: 'token' })
+      expect(actual).toEqual([ 'provider1', 'provider2', 'provider3' ])
     })
   })
 

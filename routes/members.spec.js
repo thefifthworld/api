@@ -113,16 +113,89 @@ describe('Members API', () => {
 
   describe('POST /members/add-auth', () => {
     it('adds an OAuth 2.0 token', async () => {
-      expect.assertions(4)
+      expect.assertions(3)
       const login = await request.post('/members/auth').send({ email: 'normal@thefifthworld.com', pass: 'password' })
       const res = await request.post('/members/add-auth').set('Authorization', `Bearer ${login.text}`).send({ provider: 'provider', id: 'id', token: 'token' })
-      const member = await Member.load(2, db)
-      const auth = await member.getAuth('provider', db)
       const actual = await Member.loadFromAuth('provider', 'id', db)
       expect(res.status).toEqual(200)
-      expect(auth).toEqual({ id: 'id', token: 'token' })
       expect(actual).toBeInstanceOf(Member)
       expect(actual.id).toEqual(2)
+    })
+  })
+
+  describe('GET /members/messages', () => {
+    it('returns a 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/messages')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns your messages', async () => {
+      expect.assertions(2)
+      const msg = 'Test message'
+      const normal = await Member.load(2, db)
+      await normal.logMessage('info', msg, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/messages').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body.info).toEqual([ msg ])
+    })
+  })
+
+  describe('GET /members/invited', () => {
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/invited')
+      expect(res.status).toEqual(401)
+    })
+
+    it('returns members you\'ve invited', async () => {
+      expect.assertions(10)
+      const normal = await Member.load(2, db)
+      const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
+      await normal.sendInvitations(emails, () => {}, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/invited').set('Authorization', `Bearer ${token}`)
+
+      expect(res.status).toEqual(200)
+      expect(res.body).toHaveLength(2)
+      expect(res.body[0].id).not.toBeNaN()
+      expect(res.body[0].links).toEqual({})
+      expect(res.body[0].admin).toEqual(false)
+      expect(res.body[0].accepted).toEqual(false)
+      expect(res.body[1].id).not.toBeNaN()
+      expect(res.body[1].links).toEqual({})
+      expect(res.body[1].admin).toEqual(false)
+      expect(res.body[1].accepted).toEqual(false)
+    })
+  })
+
+  describe('GET /members/auths', () => {
+    it('returns an empty array if you have no authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([])
+    })
+
+    it('returns an array of your authorizations', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider1', 'provider2', 'provider3' ])
+    })
+
+    it('returns 401 if you\'re not logged in', async () => {
+      expect.assertions(1)
+      const res = await request.get('/members/auths')
+      expect(res.status).toEqual(401)
     })
   })
 
@@ -220,50 +293,41 @@ describe('Members API', () => {
     })
   })
 
-  describe('GET /members/:id/messages', () => {
-    it('returns a 401 if you\'re not logged in', async () => {
+  describe('GET /members/:id/auths', () => {
+    it('returns an empty array if the member has no authorizations', async () => {
+      expect.assertions(2)
+      const admin = await Member.load(1, db)
+      const token = admin.generateJWT()
+      const res = await request.get('/members/2/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([])
+    })
+
+    it('returns an array of the member\'s authorizations', async () => {
+      expect.assertions(2)
+      const admin = await Member.load(1, db)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = admin.generateJWT()
+      const res = await request.get('/members/2/auths').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider1', 'provider2', 'provider3' ])
+    })
+
+    it('returns 401 if you\'re not an admin', async () => {
       expect.assertions(1)
-      const res = await request.get('/members/2/messages')
+      const normal = await Member.load(2, db)
+      const token = normal.generateJWT()
+      const res = await request.get('/members/2/auths').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(401)
     })
 
-    it('returns your messages', async () => {
-      expect.assertions(2)
-      const msg = 'Test message'
-      const normal = await Member.load(2, db)
-      await normal.logMessage('info', msg, db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/2/messages').set('Authorization', `Bearer ${token}`)
-      expect(res.status).toEqual(200)
-      expect(res.body.info).toEqual([ msg ])
-    })
-  })
-
-  describe('GET /members/:id/invited', () => {
     it('returns 401 if you\'re not logged in', async () => {
       expect.assertions(1)
-      const res = await request.get('/members/2/invited')
+      const res = await request.get('/members/2/auths')
       expect(res.status).toEqual(401)
-    })
-
-    it('returns members you\'ve invited', async () => {
-      expect.assertions(10)
-      const normal = await Member.load(2, db)
-      const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
-      await normal.sendInvitations(emails, () => {}, db)
-      const token = normal.generateJWT()
-      const res = await request.get('/members/2/invited').set('Authorization', `Bearer ${token}`)
-
-      expect(res.status).toEqual(200)
-      expect(res.body).toHaveLength(2)
-      expect(res.body[0].id).not.toBeNaN()
-      expect(res.body[0].links).toEqual({})
-      expect(res.body[0].admin).toEqual(false)
-      expect(res.body[0].accepted).toEqual(false)
-      expect(res.body[1].id).not.toBeNaN()
-      expect(res.body[1].links).toEqual({})
-      expect(res.body[1].admin).toEqual(false)
-      expect(res.body[1].accepted).toEqual(false)
     })
   })
 

@@ -1,7 +1,7 @@
 const express = require('express')
 const Member = require('../models/member')
 const parser = require('../parser')
-const { requireLogIn, optionalLogIn } = require('../security')
+const { requireLogIn, requireAdmin, optionalLogIn } = require('../security')
 const sendEmail = require('../emailer')
 const db = require('../db')
 const members = express.Router()
@@ -35,6 +35,24 @@ members.post('/members/add-auth', requireLogIn, async (req, res) => {
   } else {
     res.sendStatus(406)
   }
+})
+
+// GET /members/messages
+members.get('/members/messages', requireLogIn, async (req, res) => {
+  const messages = await req.user.getMessages(db)
+  res.status(200).json(messages)
+})
+
+// GET /members/invited
+members.get('/members/invited', requireLogIn, async (req, res) => {
+  const invited = await req.user.getInvited(db)
+  res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
+})
+
+// GET /members/auths
+members.get('/members/auths', requireLogIn, async (req, res) => {
+  const auths = await req.user.getAuths(db)
+  res.status(200).json(auths)
 })
 
 // GET /members/:id
@@ -71,48 +89,25 @@ members.patch('/members/:id', requireLogIn, async (req, res) => {
   }
 })
 
-// GET /members/:id/messages
-members.get('/members/:id/messages', requireLogIn, async (req, res) => {
-  const messages = await req.user.getMessages(db)
-  res.status(200).json(messages)
-})
-
-// GET /members/:id/invited
-members.get('/members/:id/invited', requireLogIn, async (req, res) => {
-  const invited = await req.user.getInvited(db)
-  res.status(200).json(invited.map(member => member.privatize ? member.privatize() : member))
+// GET /members/:id/auths
+members.get('/members/:id/auths', requireAdmin, async (req, res) => {
+  const member = await Member.load(parseInt(req.params.id), db)
+  const auths = member ? await member.getAuths(db) : []
+  res.status(200).json(auths)
 })
 
 // PATCH /members/:id/deactivate
-members.patch('/members/:id/deactivate', requireLogIn, async (req, res) => {
-  let done = false
-  let subject = false
-  if (req && req.user && req.user.admin) {
-    subject = await Member.load(parseInt(req.params.id), db)
-    if (subject) done = await subject.deactivate(req.user, db)
-  }
-
-  if (done && subject) {
-    res.status(200).json(subject)
-  } else {
-    res.status(401).json({ err: 'Unauthorized' })
-  }
+members.patch('/members/:id/deactivate', requireAdmin, async (req, res) => {
+  const subject = await Member.load(parseInt(req.params.id), db)
+  await subject.deactivate(req.user, db)
+  res.status(200).json(subject.privatize())
 })
 
 // PATCH /members/:id/reactivate
-members.patch('/members/:id/reactivate', requireLogIn, async (req, res) => {
-  let done = false
-  let subject = false
-  if (req && req.user && req.user.admin) {
-    subject = await Member.load(parseInt(req.params.id), db)
-    if (subject) done = await subject.reactivate(req.user, db)
-  }
-
-  if (done && subject) {
-    res.status(200).json(subject)
-  } else {
-    res.status(401).json({ err: 'Unauthorized' })
-  }
+members.patch('/members/:id/reactivate', requireAdmin, async (req, res) => {
+  const subject = await Member.load(parseInt(req.params.id), db)
+  await subject.reactivate(req.user, db)
+  res.status(200).json(subject.privatize())
 })
 
 // POST /invitations/send
