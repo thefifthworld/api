@@ -199,6 +199,20 @@ describe('Members API', () => {
     })
   })
 
+  describe('DELETE /members/auths/:provider', () => {
+    it('removes the specified provider', async () => {
+      expect.assertions(2)
+      const normal = await Member.load(2, db)
+      await normal.saveAuth('provider1', 'id', 'token', db)
+      await normal.saveAuth('provider2', 'id', 'token', db)
+      await normal.saveAuth('provider3', 'id', 'token', db)
+      const token = normal.generateJWT()
+      const res = await request.delete('/members/auths/provider1').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(200)
+      expect(res.body).toEqual([ 'provider2', 'provider3' ])
+    })
+  })
+
   describe('GET /members/:id', () => {
     it('returns 200', async () => {
       expect.assertions(1)
