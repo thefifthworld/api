@@ -2,6 +2,7 @@
 
 const supertest = require('supertest')
 const jwt = require('jsonwebtoken')
+const { escape } = require('sqlstring')
 const Member = require('../models/member')
 const db = require('../db')
 const config = require('../config')
@@ -443,6 +444,33 @@ describe('Members API', () => {
       expect(res.status).toEqual(200)
       expect(res.body.emails).toEqual(invites.emails)
       expect(res.body.messages.confirmation).toHaveLength(2)
+    })
+  })
+
+  describe('POST /invitations/:code', () => {
+    it('returns a JWT if the invitation is accepted', async () => {
+      expect.assertions(8)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      const { inviteCode } = row[0]
+      const res = await request.post(`/invitations/${inviteCode}`)
+      const token = await jwt.verify(res.text, config.jwt.secret)
+      const check = await db.run(`SELECT accepted FROM invitations WHERE inviteCode=${escape(inviteCode)};`)
+      expect(res.status).toEqual(200)
+      expect(token.id).toEqual(4)
+      expect(token.nopass).toEqual(true)
+      expect(token.admin).toEqual(false)
+      expect(token.iss).toEqual(config.jwt.domain)
+      expect(token.sub).toEqual(`${config.jwt.domain}/members/4`)
+      expect(check).toHaveLength(1)
+      expect(check[0].accepted).toEqual(1)
+    })
+
+    it('returns 401 if invitation is not accepted', async () => {
+      expect.assertions(1)
+      const res = await request.post(`/invitations/nope`)
+      expect(res.status).toEqual(401)
     })
   })
 })
