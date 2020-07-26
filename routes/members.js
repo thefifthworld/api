@@ -131,4 +131,14 @@ members.post('/invitations/send', requireLogIn, async (req, res) => {
   }
 })
 
+// POST /invitations/:code
+members.post('/invitations/:code', async (req, res) => {
+  const member = await Member.acceptInvitation(req.params.code, db)
+  if (member) {
+    res.status(200).send(member.generateJWT())
+  } else {
+    res.status(401).json({ err: 'Unauthorized' })
+  }
+})
+
 module.exports = members
