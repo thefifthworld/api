@@ -869,7 +869,7 @@ describe('Member', () => {
       expect(check[0].accepted).toEqual(1)
     })
 
-    it('returns member even if it\'s already been accepted', async () => {
+    it('returns undefined if it\'s already been accepted', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const inviter = await Member.load(2, db)
@@ -878,7 +878,7 @@ describe('Member', () => {
       await Member.acceptInvitation(row[0].inviteCode, db)
       const actual = await Member.acceptInvitation(row[0].inviteCode, db)
       await testUtils.resetTables(db)
-      expect(actual).toBeInstanceOf(Member)
+      expect(actual).toEqual(undefined)
     })
 
     it('returns undefined if no code can be found', async () => {
