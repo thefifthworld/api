@@ -472,5 +472,20 @@ describe('Members API', () => {
       const res = await request.post(`/invitations/nope`)
       expect(res.status).toEqual(401)
     })
+
+    it('returns 401 if the invitation was already accepted', async () => {
+      expect.assertions(3)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitation('invited@thefifthworld.com', () => {}, db)
+      const row = await db.run(`SELECT inviteCode FROM invitations;`)
+      const { inviteCode } = row[0]
+      const url = `/invitations/${inviteCode}`
+      await request.post(url)
+      const res = await request.post(url)
+      const check = await db.run(`SELECT accepted FROM invitations WHERE inviteCode=${escape(inviteCode)};`)
+      expect(res.status).toEqual(401)
+      expect(check).toHaveLength(1)
+      expect(check[0].accepted).toEqual(1)
+    })
   })
 })

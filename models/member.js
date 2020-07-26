@@ -448,7 +448,7 @@ class Member {
    */
 
   static async acceptInvitation (code, db) {
-    const check = await db.run(`SELECT inviteTo FROM invitations WHERE inviteCode=${escape(code)};`)
+    const check = await db.run(`SELECT inviteTo FROM invitations WHERE inviteCode=${escape(code)} AND accepted=0;`)
     if (check.length > 0) {
       await db.run(`UPDATE invitations SET accepted=1 WHERE inviteCode=${escape(code)};`)
       const member = await Member.load(check[0].inviteTo, db)
