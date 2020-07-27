@@ -140,6 +140,7 @@ class Page {
       this.image = data.image
       this.header = data.header
       this.permissions = data.permissions || 774
+      this.lineage = await this.getLineage(db)
 
       this.tags = tagHandler
       this.location = locationHandler
@@ -227,6 +228,7 @@ class Page {
         row.files = await FileHandler.load(row, db)
         row.likes = await LikesHandler.load(row, db)
         const page = new Page(row, changes)
+        if (!page.lineage) page.lineage = await page.getLineage(db)
         page.saved = true
         return page
       }
