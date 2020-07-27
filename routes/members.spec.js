@@ -435,15 +435,14 @@ describe('Members API', () => {
       expect(res.status).toEqual(401)
     })
 
-    it('returns the emails you tried to invite and your messages', async () => {
-      expect.assertions(3)
+    it('returns the emails you tried to invite', async () => {
+      expect.assertions(2)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       const invites = { emails: [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com' ], test: true }
       const res = await request.post('/invitations/send').set('Authorization', `Bearer ${token}`).send(invites)
       expect(res.status).toEqual(200)
       expect(res.body.emails).toEqual(invites.emails)
-      expect(res.body.messages.confirmation).toHaveLength(2)
     })
   })
 
