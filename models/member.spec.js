@@ -364,6 +364,16 @@ describe('Member', () => {
       await testUtils.resetTables(db)
       expect(res).toEqual({})
     })
+
+    it('renders markdown in messages', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.logMessage('info', '*Did you **know?***', db)
+      const res = await member.getMessages(db)
+      await testUtils.resetTables(db)
+      expect(res.info[0]).toEqual('<p><em>Did you <strong>know?</strong></em></p>\n')
+    })
   })
 
   describe('createInvitation', () => {
