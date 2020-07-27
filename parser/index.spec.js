@@ -15,6 +15,18 @@ describe('Parser', () => {
     expect(actual.html).toEqual('<p><em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong></p>\n')
   })
 
+  it('renders HTML', async () => {
+    expect.assertions(1)
+    const actual = await parser('<em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong>', null, null, db)
+    expect(actual.html).toEqual('<p><em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong></p>\n')
+  })
+
+  it('doesn\'t wrap block HTML', async () => {
+    expect.assertions(1)
+    const actual = await parser('<aside><em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong></aside>', null, null, db)
+    expect(actual.html).toEqual('<aside><em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong></aside>')
+  })
+
   it('finds tags', async () => {
     expect.assertions(2)
     const actual = await parser('This [[Hello:World]] is [[Hello : Test]] text [[Tag: 1]] outside of tags.\n\nAnd here is a [[Test:true]] second paragraph.', null, null, db)
