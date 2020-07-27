@@ -422,17 +422,6 @@ describe('Page', () => {
     })
 
     it('loads the page\'s location', async () => {
-      expect.assertions(1)
-      await testUtils.populateMembers(db)
-      const editor = await Member.load(2, db)
-      const data = { title: 'Test page',  body: 'This is a test. [[Test:Hello]] [[Test:World]]' }
-      await Page.create(data, editor, 'Initial text', db)
-      const page = await Page.get(1, db)
-      await testUtils.resetTables(db)
-      expect(page.tags.test).toEqual([ 'Hello', 'World' ])
-    })
-
-    it('loads the page\'s location', async () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -445,15 +434,16 @@ describe('Page', () => {
     })
 
     it('loads the page\'s tags', async () => {
-      expect.assertions(2)
+      expect.assertions(3)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const data = { title: 'Test Page', body: '[[Tag1: Test]] [[Tag2: Hello world!]]' }
+      const data = { title: 'Test Page', body: '[[Tag1: Test]] [[Tag2: Hello world!]] [[Tag3: Something]] [[Tag3: Else]]' }
       await Page.create(data, editor, 'Initial text', db)
       const page = await Page.get(1, db)
       await testUtils.resetTables(db)
       expect(page.tags.tag1).toEqual([ 'Test' ])
       expect(page.tags.tag2).toEqual([ 'Hello world!' ])
+      expect(page.tags.tag3).toEqual([ 'Something', 'Else' ])
     })
 
     it('loads the page\'s likes', async () => {
@@ -479,6 +469,19 @@ describe('Page', () => {
       expect(page.files).toHaveLength(2)
       expect(page.files[0].name).toEqual(file.name)
       expect(page.files[1].name).toEqual(file.name)
+    })
+
+    it('loads the page\'s lineage', async () => {
+      expect.assertions(3)
+      const grandparent = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      const parent = await Page.create({ title: 'Parent', body: 'This is the parent.', parent: grandparent.path }, member, 'Initial text', db)
+      const child = await Page.create({ title: 'Child', body: 'This is the child.', parent: parent.path }, member, 'Initial text', db)
+      const page = await Page.get(child.path, db)
+      await testUtils.resetTables(db)
+      expect(page.lineage).toHaveLength(2)
+      expect(page.lineage[0].id).toEqual(grandparent.id)
+      expect(page.lineage[1].id).toEqual(parent.id)
     })
   })
 
