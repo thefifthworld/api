@@ -124,8 +124,7 @@ members.post('/invitations/send', requireLogIn, async (req, res) => {
     const addrs = Array.isArray(emails) ? emails : [ emails ]
     const emailer = test ? () => {} : sendEmail
     await req.user.sendInvitations(addrs, emailer, db)
-    const messages = await req.user.getMessages(db)
-    res.status(200).json({ messages, emails: addrs })
+    res.status(200).json({ emails: addrs })
   } else {
     res.status(401).json({ err: 'Unauthorized' })
   }
