@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const { Remarkable } = require('remarkable')
 const { escape } = require('sqlstring')
 const jwt = require('jsonwebtoken')
 const config = require('../config')
@@ -117,14 +118,15 @@ class Member {
    */
 
   async getMessages (db) {
+    const md = new Remarkable()
     const res = {}
     const messages = await db.run(`SELECT * FROM messages WHERE member=${this.id}`)
     if (messages.length > 0) {
       for (const msg of messages) {
         if (res[msg.type]) {
-          res[msg.type] = [ ...res[msg.type], msg.message ]
+          res[msg.type] = [ ...res[msg.type], md.render(msg.message) ]
         } else {
-          res[msg.type] = [ msg.message ]
+          res[msg.type] = [ md.render(msg.message) ]
         }
         await db.run(`DELETE FROM messages WHERE id=${msg.id};`)
       }

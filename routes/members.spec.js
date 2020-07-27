@@ -182,7 +182,7 @@ describe('Members API', () => {
       const token = normal.generateJWT()
       const res = await request.get('/members/messages').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
-      expect(res.body.info).toEqual([ msg ])
+      expect(res.body.info).toEqual([ '<p>Test message</p>\n' ])
     })
   })
 
