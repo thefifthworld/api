@@ -251,6 +251,29 @@ class Member {
   }
 
   /**
+   * Log a message to the user informing her that her OAuth 2.0 account has
+   * either been added or removed.
+   * @param provider {string} - A string identifying the service that has
+   *   provided the token (e.g., `patreon`, `github`, `facebook`, or
+   *   `twitter`).
+   * @param dir {string} - Either `disconnect` or `connect`, identifying which
+   *   event to log a message for.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<OkPacket>} - A Promise that resolves once the message
+   *   has been logged to the database.
+   */
+
+  async saveAuthMsg (provider, dir, db) {
+    const types = Member.getMessageTypes()
+    const names = { patreon: 'Patreon', github: 'GitHub', google: 'Google', facebook: 'Facebook', twitter: 'TWitter' }
+    const name = names[provider]
+    const msg = dir === 'disconnect'
+      ? `We’ve disconnected your ${name} account. Your ${name} account will no longer work to log you into the Fifth World.`
+      : `We’ve connected your ${name} account. You can now use your ${name} account to log into the Fifth World.`
+    return this.logMessage(types.confirm, msg, db)
+  }
+
+  /**
    * Saves the OAuth 2.0 token that a user ha received.
    * @param provider {string} - A string identifying the service that has
    *   provided the token (e.g., `patreon`, `github`, `facebook`, or
@@ -269,6 +292,7 @@ class Member {
     } else {
       await db.run(`INSERT INTO authorizations (member, provider, oauth2_id, oauth2_token) VALUES (${escape(this.id)}, ${escape(provider)}, ${escape(id)}, ${escape(token)});`)
     }
+    await this.saveAuthMsg(provider, 'connect', db)
   }
 
   /**
@@ -296,6 +320,7 @@ class Member {
 
   async deleteAuth (provider, db) {
     await db.run(`DELETE FROM authorizations WHERE provider=${escape(provider)} AND member=${this.id};`)
+    await this.saveAuthMsg(provider, 'disconnect', db)
   }
 
   /**

@@ -674,6 +674,16 @@ describe('Member', () => {
       expect(after[0].oauth2_id).toEqual('newid')
       expect(after[0].oauth2_token).toEqual('newtoken')
     })
+
+    it('logs a message', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider', 'id', 'token', db)
+      const messages = await member.getMessages(db)
+      await testUtils.resetTables(db)
+      expect(messages.confirmation).toHaveLength(1)
+    })
   })
 
   describe('getAuths', () => {
@@ -702,6 +712,17 @@ describe('Member', () => {
       const auths = await member.getAuths(db)
       await testUtils.resetTables(db)
       expect(auths).toEqual([ 'provider2', 'provider3' ])
+    })
+
+    it('logs a message', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await member.saveAuth('provider1', 'id', 'token', db)
+      await member.deleteAuth('provider1', db)
+      const messages = await member.getMessages(db)
+      await testUtils.resetTables(db)
+      expect(messages.confirmation).toHaveLength(2)
     })
   })
 
