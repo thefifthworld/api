@@ -445,13 +445,16 @@ describe('Pages API', () => {
 
   describe('GET /pages/*', () => {
     it('returns 200', async () => {
-      expect.assertions(5)
+      expect.assertions(8)
       const res = await request.get('/pages/test-page')
       const { page, markup } = res.body
       expect(res.status).toEqual(200)
       expect(page.path).toEqual('/test-page')
       expect(page.title).toEqual('Test Page')
       expect(page.history.changes).toHaveLength(1)
+      expect(page.permissions.read).toEqual(true)
+      expect(page.permissions.write).toEqual(false)
+      expect(page.permissions.code).toEqual(774)
       expect(markup).toEqual('<p>This is a test page.</p>\n')
     })
 
