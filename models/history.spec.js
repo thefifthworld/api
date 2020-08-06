@@ -28,8 +28,8 @@ describe('History', () => {
   describe('getContent', () => {
     it('returns the most recent content', () => {
       const changes = [
-        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": true }', editorName: 'Tester', editorID: 1 },
-        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": false }', editorName: 'Tester', editorID: 1 }
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": false }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "test": true }', editorName: 'Tester', editorID: 1 }
       ]
       const history = new History(changes)
       const actual = history.getContent()
@@ -40,8 +40,8 @@ describe('History', () => {
   describe('getBody', () => {
     it('returns the most recent body of the page', () => {
       const changes = [
-        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "And then it was this." }', editorName: 'Tester', editorID: 1 },
-        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "First it was this." }', editorName: 'Tester', editorID: 1 }
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "First it was this." }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "And then it was this." }', editorName: 'Tester', editorID: 1 }
       ]
       const history = new History(changes)
       const actual = history.getBody()

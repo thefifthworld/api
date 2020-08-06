@@ -22,8 +22,8 @@ class History {
 
   getContent () {
     const hasChanges = Array.isArray(this.changes) && this.changes.length > 0
-    return hasChanges && this.changes[0].content
-      ? this.changes[0].content
+    return hasChanges && this.changes[this.changes.length - 1].content
+      ? this.changes[this.changes.length - 1].content
       : false
   }
 
@@ -34,10 +34,8 @@ class History {
    */
 
   getBody () {
-    const hasChanges = Array.isArray(this.changes) && this.changes.length > 0
-    const hasContent = hasChanges && this.changes[0].content
-    const hasBody = hasContent && this.changes[0].content.body && typeof this.changes[0].content.body === 'string'
-    return hasBody ? this.changes[0].content.body : false
+    const content = this.getContent()
+    return content && content.body ? content.body : false
   }
 
   /**
@@ -59,7 +57,7 @@ class History {
       const { id } = p
       const timestamp = Math.floor(Date.now() / 1000)
       const res = await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${timestamp}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
-      this.changes.unshift({ id: res.insertId, timestamp, msg, content: data, editor })
+      this.changes.push({ id: res.insertId, timestamp, msg, content: data, editor })
     } catch (err) {
       console.error(err)
     }

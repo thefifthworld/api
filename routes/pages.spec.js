@@ -348,7 +348,7 @@ describe('Pages API', () => {
       const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
       const check = await Page.get(res.body.id, db)
       const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
-        ? res.body.history.changes[0].content.body
+        ? res.body.history.changes[res.body.history.changes.length - 1].content.body
         : false
 
       expect(res.status).toEqual(200)
