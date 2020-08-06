@@ -220,8 +220,7 @@ class Page {
       const rows = await db.run(`SELECT p.*, m.id AS ownerID, m.email AS ownerEmail, m.name AS ownerName FROM pages p, members m WHERE ${cond} AND p.owner=m.id;`)
       const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : undefined
       if (row) {
-        const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${row.id} ORDER BY c.timestamp DESC;`)
-        changes.reverse()
+        const changes = await db.run(`SELECT c.id AS id, c.timestamp AS timestamp, c.msg AS msg, c.json AS json, m.name AS editorName, m.email AS editorEmail, m.id AS editorID FROM changes c, members m WHERE c.editor=m.id AND c.page=${row.id} ORDER BY c.id ASC;`)
         row.location = await LocationHandler.load(row.id, db)
         const tagHandler = await TagHandler.load(row.id, db)
         row.tags = tagHandler.tags
