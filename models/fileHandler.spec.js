@@ -197,6 +197,18 @@ describe('FileHandler', () => {
 
   describe('upload', () => {
     it('uploads a file', async () => {
+      const file = testUtils.mockTXT()
+      const res = await FileHandler.upload(file)
+      const url = res.Location
+      const a = await testUtils.checkURL(url)
+      await FileHandler.remove(res.key, db)
+      const b = await testUtils.checkURL(url)
+      expect(res.key).toBeDefined()
+      expect(a.status).toEqual(200)
+      expect(b.status).toEqual(404)
+    })
+
+    it('uploads an image', async () => {
       const file = testUtils.mockGIF()
       const res = await FileHandler.upload(file)
       const url = res.Location
