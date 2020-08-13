@@ -69,7 +69,7 @@ class FileHandler {
         thumbnail = keys.thumbnail
       } else {
         const res = await FileHandler.upload(files.file)
-        name = res.key
+        name = res.Key
       }
 
       const obj = { name, thumbnail, mime, size, timestamp }
