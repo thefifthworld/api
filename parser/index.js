@@ -57,6 +57,7 @@ const restoreBlocks = (str, blocks) => {
  */
 
 const parser = async (str, path, member, db) => {
+  str = typeof str === 'string' ? str : ''
   const md = new Remarkable({ html: true, xhtmlOut: true })
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = parseTags(blocked)
