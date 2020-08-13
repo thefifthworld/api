@@ -105,7 +105,7 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
   const write = req.page.checkPermissions(req.user, 6)
   const code = req.page.permissions
   req.page.permissions = { read, write, code }
-    res.status(200).json({ page: req.page, markup: parsed.html })
+  res.status(200).json({ page: req.page, markup: parsed.html })
 })
 
 // POST /autocomplete
