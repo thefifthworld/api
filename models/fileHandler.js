@@ -95,7 +95,7 @@ class FileHandler {
     try {
       const thumb = thumbnail || await FileHandler.createThumbnail(art)
       const a = await FileHandler.upload(art)
-      const b = await FileHandler.upload(thumb, true)
+      const b = await FileHandler.upload(thumb, art.name)
       return { file: a.key, thumbnail: b.key }
     } catch (err) {
       console.error(err)
@@ -107,16 +107,16 @@ class FileHandler {
    * configuration file.
    * @param file {!{ name: string, data: Buffer, mimetype: string }} - The file
    *   to upload.
-   * @param isThumbnail {?boolean} - Optional. If `true`, `thumb` is added to
-   *   the key to indicate that this is a thumbnail (Default: `false`).
+   * @param isThumbnailOf {?string} - Optional. The name of the file that this
+   *   is a thumbnail for.
    * @returns {Promise<{}>} - A Promise that resolves with the response from
    *   Amazon Web Services.
    */
 
-  static async upload (file, isThumbnail = false) {
+  static async upload (file, isThumbnailOf) {
     const { name, data, mimetype, size } = file
     if (name && data && mimetype && size) {
-      const Key = FileHandler.createKey(name, isThumbnail)
+      const Key = FileHandler.createKey(name, mimetype, isThumbnailOf)
       if (Key !== false) {
         const s3 = FileHandler.instantiateS3()
         const params = { ACL: 'public-read', Bucket: config.aws.bucket, Key, Body: data, ContentType: mimetype }
@@ -184,17 +184,27 @@ class FileHandler {
   /**
    * Return a suitable key for Amazon Web Services S3 storage.
    * @param name {!string} - The original filename.
-   * @param isThumbnail {?boolean} - Optional. If `true`, `thumb` is added to
-   *   the key to indicate that this is a thumbnail (Default: `false`).
+   * @param mime {!string} - The file's MIME type string.
+   * @param isThumbnailOf {?string} - Optional. The name of the file that this
+   *   is a thumbnail of.
    * @return {string|false} - A string that can be used for the file to
    *   uniquely identify it in Amazon Web Services S3 storage, or `false` if
    *   something went wrong.
    */
 
-  static createKey (name, isThumbnail = false) {
-    const split = name.split('.')
+  static createKey (name, mime, isThumbnailOf) {
+    const orig = isThumbnailOf || name
+    const split = orig.split('.')
     const base = split.slice(0, split.length - 1).join('.')
-    const ext = split[split.length - 1]
+    let ext
+
+    switch (mime) {
+      case 'image/png': ext = 'png'; break
+      case 'image/jpeg': ext = 'jpg'; break
+      case 'image/gif': ext = 'gif'; break
+      default: ext = split[split.length - 1]; break
+    }
+
     if (base && base.length > 0 && ext && ext.length > 0) {
       const now = new Date()
       const day = [
@@ -207,7 +217,7 @@ class FileHandler {
         (now.getMinutes()).toString().padStart(2, '0'),
         (now.getSeconds()).toString().padStart(2, '0')
       ].join('')
-      return isThumbnail
+      return isThumbnailOf && isThumbnailOf.length > 0
         ? `uploads/${base}.thumb.${day}.${time}.${ext}`
         : `uploads/${base}.${day}.${time}.${ext}`
     } else {
