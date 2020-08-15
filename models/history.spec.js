@@ -62,5 +62,20 @@ describe('History', () => {
       expect(history.changes).toHaveLength(1)
       expect(check).toHaveLength(2)
     })
+
+    it('drops file data', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const history = new History([])
+      const update = { title: 'Updated page', body: 'This has been updated!', files: { file: { name: 'test.txt', data: 'Hello world!' } } }
+      await history.addChange(page.id, editor, 'Test change', update, db)
+      const changes = await db.run(`SELECT * FROM changes WHERE page=${page.id};`)
+      const after = new History(changes)
+      const actual = after.getContent()
+      await testUtils.resetTables(db)
+      expect(actual.files.file).toBeDefined()
+      expect(actual.files.file.data).not.toBeDefined()
+    })
   })
 })

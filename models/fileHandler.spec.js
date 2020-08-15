@@ -197,6 +197,18 @@ describe('FileHandler', () => {
 
   describe('upload', () => {
     it('uploads a file', async () => {
+      const file = testUtils.mockTXT()
+      const res = await FileHandler.upload(file)
+      const url = res.Location
+      const a = await testUtils.checkURL(url)
+      await FileHandler.remove(res.key, db)
+      const b = await testUtils.checkURL(url)
+      expect(res.key).toBeDefined()
+      expect(a.status).toEqual(200)
+      expect(b.status).toEqual(404)
+    })
+
+    it('uploads an image', async () => {
       const file = testUtils.mockGIF()
       const res = await FileHandler.upload(file)
       const url = res.Location
@@ -211,7 +223,7 @@ describe('FileHandler', () => {
     it('uploads a thumbnail', async () => {
       const file = testUtils.mockJPEG()
       const thumb = await FileHandler.createThumbnail(file)
-      const res = await FileHandler.upload(thumb, true)
+      const res = await FileHandler.upload(thumb, file.name)
       const url = res.Location
       const a = await testUtils.checkURL(url)
       await FileHandler.remove(res.key, db)
@@ -242,7 +254,7 @@ describe('FileHandler', () => {
     })
 
     it('creates a key for a thumbnail', () => {
-      const actual = FileHandler.createKey('test.jpg', true)
+      const actual = FileHandler.createKey('test', 'image/jpeg', 'test.gif')
       const regex = /^uploads\/test\.thumb\.\d\d\d\d\d\d\d\d\.\d\d\d\d\d\d\.jpg$/
       expect(actual.match(regex)).toHaveLength(1)
     })
