@@ -9,6 +9,12 @@ const parser = require('./index')
 describe('Parser', () => {
   afterAll(() => { db.end() })
 
+  it('renders false as an empty string', async () => {
+    expect.assertions(1)
+    const actual = await parser(false, null, null, db)
+    expect(actual.html).toEqual('')
+  })
+
   it('renders markdown', async () => {
     expect.assertions(1)
     const actual = await parser('*Hello* **[world](https://thefifthworld.com)**', null, null, db)

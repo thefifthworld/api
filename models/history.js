@@ -56,8 +56,15 @@ class History {
       const p = isNaN(page) ? await Page.load(page) : { id: page }
       const { id } = p
       const timestamp = Math.floor(Date.now() / 1000)
-      const res = await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${timestamp}, ${escape(msg)}, ${escape(JSON.stringify(data))});`)
-      this.changes.push({ id: res.insertId, timestamp, msg, content: data, editor })
+
+      // Remove file data
+      const content = JSON.parse(JSON.stringify(data))
+      const keys = content.files ? Object.keys(content.files) : []
+      keys.forEach(key => { if (content.files[key].data) delete content.files[key].data })
+
+      // Save new content
+      const res = await db.run(`INSERT INTO changes (page, editor, timestamp, msg, json) VALUES (${id}, ${editor.id}, ${timestamp}, ${escape(msg)}, ${escape(JSON.stringify(content))});`)
+      this.changes.push({ id: res.insertId, timestamp, msg, content, editor })
     } catch (err) {
       console.error(err)
     }

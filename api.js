@@ -10,7 +10,7 @@ const api = express()
 const router = express.Router()
 
 api.use(bodyParser.urlencoded({ extended: true }))
-api.use(bodyParser.json())
+api.use(bodyParser.json({ limit: '100mb', extended: true }))
 api.use(fileUpload())
 
 api.use('/', router)
