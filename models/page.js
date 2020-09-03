@@ -125,7 +125,20 @@ class Page {
     const slug = data.slug || slugify(title, { lower: true, strict: true })
     const parent = data.parent ? await Page.get(data.parent, db) : null
     const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
-    const type = locationHandler ? 'Place' : data.type || tagHandler.get('type', true)
+
+    /**
+     * Determine type.
+     * Default to what's given by a form field, or what we can parse from the
+     * body. If it has a location, it's definitely a place. If we don't have a
+     * type yet, but we have a file upload, then it's Art if the file is an
+     * image, or a File if it's anything else.
+     */
+
+    let type = data.type || tagHandler.get('type', true)
+    if (locationHandler) type = 'Place'
+    if (!type && data.files && data.files.file) {
+      type = data.files.file.mimetype.startsWith('image/') ? 'Art' : 'File'
+    }
 
     if (Page.isReservedPath(path)) {
       throw new Error(`We reserve ${path} for internal use.`)
