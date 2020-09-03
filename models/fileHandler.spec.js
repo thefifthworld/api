@@ -43,6 +43,24 @@ describe('FileHandler', () => {
       const actual = new FileHandler({ mimetype: 'image/png' })
       expect(actual.mime).toEqual('image/png')
     })
+
+    it('gets and saves URLs', () => {
+      const now = new Date()
+      const obj = {
+        name: 'test.png',
+        thumbnail: 'test.thumb.png',
+        mime: 'image/png',
+        size: 9999,
+        page: 1,
+        timestamp: now.getTime() / 1000,
+        uploader: 1
+      }
+
+      const actual = new FileHandler(obj)
+      expect(actual.urls).toBeDefined()
+      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.png`)
+      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.thumb.png`)
+    })
   })
 
   describe('save', () => {

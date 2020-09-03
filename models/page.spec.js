@@ -1,5 +1,6 @@
 /* global describe, it, expect, afterAll */
 
+const config = require('../config')
 const db = require('../db')
 const testUtils = require('../test-utils')
 
@@ -321,7 +322,7 @@ describe('Page', () => {
     })
 
     it('uploads a file', async () => {
-      expect.assertions(3)
+      expect.assertions(4)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
       const data = {
@@ -337,6 +338,7 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(page.files).toHaveLength(1)
       expect(page.files[0].mime).toEqual('text/plain')
+      expect(page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
       expect(check.status).toEqual(200)
     })
 

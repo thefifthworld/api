@@ -11,7 +11,22 @@ class FileHandler {
       keys.forEach(key => { if (obj[key] !== undefined) this[key] = obj[key] })
       if (obj.mimetype) this.mime = obj.mimetype
     }
+    this.packageURLs()
     this.saved = false
+  }
+
+  /**
+   * If the fileHandler instance includes `name` and/or `thumbnail` properties,
+   * render the URL for these using `getURL` and save them in a new `url`
+   * property.
+   */
+
+  packageURLs () {
+    if (this.name || this.thumbnail) {
+      this.urls = {}
+      if (this.name) this.urls.full = FileHandler.getURL(this.name)
+      if (this.thumbnail) this.urls.thumbnail = FileHandler.getURL(this.thumbnail)
+    }
   }
 
   /**
