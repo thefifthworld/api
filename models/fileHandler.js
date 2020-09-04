@@ -12,6 +12,7 @@ class FileHandler {
       if (obj.mimetype) this.mime = obj.mimetype
     }
     this.packageURLs()
+    if (this.size) this.readableSize = FileHandler.getFileSizeStr(this.size)
     this.saved = false
   }
 

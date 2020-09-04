@@ -34,9 +34,12 @@ describe('FileHandler', () => {
       expect(actual.thumbnail).toEqual(obj.thumbnail)
       expect(actual.mime).toEqual(obj.mime)
       expect(actual.size).toEqual(obj.size)
+      expect(actual.readableSize).toEqual('10 kB')
       expect(actual.page).toEqual(obj.page)
       expect(actual.timestamp).toEqual(obj.timestamp)
       expect(actual.uploader).toEqual(obj.uploader)
+      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.png`)
+      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.thumb.png`)
     })
 
     it('captures mimetype', () => {
