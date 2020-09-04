@@ -56,10 +56,10 @@ const loadArtists = async (template, member, db) => {
   if (artists.length > 0) {
     const sections = []
     for (const artist of artists) {
-      const work = await Page.getChildrenOf(artist.id, 'Art', member, db)
+      const work = await Page.getChildrenOf(artist.id, { type: 'Art', member, order: 'newest' }, db)
       const show = work ? work.slice(0, 4) : []
       const gallery = show && show.length > 0
-        ? `<ul class="gallery">${show.map(piece => renderAsGalleryItem(piece)).join('')}</ul>`
+        ? `<ul class="thumbnails">${show.map(piece => renderAsGalleryItem(piece)).join('')}</ul>`
         : null
       if (gallery) sections.push(`<section class="artist"><h2><a href="${artist.path}">${artist.title}</a></h2>${gallery}</section>`)
     }
@@ -83,7 +83,7 @@ const loadNovels = async (template, member, db) => {
   if (novels.length > 0) {
     const list = []
     for (const novel of novels) {
-      const art = await Page.getChildrenOf(novel, 'Art', member, db)
+      const art = await Page.getChildrenOf(novel, { type: 'Art', member, order: 'newest' }, db)
       const covers = art ? art.filter(a => Object.keys(a.tags).includes('cover')) : []
       const cover = covers.length > 0 ? covers[0] : null
       if (cover && cover.files && cover.files.length > 0) {
@@ -137,12 +137,13 @@ const loadTagged = async (template, params, member, db) => {
 
 const loadChildren = async (template, params, path, member, db, asGallery = false) => {
   const parentPath = params.of ? params.of : path
-  const type = asGallery? 'Art' : params.type ? params.type : null
-  const children = parentPath ? await Page.getChildrenOf(parentPath, type, member, db) : false
+  const type = asGallery ? 'Art' : params.type ? params.type : null
+  const order = asGallery ? 'newest' : 'alphabetical'
+  const children = parentPath ? await Page.getChildrenOf(parentPath, { type, member, order }, db) : false
   if (children && asGallery) {
     const items = children.map(child => renderAsGalleryItem(child)).filter(c => c !== null)
     const str = items.length > 0
-      ? `<ul class="gallery">${items.join()}</ul>`
+      ? `<ul class="thumbnails">${items.join()}</ul>`
       : ''
     return { match: template, str }
   } else if (children) {
