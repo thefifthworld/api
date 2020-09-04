@@ -616,7 +616,7 @@ describe('Page', () => {
       const parent = await Page.create({ title: 'Parent', body: 'This is the parent.' }, editor, 'Initial text', db)
       await Page.create({ title: 'Child', body: 'This is the child.', parent: parent.id }, editor, 'Initial text', db)
       await Page.create({ title: 'Hidden child', body: 'This one is hidden', parent: parent.id, permissions: 700 }, editor, 'Initial text', db)
-      const children = await Page.getChildrenOf(parent, null, other, db)
+      const children = await Page.getChildrenOf(parent, { member: other }, db)
       await testUtils.resetTables(db)
       expect(children).toHaveLength(1)
       expect(children[0].title).toEqual('Child')
@@ -634,7 +634,7 @@ describe('Page', () => {
       c1data.parent = parent.path; c2data.parent = parent.path
       await Page.create(c1data, editor, 'Initial text', db)
       await Page.create(c2data, editor, 'Initial text', db)
-      const children = await Page.getChildrenOf(parent, 'Test', editor, db)
+      const children = await Page.getChildrenOf(parent, { type: 'Test', member: editor }, db)
       await testUtils.resetTables(db)
       expect(children).toHaveLength(1)
       expect(children[0].title).toEqual(c1data.title)
