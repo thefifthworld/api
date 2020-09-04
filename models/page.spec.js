@@ -322,7 +322,7 @@ describe('Page', () => {
     })
 
     it('uploads a file', async () => {
-      expect.assertions(4)
+      expect.assertions(5)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
       const data = {
@@ -339,6 +339,7 @@ describe('Page', () => {
       expect(page.files).toHaveLength(1)
       expect(page.files[0].mime).toEqual('text/plain')
       expect(page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
+      expect(page.files[0].readableSize).toEqual('13 B')
       expect(check.status).toEqual(200)
     })
 
