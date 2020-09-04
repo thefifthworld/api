@@ -62,7 +62,7 @@ describe('Pages API', () => {
     })
 
     it('handles files', async () => {
-      expect.assertions(5)
+      expect.assertions(6)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       const data = { title: 'Test File', body: 'This is a text file.', msg: 'Initial text', files: { file: testUtils.mockTXT() } }
@@ -77,6 +77,7 @@ describe('Pages API', () => {
       expect(file.name.substr(file.name.length - 4)).toEqual('.txt')
       expect(file.name.startsWith('uploads/test.')).toEqual(true)
       expect(file.mime).toEqual('text/plain')
+      expect(file.readableSize).toEqual('13 B')
     })
 
     it('creates a thumbnail', async () => {
@@ -468,8 +469,8 @@ describe('Pages API', () => {
       expect(res.status).toEqual(401)
     })
 
-    it('returns URLs for files', async () => {
-      expect.assertions(3)
+    it('returns URLs and readable sizes for files', async () => {
+      expect.assertions(4)
       const member = await Member.load('normal@thefifthworld.com', db)
       const token = member.generateJWT()
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Test File', body: 'This is a file.', files: { file: testUtils.mockTXT() }, msg: 'Initial text' })
@@ -477,6 +478,7 @@ describe('Pages API', () => {
       expect(res.status).toEqual(200)
       expect(res.body.page.files).toHaveLength(1)
       expect(res.body.page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
+      expect(res.body.page.files[0].readableSize).toEqual('13 B')
     })
   })
 
