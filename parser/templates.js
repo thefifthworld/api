@@ -59,7 +59,7 @@ const loadArtists = async (template, member, db) => {
       const work = await Page.getChildrenOf(artist.id, 'Art', member, db)
       const show = work ? work.slice(0, 4) : []
       const gallery = show && show.length > 0
-        ? `<ul class="gallery">${show.map(piece => renderAsGalleryItem(piece)).join('')}</ul>`
+        ? `<ul class="thumbnails">${show.map(piece => renderAsGalleryItem(piece)).join('')}</ul>`
         : null
       if (gallery) sections.push(`<section class="artist"><h2><a href="${artist.path}">${artist.title}</a></h2>${gallery}</section>`)
     }
@@ -142,7 +142,7 @@ const loadChildren = async (template, params, path, member, db, asGallery = fals
   if (children && asGallery) {
     const items = children.map(child => renderAsGalleryItem(child)).filter(c => c !== null)
     const str = items.length > 0
-      ? `<ul class="gallery">${items.join()}</ul>`
+      ? `<ul class="thumbnails">${items.join()}</ul>`
       : ''
     return { match: template, str }
   } else if (children) {
