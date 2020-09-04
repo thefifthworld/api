@@ -273,22 +273,35 @@ class Page {
    *   instance (in which case, it simply returns the page). This allows the
    *   method to take a wide range of identifiers and reliably return the
    *   correct object.
-   * @param type {?string} - Optional. If provided, then only child pages that
-   *   match this type will be returned.
-   * @param member {?Member} - Optional. The member requesting the list of
-   *   children.
+   * @param options {Object} - An object that passes options to the method.
+   * @param options.type {?string} - Optional. If provided, then only child
+   *   pages that match this type will be returned.
+   * @param options.member {?Member} - Optional. The member requesting the list
+   *   of children.
+   * @param options.order {?string} - Optional. Indicates the order in which
+   *   children should be ordered. Accepted values are `newest` (list the child
+   *   pages from newest to oldest), `oldest` (list the child pages in the
+   *   order that they were created, from oldest to newest), and `alphabetical`
+   *   (list the child pages in alphabetical order by title).
+   *   (Default: `oldest`)
    * @param db {!Pool} - The database connection.
    * @returns {Promise<Page[]>} - An array of Page objects that are child pages
    *   of the page identified by the `id` parameter (and optionally restricted
    *   to those that match the `type` parameter).
    */
 
-  static async getChildrenOf (id, type, member, db) {
+  static async getChildrenOf (id, options, db) {
+    const { type, member, order } = options
     const parent = await Page.get(id, db)
     if (parent) {
+      const sort = order === 'alphabetical'
+        ? 'ORDER BY title ASC'
+        : order === 'newest'
+          ? 'ORDER BY id DESC'
+          : 'ORDER BY id ASC'
       const query = type
-        ? `SELECT id FROM pages WHERE parent=${parent.id} AND type=${escape(type)};`
-        : `SELECT id FROM pages WHERE parent=${parent.id};`
+        ? `SELECT id FROM pages WHERE parent=${parent.id} AND type=${escape(type)} ${sort};`
+        : `SELECT id FROM pages WHERE parent=${parent.id} ${sort};`
       const rows = await db.run(query)
       const children = []
       for (const row of rows) {
