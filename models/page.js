@@ -214,7 +214,7 @@ class Page {
       const msg = `${roller} rolled the page back to version #${change.id}, created by ${change.editor.name} on ${elems.join(' ')}.${orig}`
 
       // Actually do the rollback
-      this.update(copy, editor, msg, db)
+      await this.save(copy, editor, msg, db)
     }
   }
 
