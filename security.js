@@ -94,7 +94,11 @@ const loadPage = async (req, res, next) => {
   const verbs = ['/like', '/unlike', '/lock', '/unlock', '/hide', '/unhide']
   const query = req.originalUrl.split('?')
   const raw = query[0].substr(6)
-  const path = verbs.includes(raw.substr(raw.lastIndexOf('/'))) ? raw.substr(0, raw.lastIndexOf('/')) : raw
+  const path = verbs.includes(raw.substr(raw.lastIndexOf('/')))
+    ? raw.substr(0, raw.lastIndexOf('/'))
+    : raw.match(/(.*?)\/rollback\/(\d*)/i)
+      ? raw.match(/(.*?)\/rollback\/(\d*)/i)[1]
+      : raw
   const page = await Page.get(path, db)
   if (page && page.checkPermissions(req.user, 4)) {
     req.page = page
