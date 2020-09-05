@@ -341,6 +341,25 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /pages/*/rollback/:id', () => {
+    it('rolls back a page', async () => {
+      expect.assertions(4)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing update' }
+      await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
+      const res = await request.post('/pages/test-page/rollback/1').set('Authorization', `Bearer ${token}`)
+      const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
+        ? res.body.history.changes[res.body.history.changes.length - 1].content.body
+        : false
+
+      expect(res.status).toEqual(200)
+      expect(actual).not.toEqual(false)
+      expect(res.body.history.changes).toHaveLength(3)
+      expect(actual).toEqual('This is a test page.')
+    })
+  })
+
   describe('POST /pages/*', () => {
     it('updates a page', async () => {
       expect.assertions(9)
