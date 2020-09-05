@@ -100,7 +100,13 @@ pages.patch('/pages/*/unhide', requireLogIn, loadPage, async (req, res) => {
 
 // GET /pages/*
 pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
-  const parsed = await parser(req.page.history.getBody(), req.page.path, req.user, db)
+  let body = req.page.history.getBody()
+  if (req.query && req.query.version) {
+    const matching = req.page.history.changes.filter(change => change.id === parseInt(req.query.version))
+    const version = matching && Array.isArray(matching) && matching.length > 0 ? matching[0] : null
+    if (version && version.content && version.content.body) body = version.content.body
+  }
+  const parsed = await parser(body, req.page.path, req.user, db)
   const read = req.page.checkPermissions(req.user, 4)
   const write = req.page.checkPermissions(req.user, 6)
   const code = req.page.permissions
