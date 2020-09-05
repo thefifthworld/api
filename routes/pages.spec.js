@@ -469,6 +469,18 @@ describe('Pages API', () => {
       expect(res.status).toEqual(401)
     })
 
+    it('can return markup for a specific version', async () => {
+      expect.assertions(2)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      await page.update({ body: 'This is an update.' }, editor, 'Test update #1', db)
+      await page.update({ body: 'This is a second update.' }, editor, 'Test update #2', db)
+      const vids = page.history.changes.map(change => change.id)
+      const res = await request.get(`/pages/test-page?version=${vids[1]}`)
+      expect(vids).toHaveLength(3)
+      expect(res.body.markup).toEqual('<p>This is an update.</p>\n')
+    })
+
     it('returns URLs and readable sizes for files', async () => {
       expect.assertions(4)
       const member = await Member.load('normal@thefifthworld.com', db)
