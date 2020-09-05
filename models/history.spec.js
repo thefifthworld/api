@@ -49,6 +49,29 @@ describe('History', () => {
     })
   })
 
+  describe('getChange', () => {
+    it('returns the requested change', () => {
+      const changes = [
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "First it was this." }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "And then it was this." }', editorName: 'Tester', editorID: 1 }
+      ]
+      const history = new History(changes)
+      const actual = history.getChange(1)
+      expect(actual.id).toEqual(1)
+      expect(actual.content.body).toEqual('First it was this.')
+    })
+
+    it('returns null if you ask for something that isn\'t there', () => {
+      const changes = [
+        { id: 1, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "First it was this." }', editorName: 'Tester', editorID: 1 },
+        { id: 2, timestamp: Math.round(Date.now() / 1000), msg: 'Test', json: '{ "body": "And then it was this." }', editorName: 'Tester', editorID: 1 }
+      ]
+      const history = new History(changes)
+      const actual = history.getChange(3)
+      expect(actual).toEqual(null)
+    })
+  })
+
   describe('addChange', () => {
     it('adds a change', async () => {
       expect.assertions(2)

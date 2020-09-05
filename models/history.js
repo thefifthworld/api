@@ -39,6 +39,23 @@ class History {
   }
 
   /**
+   * Return a change from the history with the given ID.
+   * @param id {number} - The ID number to search for.
+   * @returns {{msg: *, editor: {name: *|string, id: *}, id: *, content: any, timestamp: *}|null}
+   *   The change object with the matching ID if it exists, or `null` if it
+   *   could not be found.
+   */
+
+  getChange (id) {
+    const matching = this.changes.filter(change => change.id === id)
+    if (matching && Array.isArray(matching) && matching.length > 0) {
+      return matching[0]
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Add a change to the history. This is saved to the database and added to
    * the current instance.
    * @param page {!int} - The primary key of the page that's being changed.

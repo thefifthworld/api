@@ -38,6 +38,18 @@ pages.get('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
   res.status(200).json(req.page)
 })
 
+// POST /pages/*/rollback
+pages.post('/pages/*/rollback/:id', requireLogIn, loadPage, async (req, res) => {
+  if (req.page && req.page.checkPermissions(req.user, 6)) {
+    await req.page.rollback(parseInt(req.params.id), req.user, db)
+    res.status(200).json(req.page)
+  } else if (req.page) {
+    res.sendStatus(401)
+  } else {
+    res.sendStatus(404)
+  }
+})
+
 // POST /pages/*
 pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {

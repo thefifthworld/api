@@ -184,6 +184,20 @@ describe('Page', () => {
     })
   })
 
+  describe('rollback', () => {
+    it('rolls back to an old version', async () => {
+      expect.assertions(2)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      await page.save({ body: 'This is an updated body.' }, editor, 'Test update', db)
+      await page.rollback(1, editor, db)
+      await testUtils.resetTables(db)
+      expect(page.history.getBody()).toEqual('This is a test page.')
+      expect(page.history.changes.length).toEqual(3)
+    })
+  })
+
   describe('getLineage', () => {
     it('returns the page\'s ancestors', async () => {
       expect.assertions(1)
