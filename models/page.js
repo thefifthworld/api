@@ -179,6 +179,46 @@ class Page {
   }
 
   /**
+   * Roll the page back to a previous version.
+   * @param id {number} - The ID of the change to roll back to. If no change
+   *   with this ID number can be found in the page's history, the method
+   *   will not do anything.
+   * @param editor {Member} - The person who is rolling the page back.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the page has been
+   *   rolled back to the version specified.
+   */
+
+  async rollback (id, editor, db) {
+    const change = this.history.getChange(id)
+    if (change) {
+      const copy = JSON.parse(JSON.stringify(change.content))
+      delete copy.msg
+
+      // Put together a commit message for the rollback
+      const roller = editor.name || `Member #${editor.id}`
+      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December']
+      const d = new Date(change.timestamp)
+      const elems = []
+      const h = d.getHours()
+      const hrs = h === 0 ? 12 : h > 12 ? h - 12 : h
+      const min = `${d.getMinutes()}`.padStart(2, '0')
+      const ampm = h > 11 ? 'PM' : 'AM'
+      elems.push(d.getDate())
+      elems.push(months[d.getMonth()])
+      elems.push(d.getFullYear())
+      elems.push(`${hrs}:${min}`)
+      elems.push(ampm)
+      const orig = change.msg && change.msg.length > 0 ? ` Original message was: "${change.msg}"` : ''
+      const msg = `${roller} rolled the page back to version #${change.id}, created by ${change.editor.name} on ${elems.join(' ')}.${orig}`
+
+      // Actually do the rollback
+      this.update(copy, editor, msg, db)
+    }
+  }
+
+  /**
    * Return an array of the page's ancestors.
    * @param db {!Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of the
