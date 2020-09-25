@@ -330,7 +330,7 @@ describe('Pages API', () => {
       const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
       const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child.', parent: r1.body.id, msg: 'Initial text' })
       const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
-      const actual = await request.get('/pages').send({ path: '/parent-page' })
+      const actual = await request.get('/pages?path=%2Fparent-page')
       const ids = actual.body.map(p => p.id)
 
       expect(actual.status).toEqual(200)

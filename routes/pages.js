@@ -8,8 +8,8 @@ const pages = express.Router()
 
 // GET /pages
 pages.get('/pages', optionalLogIn, async (req, res) => {
-  if (req.body) {
-    const pages = await Page.find(req.body, req.user, db)
+  if (req.query) {
+    const pages = await Page.find(req.query, req.user, db)
     res.status(200).json(pages)
   } else {
     res.sendStatus(500)
