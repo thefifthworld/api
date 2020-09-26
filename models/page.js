@@ -414,7 +414,7 @@ class Page {
     if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
     const limit = query.limit || 10
     const offset = query.offset || 0
-    const logic = query.logic === 'or' ? ' OR ' : ' AND '
+    const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
     if (clause.length > 0) {
       const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
