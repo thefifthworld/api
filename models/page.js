@@ -390,15 +390,22 @@ class Page {
    * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
    *   ?logic: string, ?limit: number, ?offset: number }} - An object
    *   representing the query being made.
-   *   - `path` finds any pages that begin with that string.
-   *   - `title` finds any pages that match that regex.
-   *   - `type` finds any pages that match the given type.
-   *   - `tags` finds any pages that have the tags (using key-value pairs).
-   *   - `logic` can be either `and` or `or`, setting the query to either
-   *       return any page that matches any of these criteria (`or`) or
-   *       all of them (`and`). (Default: `and`)
-   *   - `limit` is the maximum number of results to return.
-   *   - `offset` is the number of results to skip.
+   * @param query.path {?string} - Finds any pages with paths that begin with
+   *   the given string.
+   * @param query.title {?string} - Finds any pages that partially match the
+   *   given string.
+   * @param query.type {?string} - Finds any pages that match the given type.
+   * @param query.tags {?Object} - Interprets the object as a series of
+   *   key-value pairs, returning any pages that have tags where the tag name
+   *   matches the key and the tag value matches the value.
+   * @param query.logic {?string} - Can be either `and` or `or`. Setting this
+   *   to `or` will return any page that matches any given criteria. Setting it
+   *   to `and` will only match pages that match all of the given criteria.
+   *   (Default: `and`)
+   * @param query.limit {?number} - The maximum number of results to return.
+   *   (Default: 10)
+   * @param query.offset {?number} - The number of results to skip (e.g., if
+   *   paging through results). (Default: 0)
    * @param searcher {?Member} - The person who is searching.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of
