@@ -386,19 +386,63 @@ class Page {
   }
 
   /**
+   * Performs a second database query as part of the `find` method, and then
+   * combines its results with the existing results according to the provided
+   * logic. By default, that means the intersection of the results provided and
+   * the new results found, but if you pass `' OR '` for the `logic` parameter,
+   * you can get the union of these two sets instead.
+   * @param query {string} - The SQL query to execute.
+   * @param existing {number[]} - The array of unique numerical IDs that
+   *   constitute the existing matches.
+   * @param logic {string=} - The logic to use when combining the `existing`
+   *   set that you provide with the new results found. If set to `' AND '`,
+   *   then you'll receive the intersection of the two sets (only those that
+   *   match both criteria). If set to `' OR '`, you'll receive the union of
+   *   the two sets (those that match any criteria). (Default: `' AND '`)
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<number[]>} - A Promise that resolves with an array of
+   *   unique ID numbers for the matching items.
+   */
+
+  static async subfind (query, existing, logic = ' AND ', db) {
+    const rows = await db.run(query)
+    const ids = rows.map(p => p.id)
+    if (existing && Array.isArray(existing) > 0 && logic === ' OR ') {
+      // "OR" means we return the union of the two sets
+      return [...new Set([...existing, ...ids])]
+    } else if (existing && Array.isArray(existing) > 0) {
+      // "AND" means we return the intersection of the two sets
+      return existing.filter(x => ids.includes(x))
+    } else {
+      // If we don't have any existing array, just return what we found here
+      return ids
+    }
+  }
+
+  /**
    * Find pages that match a query.
    * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
    *   ?logic: string, ?limit: number, ?offset: number }} - An object
    *   representing the query being made.
-   *   - `path` finds any pages that begin with that string.
-   *   - `title` finds any pages that match that regex.
-   *   - `type` finds any pages that match the given type.
-   *   - `tags` finds any pages that have the tags (using key-value pairs).
-   *   - `logic` can be either `and` or `or`, setting the query to either
-   *       return any page that matches any of these criteria (`or`) or
-   *       all of them (`and`). (Default: `and`)
-   *   - `limit` is the maximum number of results to return.
-   *   - `offset` is the number of results to skip.
+   * @param query.path {?string} - Finds any pages with paths that begin with
+   *   the given string.
+   * @param query.title {?string} - Finds any pages that partially match the
+   *   given string.
+   * @param query.type {?string} - Finds any pages that match the given type.
+   * @param query.tags {?Object} - Interprets the object as a series of
+   *   key-value pairs, returning any pages that have tags where the tag name
+   *   matches the key and the tag value matches the value.
+   * @param query.hasTags (?string[]} - An array of strings to search for. It
+   *   returns pages that have these tags, regardless of the value of those
+   *   tags.
+   * @param query.logic {?string} - Can be either `and` or `or`. Setting this
+   *   to `or` will return any page that matches any given criteria. Setting it
+   *   to `and` will only match pages that match all of the given criteria.
+   *   (Default: `and`)
+   * @param query.limit {?number} - The maximum number of results to return.
+   *   (Default: 10)
+   * @param query.offset {?number} - The number of results to skip (e.g., if
+   *   paging through results). (Default: 0)
    * @param searcher {?Member} - The person who is searching.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of
@@ -408,20 +452,40 @@ class Page {
   static async find (query, searcher, db) {
     const pages = []
     const conditions = []
-    if (query.path) { conditions.push(`p.path LIKE ${escape(`${query.path}%`)}`) }
-    if (query.title) { conditions.push(`p.title LIKE ${escape(`%${query.title}%`)}`) }
-    if (query.type) { conditions.push(`p.type=${escape(query.type)}`) }
-    if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
+    if (query.path) { conditions.push(`path LIKE ${escape(`${query.path}%`)}`) }
+    if (query.title) { conditions.push(`title LIKE ${escape(`%${query.title}%`)}`) }
+    if (query.type) { conditions.push(`type=${escape(query.type)}`) }
     const limit = query.limit || 10
     const offset = query.offset || 0
-    const logic = query.logic === 'or' ? ' OR ' : ' AND '
+    const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
-    if (clause.length > 0) {
-      const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
-      for (let row of rows) {
-        const page = await Page.getIfAllowed(row.id, searcher, db)
-        if (page) pages.push(page)
+    const rows = conditions.length > 0
+      ? await db.run(`SELECT DISTINCT id FROM pages WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
+      : null
+    let ids = rows ? rows.map(p => p.id) : null
+
+    // Tags require a little extra work
+    const tags = query.tags ? Object.keys(query.tags) : []
+    if (Array.isArray(tags) && tags.length > 0) {
+      for (const tag of tags) {
+        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
+        ids = await Page.subfind(sql, ids, logic, db)
       }
+    }
+
+    // Check for pages that have a tag, regardless of its value
+    if (query.hasTags && Array.isArray(query.hasTags)) {
+      for (const tag of query.hasTags) {
+        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)};`
+        ids = await Page.subfind(sql, ids, logic, db)
+      }
+    }
+
+    // We have our ID, so load them as pages and return the array
+    ids = ids && Array.isArray(ids) ? ids.sort((a, b) => a - b) : []
+    for (let id of ids) {
+      const page = await Page.getIfAllowed(id, searcher, db)
+      if (page) pages.push(page)
     }
     return pages
   }
