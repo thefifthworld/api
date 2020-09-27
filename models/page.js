@@ -415,20 +415,43 @@ class Page {
   static async find (query, searcher, db) {
     const pages = []
     const conditions = []
-    if (query.path) { conditions.push(`p.path LIKE ${escape(`${query.path}%`)}`) }
-    if (query.title) { conditions.push(`p.title LIKE ${escape(`%${query.title}%`)}`) }
-    if (query.type) { conditions.push(`p.type=${escape(query.type)}`) }
-    if (query.tags) { conditions.push(...Object.keys(query.tags).map(tag => `t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])}`)) }
+    if (query.path) { conditions.push(`path LIKE ${escape(`${query.path}%`)}`) }
+    if (query.title) { conditions.push(`title LIKE ${escape(`%${query.title}%`)}`) }
+    if (query.type) { conditions.push(`type=${escape(query.type)}`) }
     const limit = query.limit || 10
     const offset = query.offset || 0
     const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
-    if (clause.length > 0) {
-      const rows = await db.run(`SELECT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
-      for (let row of rows) {
-        const page = await Page.getIfAllowed(row.id, searcher, db)
-        if (page) pages.push(page)
+    const rows = conditions.length > 0
+      ? await db.run(`SELECT DISTINCT id FROM pages WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
+      : []
+    let ids = rows.map(p => p.id)
+
+    // Tags require a little extra work
+    const tags = query.tags ? Object.keys(query.tags) : []
+    if (Array.isArray(tags) && tags.length > 0) {
+      for (let tag of tags) {
+        const tagged = await db.run(`SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`)
+        const taggedIds = tagged.map(p => p.id)
+        if (tagged && tagged.length > 0) {
+          if (logic === " OR ") {
+            // "OR" means we return the union of the two sets
+            ids = [...new Set([...ids, ...taggedIds])]
+          } else if (rows && rows.length > 0) {
+            // "AND" means we return the intersection of the two sets
+            ids = ids.filter(x => taggedIds.includes(x))
+          } else {
+            ids = taggedIds
+          }
+        }
       }
+    }
+
+    // We have our ID, so load them as pages and return the array
+    ids = ids.sort((a, b) => a - b)
+    for (let id of ids) {
+      const page = await Page.getIfAllowed(id, searcher, db)
+      if (page) pages.push(page)
     }
     return pages
   }
