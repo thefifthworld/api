@@ -407,10 +407,10 @@ class Page {
   static async subfind (query, existing, logic = ' AND ', db) {
     const rows = await db.run(query)
     const ids = rows.map(p => p.id)
-    if (existing && Array.isArray(existing) && existing.length > 0 && logic === ' OR ') {
+    if (existing && Array.isArray(existing) > 0 && logic === ' OR ') {
       // "OR" means we return the union of the two sets
       return [...new Set([...existing, ...ids])]
-    } else if (existing && Array.isArray(existing) && existing.length > 0) {
+    } else if (existing && Array.isArray(existing) > 0) {
       // "AND" means we return the intersection of the two sets
       return existing.filter(x => ids.includes(x))
     } else {
@@ -460,6 +460,7 @@ class Page {
       ? await db.run(`SELECT DISTINCT id FROM pages WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
       : []
     let ids = rows.map(p => p.id)
+    if (ids.length === 0) ids = false
 
     // Tags require a little extra work
     const tags = query.tags ? Object.keys(query.tags) : []
@@ -471,6 +472,7 @@ class Page {
     }
 
     // We have our ID, so load them as pages and return the array
+    ids = ids === false ? [] : ids
     ids = ids.sort((a, b) => a - b)
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
