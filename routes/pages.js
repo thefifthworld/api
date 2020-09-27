@@ -9,7 +9,19 @@ const pages = express.Router()
 // GET /pages
 pages.get('/pages', optionalLogIn, async (req, res) => {
   if (req.query) {
-    const pages = await Page.find(req.query, req.user, db)
+    const query = req.query
+
+    // Massage tags into a more readable format
+    if (query.tag && Array.isArray(query.tag)) {
+      const tags = {}
+      query.tag.forEach(str => {
+        const pair = str.split(':')
+        if (pair && Array.isArray(pair) && pair.length > 1) tags[pair[0].trim()] = pair[1].trim()
+      })
+      query.tags = tags
+    }
+
+    const pages = await Page.find(query, req.user, db)
     res.status(200).json(pages)
   } else {
     res.sendStatus(500)
