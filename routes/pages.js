@@ -20,6 +20,7 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
       })
       query.tags = tags
     }
+    if (query.hasTag) query.hasTags = Array.isArray(query.hasTag) ? query.hasTag : [ query.hasTag ]
 
     const pages = await Page.find(query, req.user, db)
     res.status(200).json(pages)

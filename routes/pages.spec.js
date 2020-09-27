@@ -414,6 +414,45 @@ describe('Pages API', () => {
       expect(actual.body.map(p => p.id)).toEqual([ r2.body.id ])
     })
 
+    it('returns pages that have a given tag', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent. [[Tag1:Hello]]', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:World]] [[Tag2:Hello]]', parent: r1.body.id, msg: 'Initial text' })
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, msg: 'Initial text' })
+      const actual = await request.get('/pages?hasTag=Tag1')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(2)
+      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+    })
+
+    it('returns pages that have all of the given tags', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent. [[Tag1:Hello]]', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:World]] [[Tag2:Hello]]', parent: r1.body.id, msg: 'Initial text' })
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, msg: 'Initial text' })
+      const actual = await request.get('/pages?hasTag=Tag1&hasTag=Tag2')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(1)
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id ])
+    })
+
+    it('returns pages that have any of the given tags', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent. [[Tag1:Hello]]', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:World]] [[Tag2:Hello]]', parent: r1.body.id, msg: 'Initial text' })
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, msg: 'Initial text' })
+      const actual = await request.get('/pages?hasTag=Tag1&hasTag=Tag2&logic=or')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(2)
+      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+    })
+
     it('can combine tag and type queries', async () => {
       expect.assertions(3)
       const member = await Member.load('normal@thefifthworld.com', db)
