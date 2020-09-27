@@ -745,6 +745,18 @@ describe('Page', () => {
       expect(actual).toContain(t2.id)
     })
 
+    it('returns pages that have a given tag', async () => {
+      expect.assertions(2)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page. [[Test: true]]', parent: t1.id }, editor, 'Initial text', db)
+      const found = await Page.find({ hasTags: [ 'Test' ] }, null, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual).toContain(t2.id)
+    })
+
     it('can perform an OR search', async () => {
       expect.assertions(3)
       const t1 = await testUtils.createTestPage(Page, Member, db)

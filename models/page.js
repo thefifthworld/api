@@ -432,6 +432,9 @@ class Page {
    * @param query.tags {?Object} - Interprets the object as a series of
    *   key-value pairs, returning any pages that have tags where the tag name
    *   matches the key and the tag value matches the value.
+   * @param query.hasTags (?string[]} - An array of strings to search for. It
+   *   returns pages that have these tags, regardless of the value of those
+   *   tags.
    * @param query.logic {?string} - Can be either `and` or `or`. Setting this
    *   to `or` will return any page that matches any given criteria. Setting it
    *   to `and` will only match pages that match all of the given criteria.
@@ -464,8 +467,16 @@ class Page {
     // Tags require a little extra work
     const tags = query.tags ? Object.keys(query.tags) : []
     if (Array.isArray(tags) && tags.length > 0) {
-      for (let tag of tags) {
+      for (const tag of tags) {
         const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
+        ids = await Page.subfind(sql, ids, logic, db)
+      }
+    }
+
+    // Check for pages that have a tag, regardless of its value
+    if (query.hasTags && Array.isArray(query.hasTags)) {
+      for (const tag of query.hasTags) {
+        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)};`
         ids = await Page.subfind(sql, ids, logic, db)
       }
     }
