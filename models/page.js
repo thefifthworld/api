@@ -458,9 +458,8 @@ class Page {
     const clause = conditions.join(logic)
     const rows = conditions.length > 0
       ? await db.run(`SELECT DISTINCT id FROM pages WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
-      : []
-    let ids = rows.map(p => p.id)
-    if (ids.length === 0) ids = false
+      : null
+    let ids = rows ? rows.map(p => p.id) : null
 
     // Tags require a little extra work
     const tags = query.tags ? Object.keys(query.tags) : []
@@ -472,8 +471,7 @@ class Page {
     }
 
     // We have our ID, so load them as pages and return the array
-    ids = ids === false ? [] : ids
-    ids = ids.sort((a, b) => a - b)
+    ids = ids && Array.isArray(ids) ? ids.sort((a, b) => a - b) : []
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
       if (page) pages.push(page)
