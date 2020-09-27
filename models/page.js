@@ -386,6 +386,40 @@ class Page {
   }
 
   /**
+   * Performs a second database query as part of the `find` method, and then
+   * combines its results with the existing results according to the provided
+   * logic. By default, that means the intersection of the results provided and
+   * the new results found, but if you pass `' OR '` for the `logic` parameter,
+   * you can get the union of these two sets instead.
+   * @param query {string} - The SQL query to execute.
+   * @param existing {number[]} - The array of unique numerical IDs that
+   *   constitute the existing matches.
+   * @param logic {string=} - The logic to use when combining the `existing`
+   *   set that you provide with the new results found. If set to `' AND '`,
+   *   then you'll receive the intersection of the two sets (only those that
+   *   match both criteria). If set to `' OR '`, you'll receive the union of
+   *   the two sets (those that match any criteria). (Default: `' AND '`)
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<number[]>} - A Promise that resolves with an array of
+   *   unique ID numbers for the matching items.
+   */
+
+  static async subfind (query, existing, logic = ' AND ', db) {
+    const rows = await db.run(query)
+    const ids = rows.map(p => p.id)
+    if (existing && Array.isArray(existing) && existing.length > 0 && logic === ' OR ') {
+      // "OR" means we return the union of the two sets
+      return [...new Set([...existing, ...ids])]
+    } else if (existing && Array.isArray(existing) && existing.length > 0) {
+      // "AND" means we return the intersection of the two sets
+      return existing.filter(x => ids.includes(x))
+    } else {
+      // If we don't have any existing array, just return what we found here
+      return ids
+    }
+  }
+
+  /**
    * Find pages that match a query.
    * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
    *   ?logic: string, ?limit: number, ?offset: number }} - An object
@@ -431,19 +465,8 @@ class Page {
     const tags = query.tags ? Object.keys(query.tags) : []
     if (Array.isArray(tags) && tags.length > 0) {
       for (let tag of tags) {
-        const tagged = await db.run(`SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`)
-        const taggedIds = tagged.map(p => p.id)
-        if (tagged && tagged.length > 0) {
-          if (logic === " OR ") {
-            // "OR" means we return the union of the two sets
-            ids = [...new Set([...ids, ...taggedIds])]
-          } else if (rows && rows.length > 0) {
-            // "AND" means we return the intersection of the two sets
-            ids = ids.filter(x => taggedIds.includes(x))
-          } else {
-            ids = taggedIds
-          }
-        }
+        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
+        ids = await Page.subfind(sql, ids, logic, db)
       }
     }
 
