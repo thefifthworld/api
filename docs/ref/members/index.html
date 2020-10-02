@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>The Fifth World API</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li class="current">Members API</li>
+      </ul>
+      <h1>Members API</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th width="40%">Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-auth"><code>/members/auth</code></a></td>
+            <td>Authenticate with an email and passphrase or the ID and service for an OAuth 2.0 token.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-reauth"><code>/members/reauth</code></a></td>
+            <td>Renew an authentication.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-providers"><code>/members/providers</code></a></td>
+            <td>Register a new OAuth 2.0 hosts that the member can authenticate with.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-providers"><code>/members/providers</code></a></td>
+            <td>Retrieve a list of OAuth 2.0 hosts that the member can authenticate with.</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><a href="delete-providers"><code>/members/providers/{provider}</code></a></td>
+            <td>Delete an OAuth 2.0 host from the list of hosts that the member can authenticate with.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-messages"><code>/members/messages</code></a></td>
+            <td>Get a member&rsquo;s messages.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-invited"><code>/members/invited</code></a></td>
+            <td>Get a list of members that this member has invited.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-member"><code>/members/{id}</code></a></td>
+            <td>Get a member&rsquo;s account.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-member"><code>/members/{id}</code></a></td>
+            <td>Make changes to a member&rsquo;s account.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-auths"><code>/members/{id}/auths</code></a></td>
+            <td>Retrieve a list of OAuth 2.0 hosts that a member can authenticate with.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-deactivate"><code>/members/{id}/deactivate</code></a></td>
+            <td>Deactivate a member.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-reactivate"><code>/members/{id}/reactivate</code></a></td>
+            <td>Reactivate a member.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-invitations"><code>/invitations/send</code></a></td>
+            <td>Send invitations.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-join"><code>/invitations/{code}</code></a></td>
+            <td>Accept an invitation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+                    <span class="icons">
+                      <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+                      <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+                      <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+                    </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
