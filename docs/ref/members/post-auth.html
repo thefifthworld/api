@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>POST /members/auth</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li><a href="index.html">Members API</a></li>
+        <li class="current">Authenticate</li>
+      </ul>
+      <h1>Authenticate</h1>
+      <p>Obtain a JSON Web Token to authenticate with the API (<em>see</em>
+        <a href="../../auth.html">Authentication</a>). You can use this endpoint to authenticate with an email and
+        passphrase combination by providing <code>email</code> and <code>pass</code> parameters in the body, or
+        by matching a stored OAuth 2.0 token by providing <code>provider</code> and <code>id</code> parameters
+        in the body. If we can authenticate the parameters provided, the endpoint returns a JSON Web Token which
+        can authenticate you to other API endpoints for the next 15 minutes.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>Body Parameters</tcaption>
+        <thead>
+          <tr>
+            <th>Request body data</th>
+            <th>Value type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>email</code></td>
+            <td><code>string</code></td>
+            <td>If provided along with <code>pass</code>, tries to authenticate by email and passphrase.</td>
+          </tr>
+          <tr>
+            <td><code>pass</code></td>
+            <td><code>string</code></td>
+            <td>If provided along with <code>email</code>, tries to authenticate by email and passphrase.</td>
+          </tr>
+          <tr>
+            <td><code>provider</code></td>
+            <td><code>string</code></td>
+            <td>If provided along with <code>id</code>, tries to authenticate by OAuth 2.0 token.</td>
+          </tr>
+          <tr>
+            <td><code>id</code></td>
+            <td><code>number</code></td>
+            <td>If provided along with <code>provider</code>, tries to authenticate by OAuth 2.0 token.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">POST https://api.thefifthworld.com/v1/members/auth
+email=you@example.com
+pass=I use a long, memorable passphrase.</code>
+      </figure>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">POST https://api.thefifthworld.com/v1/members/auth
+provider=facebook
+id=1234567890</code>
+      </figure>
+      <h2>Response</h2>
+      <p>If the API can authenticate your credentials, you receive a <code>200</code> HTTP status along with a
+        plain text response, providing your JSON Web Token. This encrypted string includes data about your
+        session and will remain valid for the next 15 minutes. With this token, you can use the
+        <a href="post-reauth.html">renew authentication</a> endpoint to get a new token, keeping your session
+        over periods much longer than 15 minutes. If the API cannot authenticate you, it responds with a
+        <code>401</code> HTTP status.</p>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-http">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
