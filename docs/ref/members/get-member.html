@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>GET /members/{id}</title>
+  <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+  <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+  <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+  <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+  <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="A design system for the Fifth World." />
+</head>
+<body class="thefifthworld">
+<header>
+  <h1 class="logo">
+    <a href="https://thefifthworld.com">
+      <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+    </a>
+  </h1>
+</header>
+<main>
+  <ul class="breadcrumbs">
+    <li><a href="../..">API Documentation</a></li>
+    <li><a href="..">Reference</a></li>
+    <li><a href="index.html">Members API</a></li>
+    <li class="current">Get member</li>
+  </ul>
+  <h1>Get member</h1>
+  <p>This endpoint returns information about a single member.</p>
+  <h2>Request</h2>
+  <table>
+    <tcaption>HTTP Headers</tcaption>
+    <thead>
+      <tr>
+        <th>HTTP Header</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Authorization</code></td>
+        <td>You don&rsquo;t need to authenticate for this endpoint, but if you do you might receive a different
+          response, depending on your permissions and what data the member has chosen to share. To authenticate,
+          provide a valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>
+      </tr>
+    </tbody>
+  </table>
+  <table>
+    <tcaption>Path Parameters</tcaption>
+    <thead>
+      <tr>
+        <th>Path parameter</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>The unique ID number of the member you&rsquo;d like to fetch.</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Examples</h3>
+  <figure class="request-response">
+    <figcaption>Example Request</figcaption>
+    <code class="language-http">GET /v1/members/1 HTTP/1.1
+Host: api.thefifthworld.com</code>
+  </figure>
+  <h2>Response</h2>
+  <p>This endpoint returns a JSON object. If you request an existing member, you&rsquo;ll receive whatever
+    information that member has made available to you, given your authentication. If you request a member that
+    does not exist, you&rsquo;ll receive an error.</p>
+  <table>
+    <tcaption>Member object</tcaption>
+    <thead>
+    <tr>
+      <th>Property</th>
+      <th>Value Type</th>
+      <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td><code>number</code></td>
+      <td>The unique numerical ID for this account.</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td><code>string</code></td>
+      <td><em>Optional.</em> The name this member has given for henself. This property only appears if the member
+        has provided a name.</td>
+    </tr>
+    <tr>
+      <td><code>bio</code></td>
+      <td><code>object</code></td>
+      <td><em>Optional.</em> A biographical snippet written by the member. This object will have two
+        properties: <code>markdown</code>, which provides the snippet in unparsed
+        <a href="https://thefifthworld.com/markdown">Fifth World Markdown</a>, and <code>html</code>,
+        which provides the same snippet, but parsed into HTML.</td>
+    </tr>
+    <tr>
+      <td><code>links</code></td>
+      <td><code>object</code></td>
+      <td>An object of links that the member has added to hens account. Properties include
+        <code>facebook</code>, <code>twitter</code>, <code>github</code>, <code>patreon</code>, and
+        <code>web</code>.</td>
+    </tr>
+    <tr>
+      <td><code>nopass</code></td>
+      <td><code>boolean</code></td>
+      <td>If <code>true</code>, this member has not yet set a passphrase on hens account. This happens when
+        hen has not accepted the invitation yet.</td>
+    </tr>
+    <tr>
+      <td><code>admin</code></td>
+      <td><code>boolean</code></td>
+      <td>If <code>true</code>, then this member has administrative privileges.</td>
+    </tr>
+    </tbody>
+  </table>
+  <h3>Example</h3>
+  <figure class="request-response">
+    <figcaption>Example Response</figcaption>
+    <code class="language-js">{
+  "id": 1004,
+  "name": "Jason Godesky",
+  "bio": {
+    "markdown": "*The Fifth World* began blah blah blah",
+    "html": "&lt;p&gt;&lt;em&gt;The Fifth World&lt;/em&gt; began blah blah blah&lt;/p&gt;\n"
+  },
+  "links": {
+    "facebook": "https://facebook.com/jefgodesky",
+    "twitter": "https://twitter.com/jefgodesky",
+    "github": "https://github.com/jefgodesky",
+    "patreon": "https://www.patreon.com/thefifthworld",
+    "web": "https://thefifthworld.com"
+  },
+  "nopass": false,
+  "admin": true
+}</code>
+  </figure>
+  <figure class="request-response">
+    <figcaption>Example Response</figcaption>
+    <code class="language-js">{
+  "err": "Member not found"
+}</code>
+  </figure>
+</main>
+<footer>
+  <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+  <p class="copyleft">
+    <span class="icons">
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+    </span>
+    <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+  </p>
+</footer>
+<script src="https://design.thefifthworld.com/js/bundle.js"></script>
+</body>
+</html>
