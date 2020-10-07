@@ -615,7 +615,7 @@ describe('Member', () => {
     })
 
     it('returns an array of people you\'ve invited', async () => {
-      expect.assertions(4)
+      expect.assertions(1)
       const addrs = [ 'invited1@thefifthworld.com', 'invited2@thefifthworld.com', 'invited3@thefifthworld.com' ]
       await testUtils.populateMembers(db)
       const inviter = await Member.load(2, db)
@@ -623,9 +623,6 @@ describe('Member', () => {
       const actual = await inviter.getInvited(db)
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(addrs.length)
-      expect(actual[0].email).toEqual(addrs[0])
-      expect(actual[1].email).toEqual(addrs[1])
-      expect(actual[2].email).toEqual(addrs[2])
     })
 
     it('returns the acceptance status of each person', async () => {
@@ -641,6 +638,23 @@ describe('Member', () => {
       expect(actual[0].accepted).toEqual(true)
       expect(actual[1].accepted).toEqual(false)
       expect(actual[2].accepted).toEqual(false)
+    })
+
+    it('privatizes member accounts', async () => {
+      expect.assertions(4)
+      const addrs = [ 'invited1@thefifthworld.com' ]
+      await testUtils.populateMembers(db)
+      const inviter = await Member.load(2, db)
+      await inviter.sendInvitations(addrs, () => {}, db)
+      const invited1 = await Member.load('invited1@thefifthworld.com', db)
+      await db.run(`UPDATE invitations SET accepted=1 WHERE inviteTo=${invited1.id};`)
+      await invited1.update({ password: 'Test password' }, invited1, db)
+      const actual = await inviter.getInvited(db)
+      await testUtils.resetTables(db)
+      expect(actual[0].password).not.toBeDefined()
+      expect(actual[0].email).not.toBeDefined()
+      expect(actual[0].active).not.toBeDefined()
+      expect(actual[0].invitations).not.toBeDefined()
     })
   })
 
