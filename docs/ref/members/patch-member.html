@@ -44,9 +44,8 @@
         <tbody>
           <tr>
             <td><code>Authorization</code></td>
-            <td>You don&rsquo;t need to authenticate for this endpoint, but if you do you might receive a different
-              response, depending on your permissions and what data the member has chosen to share. To authenticate,
-              provide a valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>
+            <td>You must provide a valid JSON Web Token that authenticates you either as an administrator or
+              as the member you wish to edit.</td>
           </tr>
         </tbody>
       </table>
@@ -121,6 +120,7 @@
         <figcaption>Example Request</figcaption>
         <code class="language-http">PATCH /v1/members/1 HTTP/1.1
 Host: api.thefifthworld.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 
 {
   "name": "My New Name"
