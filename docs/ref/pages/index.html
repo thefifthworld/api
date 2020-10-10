@@ -49,13 +49,13 @@
           </tr>
           <tr>
             <td>GET</td>
-            <td><a href="get-like.html"><code>/pages/{path}/like</code></a></td>
-            <td>Like a page.</td>
+            <td><a href="get-page.html"><code>/pages/{path}</code></a></td>
+            <td>Retrieve a particular page.</td>
           </tr>
           <tr>
-            <td>GET</td>
-            <td><a href="get-unlike.html"><code>/pages/{path}/unlike</code></a></td>
-            <td>Remove your &ldquo;like&rdquo; from a page.</td>
+            <td>POST</td>
+            <td><a href="post-page.html"><code>/pages/{path}</code></a></td>
+            <td>Update a page.</td>
           </tr>
           <tr>
             <td>POST</td>
@@ -63,9 +63,14 @@
             <td>Roll a page back to a given version.</td>
           </tr>
           <tr>
-            <td>POST</td>
-            <td><a href="post-page.html"><code>/pages/{path}</code></a></td>
-            <td>Update a page.</td>
+            <td>GET</td>
+            <td><a href="get-like.html"><code>/pages/{path}/like</code></a></td>
+            <td>Like a page.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-unlike.html"><code>/pages/{path}/unlike</code></a></td>
+            <td>Remove your &ldquo;like&rdquo; from a page.</td>
           </tr>
           <tr>
             <td>PATCH</td>
@@ -86,11 +91,6 @@
             <td>PATCH</td>
             <td><a href="patch-unhide.html"><code>/pages/{path}/unhide</code></a></td>
             <td>Unhide a page so that everyone can see it.</td>
-          </tr>
-          <tr>
-            <td>GET</td>
-            <td><a href="get-page.html"><code>/pages/{path}</code></a></td>
-            <td>Retrieve a particular page.</td>
           </tr>
           <tr>
             <td>POST</td>
@@ -123,11 +123,11 @@
     <footer>
       <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
       <p class="copyleft">
-                        <span class="icons">
-                          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
-                          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
-                          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
-                        </span>
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
         <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
       </p>
     </footer>
