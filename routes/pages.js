@@ -12,15 +12,21 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
     const query = req.query
 
     // Massage tags into a more readable format
-    if (query.tag && Array.isArray(query.tag)) {
-      const tags = {}
-      query.tag.forEach(str => {
+    const tags = query.tag ? Array.isArray(query.tag) ? query.tag : [ query.tag ] : null
+    if (tags) {
+      const tagsObj = {}
+      const hasTags = []
+      tags.forEach(str => {
         const pair = str.split(':')
-        if (pair && Array.isArray(pair) && pair.length > 1) tags[pair[0].trim()] = pair[1].trim()
+        if (pair && Array.isArray(pair) && pair.length > 1) {
+          tagsObj[pair[0].trim()] = pair[1].trim()
+        } else {
+          hasTags.push(str)
+        }
       })
-      query.tags = tags
+      if (Object.keys(tags).length > 0) query.tags = tagsObj
+      if (hasTags.length > 0) query.hasTags = hasTags
     }
-    if (query.hasTag) query.hasTags = Array.isArray(query.hasTag) ? query.hasTag : [ query.hasTag ]
 
     const pages = await Page.find(query, req.user, db)
     res.status(200).json(pages)
