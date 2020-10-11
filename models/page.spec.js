@@ -153,6 +153,69 @@ describe('Page', () => {
     })
   })
 
+  describe('export', () => {
+    it('exports the page history', async () => {
+      expect.assertions(3)
+      await testUtils.createTestPage(Page, Member, db)
+      const page = await Page.get('/test-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.history.changes).not.toBeDefined()
+      expect(Array.isArray(actual.history)).toEqual(true)
+      expect(actual.history.length).toEqual(1)
+    })
+
+    it('exports likes', async () => {
+      expect.assertions(3)
+      await testUtils.createTestPage(Page, Member, db)
+      const normal = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      await page.likes.add(normal, db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.likes.ids).not.toBeDefined()
+      expect(Array.isArray(actual.likes)).toEqual(true)
+      expect(actual.likes).toEqual([ 2 ])
+    })
+
+    it('removes owner email', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const page = await Page.get('/test-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.owner.email).not.toBeDefined()
+    })
+
+    it('removes saved flag', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const page = await Page.get('/test-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.saved).not.toBeDefined()
+    })
+
+    it('removes saved flag from any files', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.',
+        files: { file: testUtils.mockTXT() }
+      }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get('/test-page', db)
+      const ex = page.export()
+      const actual = ex && ex.files && Array.isArray(ex.files) && ex.files.length > 0
+        ? ex.files.map(file => file.saved === undefined).reduce((acc, curr) => acc && curr, true)
+        : false
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(true)
+    })
+  })
+
   describe('save', () => {
     it('inserts a record to the database', async () => {
       expect.assertions(3)
