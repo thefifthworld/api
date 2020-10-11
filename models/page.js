@@ -60,6 +60,24 @@ class Page {
   }
 
   /**
+   * Create an object from the page suitable for export through the API.
+   * @returns {object} - An object from the page suitable for export through
+   *   the API.
+   */
+
+  export () {
+    const copy = JSON.parse(JSON.stringify(this))
+    if (copy && copy.history) copy.history = copy.history.changes
+    if (copy && copy.likes) copy.likes = copy.likes.ids
+    if (copy && copy.owner) delete copy.owner.email
+    delete copy.saved
+    if (copy && copy.files && Array.isArray(copy.files)) {
+      copy.files.forEach(file => delete file.saved)
+    }
+    return copy
+  }
+
+  /**
    * Insert a record for this page into the database.
    * @param data {!Object} - An object with the content of the page.
    * @param editor {!{ id: number, name: string }} - An object with information

@@ -47,7 +47,7 @@ describe('Pages API', () => {
       expect(res.status).toEqual(200)
       expect(res.body.path).toEqual('/new-page')
       expect(res.body.title).toEqual('New Page')
-      expect(res.body.history.changes).toHaveLength(1)
+      expect(res.body.history).toHaveLength(1)
       expect(check).toHaveLength(1)
       expect(check[0].title).toEqual(res.body.title)
     })
@@ -134,7 +134,7 @@ describe('Pages API', () => {
       const token = member.generateJWT()
       const res = await request.get('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
-      expect(res.body.likes.ids).toHaveLength(1)
+      expect(res.body.likes).toHaveLength(1)
     })
 
     it('returns a 401 if you\'re not logged in', async () => {
@@ -152,7 +152,7 @@ describe('Pages API', () => {
       await request.get('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
       const res = await request.get('/pages/test-page/unlike').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
-      expect(res.body.likes.ids).toHaveLength(0)
+      expect(res.body.likes).toHaveLength(0)
     })
   })
 
@@ -514,13 +514,13 @@ describe('Pages API', () => {
       const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing update' }
       await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
       const res = await request.post('/pages/test-page/rollback/1').set('Authorization', `Bearer ${token}`)
-      const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
-        ? res.body.history.changes[res.body.history.changes.length - 1].content.body
+      const actual = res && res.body && Array.isArray(res.body.history) && res.body.history[0].content && res.body.history[0].content.body
+        ? res.body.history[res.body.history.length - 1].content.body
         : false
 
       expect(res.status).toEqual(200)
       expect(actual).not.toEqual(false)
-      expect(res.body.history.changes).toHaveLength(3)
+      expect(res.body.history).toHaveLength(3)
       expect(actual).toEqual('This is a test page.')
     })
   })
@@ -533,15 +533,15 @@ describe('Pages API', () => {
       const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing update' }
       const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
       const check = await Page.get(res.body.id, db)
-      const actual = res && res.body && res.body.history && Array.isArray(res.body.history.changes) && res.body.history.changes[0].content && res.body.history.changes[0].content.body
-        ? res.body.history.changes[res.body.history.changes.length - 1].content.body
+      const actual = res && res.body && Array.isArray(res.body.history) && res.body.history[0].content && res.body.history[0].content.body
+        ? res.body.history[res.body.history.length - 1].content.body
         : false
 
       expect(res.status).toEqual(200)
       expect(actual).not.toEqual(false)
       expect(res.body.path).toEqual('/test-page')
       expect(res.body.title).toEqual('Test Page')
-      expect(res.body.history.changes).toHaveLength(2)
+      expect(res.body.history).toHaveLength(2)
       expect(actual).toEqual(data.body)
       expect(check).toBeInstanceOf(Page)
       expect(check.history.getBody()).toEqual(data.body)
@@ -637,7 +637,7 @@ describe('Pages API', () => {
       expect(res.status).toEqual(200)
       expect(page.path).toEqual('/test-page')
       expect(page.title).toEqual('Test Page')
-      expect(page.history.changes).toHaveLength(1)
+      expect(page.history).toHaveLength(1)
       expect(page.permissions.read).toEqual(true)
       expect(page.permissions.write).toEqual(false)
       expect(page.permissions.code).toEqual(774)
