@@ -29,7 +29,7 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
     }
 
     const pages = await Page.find(query, req.user, db)
-    res.status(200).json(pages)
+    res.status(200).json(pages.map(page => page.export()))
   } else {
     res.sendStatus(500)
   }
@@ -39,7 +39,7 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
 pages.post('/pages', requireLogIn, async (req, res) => {
   const page = await Page.create(req.body, req.user, req.body.msg, db)
   if (page) {
-    res.status(200).json(page)
+    res.status(200).json(page.export())
   } else {
     res.sendStatus(500)
   }
@@ -48,20 +48,20 @@ pages.post('/pages', requireLogIn, async (req, res) => {
 // GET /pages/*/like
 pages.get('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
   await req.page.likes.add(req.user, db)
-  res.status(200).json(req.page)
+  res.status(200).json(req.page.export())
 })
 
 // GET /pages/*/unlike
 pages.get('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
   await req.page.likes.remove(req.user, db)
-  res.status(200).json(req.page)
+  res.status(200).json(req.page.export())
 })
 
 // POST /pages/*/rollback
 pages.post('/pages/*/rollback/:id', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {
     await req.page.rollback(parseInt(req.params.id), req.user, db)
-    res.status(200).json(req.page)
+    res.status(200).json(req.page.export())
   } else if (req.page) {
     res.sendStatus(401)
   } else {
@@ -73,7 +73,7 @@ pages.post('/pages/*/rollback/:id', requireLogIn, loadPage, async (req, res) => 
 pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {
     await req.page.save(req.body, req.user, req.body.msg, db)
-    res.status(200).json(req.page)
+    res.status(200).json(req.page.export())
   } else if (req.page) {
     res.sendStatus(401)
   } else {
@@ -89,7 +89,7 @@ pages.patch('/pages/*/lock', requireLogIn, loadPage, async (req, res) => {
     await req.page.save(update, req.user, 'Locking page', db)
     status = 200
   }
-  res.status(status).json(req.page)
+  res.status(status).json(req.page.export())
 })
 
 // PATCH /pages/*/unlock
@@ -100,7 +100,7 @@ pages.patch('/pages/*/unlock', requireLogIn, loadPage, async (req, res) => {
     await req.page.save(update, req.user, 'Unlocking page', db)
     status = 200
   }
-  res.status(status).json(req.page)
+  res.status(status).json(req.page.export())
 })
 
 // PATCH /pages/*/hide
@@ -113,7 +113,7 @@ pages.patch('/pages/*/hide', requireLogIn, loadPage, async (req, res) => {
     await req.page.save(update, req.user, 'Hiding page', db)
     status = 200
   }
-  res.status(status).json(req.page)
+  res.status(status).json(req.page.export())
 })
 
 // PATCH /pages/*/unhide
@@ -126,7 +126,7 @@ pages.patch('/pages/*/unhide', requireLogIn, loadPage, async (req, res) => {
     await req.page.save(update, req.user, 'Hiding page', db)
     status = 200
   }
-  res.status(status).json(req.page)
+  res.status(status).json(req.page.export())
 })
 
 // GET /pages/*
@@ -142,7 +142,7 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
   const write = req.page.checkPermissions(req.user, 6)
   const code = req.page.permissions
   req.page.permissions = { read, write, code }
-  res.status(200).json({ page: req.page, markup: parsed.html })
+  res.status(200).json({ page: req.page.export(), markup: parsed.html })
 })
 
 // POST /autocomplete
@@ -163,7 +163,7 @@ pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
   const { lat, lon, dist } = req.params
   if (lat && lon) {
     const pages = await Page.placesNear([ lat, lon ], dist, req.user, db)
-    res.status(200).json(pages)
+    res.status(200).json(pages.map(page => page.export()))
   } else {
     res.sendStatus(500)
   }
