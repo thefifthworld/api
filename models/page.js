@@ -72,7 +72,10 @@ class Page {
     if (copy && copy.owner) delete copy.owner.email
     delete copy.saved
     if (copy && copy.files && Array.isArray(copy.files)) {
-      copy.files.forEach(file => delete file.saved)
+      copy.files.forEach(file => {
+        delete file.saved
+        delete file.page
+      })
     }
     return copy
   }
