@@ -344,52 +344,62 @@ Host: api.thefifthworld.com</code>
     <figcaption>Example Response</figcaption>
     <code class="language-js">[
   {
-    "id": 188,
-    "title": "North America",
-    "description": "The continent of North America lies entirely within the northern hemisphere, and mostly in the western hemisphere.",
-    "slug": "north-america",
-    "path": "/north-america",
-    "parent": 0,
-    "depth": 0,
+    "id": 256,
+    "title": "Vervain",
+    "description": "A portrait of Vervain, one of the four main characters in Giulianna Maria Lamanna’s novel, Children of Wormwood, commissioned by Dani Kaulakis.",
+    "slug": "vervain",
+    "path": "/art/dani-kaulakis/vervain",
+    "parent": 230,
+    "depth": 2,
     "permissions": 774,
-    "type": "Continent",
-    "tags": {},
-    "location": false,
-    "likes": {
-      "id": 188,
-      "path": "/north-america",
-      "ids": []
+    "type": "Art",
+    "tags": {
+      "artist": [
+        "Dani Kaulakis"
+      ]
     },
-    "files": [],
+    "location": false,
+    "likes": [
+      1004
+    ],
+    "files": [
+      {
+        "name": "uploads/vervain-web.20190915.172328.jpg",
+        "thumbnail": "uploads/vervain-web.20190915.172328.256x256.jpg",
+        "mime": "image/jpeg",
+        "size": 1904814,
+        "timestamp": 1568568208,
+        "uploader": 1004,
+        "urls": {
+          "full": "https://thefifthworld.s3.us-east-2.stackpathstorage.com/uploads/vervain-web.20190915.172328.jpg",
+          "thumbnail": "https://thefifthworld.s3.us-east-2.stackpathstorage.com/uploads/vervain-web.20190915.172328.256x256.jpg"
+        },
+        "readableSize": "1.9 MB"
+      }
+    ],
     "owner": {
       "id": 1004,
       "name": "Jason Godesky"
     },
-    "history": {
-      "changes": [
-        {
-          "id": 343,
-          "timestamp": "2019-08-27T00:00:24.000Z",
-          "msg": "Initial text",
-          "content": {
-            "title": "North America",
-            "path": "/north-america",
-            "parent": "undefined",
-            "type": "null",
-            "body": "The continent of **North America** lies entirely within the northern hemisphere, and mostly in the western hemisphere.\r\n\r\n## Watersheds\r\n\r\n{{Children type=\"Watershed\"}}\r\n\r\n## Other regions\r\n\r\n{{Children type=\"Region\"}}",
-            "message": "",
-            "description": "The continent of North America lies entirely within the northern hemisphere, and mostly in the western hemisphere.",
-            "image": "null",
-            "header": "null"
-          },
-          "editor": {
-            "name": "Jason Godesky",
-            "id": 1004
-          }
+    "history": [
+      {
+        "id": 500,
+        "timestamp": "2019-09-15T17:23:28.000Z",
+        "msg": "Initial text",
+        "content": {
+          "title": "Vervain",
+          "path": "/art/dani-kaulakis/vervain",
+          "parent": "/art/dani-kaulakis",
+          "type": "Art",
+          "body": "A portrait of [[/wormwood/vervain | Vervain]], one of the four main characters in [Giulianna Maria Lamanna's](/member/1006) novel, *[[Children of Wormwood]]*, commissioned by [[Dani Kaulakis]].",
+          "description": "A portrait of Vervain, one of the four main characters in Giulianna Maria Lamanna’s novel, Children of Wormwood, commissioned by Dani Kaulakis."
+        },
+        "editor": {
+          "name": "Jason Godesky",
+          "id": 1004
         }
-      ]
-    }
-    "lineage": []
+      }
+    ]
   }
 ]</code>
   </figure>
