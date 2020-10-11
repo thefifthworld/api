@@ -214,6 +214,25 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(actual).toEqual(true)
     })
+
+    it('removes page ID from any files', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.',
+        files: { file: testUtils.mockTXT() }
+      }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get('/test-page', db)
+      const ex = page.export()
+      const actual = ex && ex.files && Array.isArray(ex.files) && ex.files.length > 0
+        ? ex.files.map(file => file.page === undefined).reduce((acc, curr) => acc && curr, true)
+        : false
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(true)
+    })
   })
 
   describe('save', () => {
