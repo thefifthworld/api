@@ -60,25 +60,12 @@ class Page {
   }
 
   /**
-   * Create an object from the page suitable for export through the API.
-   * @returns {object} - An object from the page suitable for export through
-   *   the API.
+   * Prepares the Page object for export through the API.
+   * @returns {object} - An object representation of this Page instance ready
+   *   to be delivered through the API.
    */
 
-  export () {
-    const copy = JSON.parse(JSON.stringify(this))
-    if (copy && copy.history) copy.history = copy.history.changes
-    if (copy && copy.likes) copy.likes = copy.likes.ids
-    if (copy && copy.owner) delete copy.owner.email
-    delete copy.saved
-    if (copy && copy.files && Array.isArray(copy.files)) {
-      copy.files.forEach(file => {
-        delete file.saved
-        delete file.page
-      })
-    }
-    return copy
-  }
+  export () { return Page.export(this) }
 
   /**
    * Insert a record for this page into the database.
@@ -663,6 +650,41 @@ class Page {
       }
       return desc.trim()
     }
+  }
+
+  /**
+   * Prepares a Page object for export through the API.
+   * @returns {object} - An object from the page suitable for export through
+   *   the API.
+   */
+
+  static export (obj) {
+    const copy = JSON.parse(JSON.stringify(obj))
+    if (copy && copy.history && copy.history.changes) copy.history = copy.history.changes
+    if (copy && copy.likes && copy.likes.ids) copy.likes = copy.likes.ids
+    if (copy && copy.owner) delete copy.owner.email
+    delete copy.saved
+
+    // Clean up files
+    if (copy && copy.files && Array.isArray(copy.files)) {
+      copy.files.forEach(file => {
+        delete file.saved
+        delete file.page
+      })
+    }
+
+    // Clean up lineage
+    if (copy && copy.lineage && Array.isArray(copy.lineage)) {
+      copy.lineage = copy.lineage.map(ancestor => {
+        delete ancestor.history
+        delete ancestor.likes
+        delete ancestor.files
+        delete ancestor.lineage
+        return Page.export(ancestor)
+      })
+    }
+
+    return copy
   }
 }
 
