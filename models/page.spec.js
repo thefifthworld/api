@@ -233,6 +233,48 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(actual).toEqual(true)
     })
+
+    it('applies the same rules to pages in its lineage', async () => {
+      expect.assertions(3)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const root = await Page.create({ title: 'Root', body: 'This is the root page.' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child Page', body: 'This is a child page.', parent: root.id }, editor, 'Initial text', db)
+      const page = await Page.get('/root/child-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.lineage).toHaveLength(1)
+      expect(actual.lineage[0].saved).not.toBeDefined()
+      expect(actual.lineage[0].owner.email).not.toBeDefined()
+    })
+
+    it('removes history, likes, and files from pages in its lineage', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const root = await Page.create({ title: 'Root', body: 'This is the root page.' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child Page', body: 'This is a child page.', parent: root.id }, editor, 'Initial text', db)
+      const page = await Page.get('/root/child-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.lineage).toHaveLength(1)
+      expect(actual.lineage[0].history).not.toBeDefined()
+      expect(actual.lineage[0].files).not.toBeDefined()
+      expect(actual.lineage[0].likes).not.toBeDefined()
+    })
+
+    it('removes lineage from pages in its lineage', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const root = await Page.create({ title: 'Root', body: 'This is the root page.' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Child Page', body: 'This is a child page.', parent: root.id }, editor, 'Initial text', db)
+      const page = await Page.get('/root/child-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.lineage).toHaveLength(1)
+      expect(actual.lineage[0].lineage).not.toBeDefined()
+    })
   })
 
   describe('save', () => {
