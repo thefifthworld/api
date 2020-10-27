@@ -27,4 +27,12 @@ describe('parseLinks', () => {
     expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
     expect(actual.linkHandler.links).toEqual([ { id: null, text: 'hello', title: 'hello', path: '/new?title=hello', isNew: true } ])
   })
+
+  it('doesn\'t parse tags', async () => {
+    expect.assertions(3)
+    const actual = await parseLinks('Here\'s a tag: [[World:Hello]]', db)
+    expect(actual.str).toEqual('Here\'s a tag: [[World:Hello]]')
+    expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
+    expect(actual.linkHandler.links).toEqual([])
+  })
 })
