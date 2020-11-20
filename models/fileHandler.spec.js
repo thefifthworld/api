@@ -116,8 +116,6 @@ describe('FileHandler', () => {
       const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
       await FileHandler.remove(handler.name, db)
       await FileHandler.remove(handler.thumbnail, db)
-      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -125,8 +123,6 @@ describe('FileHandler', () => {
       expect(handler.uploader).toEqual(4)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(404)
-      expect(fileCheckAfter.status).toEqual(404)
-      expect(thumbnailCheckAfter.status).toEqual(404)
     })
 
     it('handles art uploads that need a thumbnail', async () => {
@@ -136,8 +132,6 @@ describe('FileHandler', () => {
       const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
       await FileHandler.remove(handler.name, db)
       await FileHandler.remove(handler.thumbnail, db)
-      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -145,8 +139,6 @@ describe('FileHandler', () => {
       expect(handler.thumbnail.endsWith('.jpg')).toEqual(true)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(200)
-      expect(fileCheckAfter.status).toEqual(404)
-      expect(thumbnailCheckAfter.status).toEqual(404)
     })
 
     it('handles art uploads that come with a thumbnail', async () => {
@@ -159,8 +151,6 @@ describe('FileHandler', () => {
       const thumbnailCheckBefore = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
       await FileHandler.remove(handler.name, db)
       await FileHandler.remove(handler.thumbnail, db)
-      const fileCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.name))
-      const thumbnailCheckAfter = await testUtils.checkURL(FileHandler.getURL(handler.thumbnail))
 
       expect(handler.size).toEqual(files.file.size)
       expect(handler.mime).toEqual(files.file.mimetype)
@@ -168,8 +158,6 @@ describe('FileHandler', () => {
       expect(handler.thumbnail.endsWith('.gif')).toEqual(true)
       expect(fileCheckBefore.status).toEqual(200)
       expect(thumbnailCheckBefore.status).toEqual(200)
-      expect(fileCheckAfter.status).toEqual(404)
-      expect(thumbnailCheckAfter.status).toEqual(404)
     })
   })
 
@@ -182,8 +170,6 @@ describe('FileHandler', () => {
       const b = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
       await FileHandler.remove(res.file, db)
       await FileHandler.remove(res.thumbnail, db)
-      const c = await testUtils.checkURL(FileHandler.getURL(res.file))
-      const d = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
 
       expect(res.file).toBeDefined()
       expect(res.thumbnail).toBeDefined()
@@ -191,8 +177,6 @@ describe('FileHandler', () => {
       expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(200)
-      expect(c.status).toEqual(404)
-      expect(d.status).toEqual(404)
     })
 
     it('generates a thumbnail', async () => {
@@ -202,8 +186,6 @@ describe('FileHandler', () => {
       const b = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
       await FileHandler.remove(res.file, db)
       await FileHandler.remove(res.thumbnail, db)
-      const c = await testUtils.checkURL(FileHandler.getURL(res.file))
-      const d = await testUtils.checkURL(FileHandler.getURL(res.thumbnail))
 
       expect(res.file).toBeDefined()
       expect(res.thumbnail).toBeDefined()
@@ -211,8 +193,6 @@ describe('FileHandler', () => {
       expect(res.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(a.status).toEqual(200)
       expect(b.status).toEqual(200)
-      expect(c.status).toEqual(404)
-      expect(d.status).toEqual(404)
     })
   })
 
@@ -221,24 +201,20 @@ describe('FileHandler', () => {
       const file = testUtils.mockTXT()
       const res = await FileHandler.upload(file)
       const url = res.Location
-      const a = await testUtils.checkURL(url)
+      const check = await testUtils.checkURL(url)
       await FileHandler.remove(res.key, db)
-      const b = await testUtils.checkURL(url)
       expect(res.key).toBeDefined()
-      expect(a.status).toEqual(200)
-      expect(b.status).toEqual(404)
+      expect(check.status).toEqual(200)
     })
 
     it('uploads an image', async () => {
       const file = testUtils.mockGIF()
       const res = await FileHandler.upload(file)
       const url = res.Location
-      const a = await testUtils.checkURL(url)
+      const check = await testUtils.checkURL(url)
       await FileHandler.remove(res.key, db)
-      const b = await testUtils.checkURL(url)
       expect(res.key).toBeDefined()
-      expect(a.status).toEqual(200)
-      expect(b.status).toEqual(404)
+      expect(check.status).toEqual(200)
     })
 
     it('uploads a thumbnail', async () => {
@@ -246,13 +222,11 @@ describe('FileHandler', () => {
       const thumb = await FileHandler.createThumbnail(file)
       const res = await FileHandler.upload(thumb, file.name)
       const url = res.Location
-      const a = await testUtils.checkURL(url)
+      const check = await testUtils.checkURL(url)
       await FileHandler.remove(res.key, db)
-      const b = await testUtils.checkURL(url, db)
       expect(res.key).toBeDefined()
       expect(res.key.startsWith('uploads/test.thumb.')).toEqual(true)
-      expect(a.status).toEqual(200)
-      expect(b.status).toEqual(404)
+      expect(check.status).toEqual(200)
     })
   })
 
