@@ -158,7 +158,7 @@ class FileHandler {
 
       await db.run(`DELETE FROM files WHERE name=${escape(key)};`)
       const s3 = FileHandler.instantiateS3()
-      const params = {Bucket: config.aws.bucket, Key: key}
+      const params = { Bucket: config.aws.bucket, Key: key }
       await s3.deleteObject(params).promise()
     }
   }

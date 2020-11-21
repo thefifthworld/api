@@ -211,6 +211,7 @@ describe('Page', () => {
       const actual = ex && ex.files && Array.isArray(ex.files) && ex.files.length > 0
         ? ex.files.map(file => file.saved === undefined).reduce((acc, curr) => acc && curr, true)
         : false
+      await FileHandler.remove(ex.files[0].name, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(true)
     })
@@ -230,6 +231,7 @@ describe('Page', () => {
       const actual = ex && ex.files && Array.isArray(ex.files) && ex.files.length > 0
         ? ex.files.map(file => file.page === undefined).reduce((acc, curr) => acc && curr, true)
         : false
+      await FileHandler.remove(ex.files[0].name, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(true)
     })

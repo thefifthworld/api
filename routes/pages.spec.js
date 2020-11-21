@@ -671,6 +671,8 @@ describe('Pages API', () => {
       const token = member.generateJWT()
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Test File', body: 'This is a file.', files: { file: testUtils.mockTXT() }, msg: 'Initial text' })
       const res = await request.get('/pages/test-file')
+      const page = await Page.get('/test-file', db)
+      await FileHandler.remove(page.files[0].name, db)
       expect(res.status).toEqual(200)
       expect(res.body.page.files).toHaveLength(1)
       expect(res.body.page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
