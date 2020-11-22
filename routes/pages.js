@@ -49,14 +49,14 @@ pages.post('/pages', requireLogIn, async (req, res) => {
   }
 })
 
-// GET /pages/*/like
-pages.get('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
+// POST /pages/*/like
+pages.post('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
   await req.page.likes.add(req.user, db)
   res.status(200).json(req.page.export())
 })
 
-// GET /pages/*/unlike
-pages.get('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
+// DELETE /pages/*/like
+pages.delete('/pages/*/unlike', requireLogIn, loadPage, async (req, res) => {
   await req.page.likes.remove(req.user, db)
   res.status(200).json(req.page.export())
 })
