@@ -163,7 +163,7 @@ describe('Pages API', () => {
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       await request.post('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
-      const res = await request.delete('/pages/test-page/unlike').set('Authorization', `Bearer ${token}`)
+      const res = await request.delete('/pages/test-page/like').set('Authorization', `Bearer ${token}`)
       expect(res.status).toEqual(200)
       expect(res.body.likes).toHaveLength(0)
     })
