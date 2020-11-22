@@ -15,7 +15,6 @@ db.run = query => {
   return new Promise((resolve, reject) => {
     db.query(query, (err, rows, fields) => {
       if (err) {
-        console.error(query)
         reject(err)
       } else {
         resolve(rows, fields)

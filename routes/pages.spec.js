@@ -125,6 +125,19 @@ describe('Pages API', () => {
       expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(file.mime).toEqual('image/jpeg')
     })
+
+    it('returns 400 if you try to create a page with a path that\'s already in use', async () => {
+      expect.assertions(3)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
+      expect(res.status).toEqual(400)
+      expect(check).toHaveLength(1)
+      expect(check[0].title).toEqual("New Page")
+    })
   })
 
   describe('GET /pages/*/like', () => {
@@ -626,6 +639,18 @@ describe('Pages API', () => {
       expect(file.name.substr(file.name.length - 4)).toEqual('.jpg')
       expect(file.thumbnail.startsWith('uploads/test.thumb.')).toEqual(true)
       expect(file.thumbnail.substr(file.thumbnail.length - 4)).toEqual('.gif')
+    })
+
+    it('returns 400 if you try to update the page\'s path to one some other page is already using', async () => {
+      expect.assertions(2)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'New Page', body: 'This is a new page.' })
+      const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send({ title: 'Test Page', body: 'This is an update.', path: '/new-page' })
+      const check = await db.run('SELECT id FROM pages;')
+
+      expect(res.status).toEqual(400)
+      expect(check).toHaveLength(2)
     })
   })
 
