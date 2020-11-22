@@ -195,9 +195,9 @@ pages.get('/requested', async (req, res) => {
   res.status(200).json(links)
 })
 
-// POST /checkpath
-pages.post('/checkpath', optionalLogIn, async (req, res) => {
-  const { path } = req.body
+// GET /checkpath
+pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
+  const path = req.originalUrl.substr(10)
   if (Page.isReservedPath(path)) {
     res.status(200).json({ ok: false, error: `We reserve <code>${path}</code> for internal use.` })
   } else {
