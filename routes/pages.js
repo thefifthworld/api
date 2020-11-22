@@ -37,11 +37,15 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
 
 // POST /pages
 pages.post('/pages', requireLogIn, async (req, res) => {
-  const page = await Page.create(req.body, req.user, req.body.msg, db)
-  if (page) {
-    res.status(200).json(page.export())
-  } else {
-    res.sendStatus(500)
+  try {
+    const page = await Page.create(req.body, req.user, req.body.msg, db)
+    if (page) {
+      res.status(200).json(page.export())
+    } else {
+      res.sendStatus(500)
+    }
+  } catch {
+    res.sendStatus(400)
   }
 })
 
@@ -72,8 +76,12 @@ pages.post('/pages/*/rollback/:id', requireLogIn, loadPage, async (req, res) => 
 // POST /pages/*
 pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
   if (req.page && req.page.checkPermissions(req.user, 6)) {
-    await req.page.save(req.body, req.user, req.body.msg, db)
-    res.status(200).json(req.page.export())
+    try {
+      await req.page.save(req.body, req.user, req.body.msg, db)
+      res.status(200).json(req.page.export())
+    } catch {
+      res.sendStatus(400)
+    }
   } else if (req.page) {
     res.sendStatus(401)
   } else {

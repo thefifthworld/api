@@ -17,7 +17,7 @@ const LinkHandler = require('../models/linkhandler')
 
 const parseLinks = async (str, db) => {
   const res = { str, linkHandler: new LinkHandler() }
-  const matches = str.match(/\[\[(.*?)\]\]/gm)
+  const matches = str.match(/\[\[([^:]*?)\]\]/gm)
   if (matches) {
     for (const match of matches) {
       const link = await res.linkHandler.add(match, db)
