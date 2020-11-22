@@ -37,11 +37,15 @@ pages.get('/pages', optionalLogIn, async (req, res) => {
 
 // POST /pages
 pages.post('/pages', requireLogIn, async (req, res) => {
-  const page = await Page.create(req.body, req.user, req.body.msg, db)
-  if (page) {
-    res.status(200).json(page.export())
-  } else {
-    res.sendStatus(500)
+  try {
+    const page = await Page.create(req.body, req.user, req.body.msg, db)
+    if (page) {
+      res.status(200).json(page.export())
+    } else {
+      res.sendStatus(500)
+    }
+  } catch {
+    res.sendStatus(400)
   }
 })
 
