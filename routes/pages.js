@@ -49,8 +49,8 @@ pages.post('/pages', requireLogIn, async (req, res) => {
   }
 })
 
-// GET /pages/*/like
-pages.get('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
+// POST /pages/*/like
+pages.post('/pages/*/like', requireLogIn, loadPage, async (req, res) => {
   await req.page.likes.add(req.user, db)
   res.status(200).json(req.page.export())
 })
