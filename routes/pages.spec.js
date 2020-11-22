@@ -807,31 +807,31 @@ describe('Pages API', () => {
     })
   })
 
-  describe('POST /checkpath', () => {
+  describe('GET /checkpath/*', () => {
     it('tells you that you can\'t use a reserved path', async () => {
       expect.assertions(2)
-      const { body } = await request.post('/checkpath').send({ path: '/welcome' })
+      const { body } = await request.get('/checkpath/welcome')
       expect(body.ok).toEqual(false)
       expect(body.error).toEqual('We reserve <code>/welcome</code> for internal use.')
     })
 
     it('tells you that you can\'t use a URL that\'s already in use', async () => {
       expect.assertions(2)
-      const { body } = await request.post('/checkpath').send({ path: '/test-page' })
+      const { body } = await request.get('/checkpath/test-page')
       expect(body.ok).toEqual(false)
       expect(body.error).toEqual('A page with the path <code>/test-page</code> already exists.')
     })
 
     it('tells you that you can create a new page', async () => {
       expect.assertions(2)
-      const { body } = await request.post('/checkpath').send({ path: '/new-page' })
+      const { body } = await request.get('/checkpath/new-page')
       expect(body.ok).toEqual(true)
       expect(body.error).not.toBeDefined()
     })
 
     it('tells you that you can create a new page with an existing name if it\'s in a new scope', async () => {
       expect.assertions(2)
-      const { body } = await request.post('/checkpath').send({ path: '/test-page/test-page' })
+      const { body } = await request.get('/checkpath/test-page/test-page')
       expect(body.ok).toEqual(true)
       expect(body.error).not.toBeDefined()
     })
