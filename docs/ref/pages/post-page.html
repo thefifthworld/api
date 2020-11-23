@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>POST /pages/{path}</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li><a href="index.html">Pages API</a></li>
+        <li class="current">Edit a&nbsp;page</li>
+      </ul>
+      <h1>Edit a&nbsp;page</h1>
+      <p>This endpoint allows you to edit an existing page. To create a new page, see <code><a href="post-page.html">POST /pages</a></code>.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>HTTP Headers</tcaption>
+        <thead>
+          <tr>
+            <th>HTTP Header</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Authorization</code></td>
+            <td>A valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Body Parameters</tcaption>
+        <thead>
+          <tr>
+            <th>Request Body Data</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>title</code></td>
+            <td><code>string</code></td>
+            <td>The title of the page.</td>
+          </tr>
+          <tr>
+            <td style="white-space: nowrap;"><code>description</code></td>
+            <td><code>string</code></td>
+            <td>A description of the page. This should not exceed 280 characters.</td>
+          </tr>
+          <tr>
+            <td><code>slug</code></td>
+            <td><code>string</code></td>
+            <td>A string suitable for use in a URL. If not provided, this endpoint generates one autoamtically
+              based on the title (e.g., <code>North America</code> becomes <code>north-america</code>).</td>
+          </tr>
+          <tr>
+            <td><code>parent</code></td>
+            <td><code>string</code></td>
+            <td>The unique path of another, existing page. If provided, this endpoint creates a <em>child</em>
+              of the given page. If not provided, then the new page has no parent, making it a root page.</td>
+          </tr>
+          <tr>
+            <td><code>path</code></td>
+            <td><code>string</code></td>
+            <td>A unique path for the page. If not provided, the endpoint generates one automatically
+              by taking the parent&rsquo;s path and appending <code>/</code> and the page&rsquo;s slug.
+              If this does not result in a unique path, or if you provide a path that some other page
+              already has, the endpoint returns a <code>400</code> HTTP error.</td>
+          </tr>
+          <tr>
+            <td><code>body</code></td>
+            <td><code>string</code></td>
+            <td>The content of the page.</td>
+          </tr>
+          <tr>
+            <td><code>type</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s type. If not supplied, the endpoint looks for a substring of the form
+              <code>[[Type:X]]</code> within the body and makes <em>X</em> the type. If you do not supply
+              any type using this parameter, and the body does not specify any type, then the new page will
+              not have any type. Note that any value supplied through this parameter will take precedence
+              over any type specified in the body.</td>
+          </tr>
+          <tr>
+            <td><code>files</code></td>
+            <td><code>object</code></td>
+            <td>This object must have a <code>file</code> property. If that provides an image file, you may
+              also include a <code>thumbnail</code> property. Both provide File objects (see below).
+              If you do not supply any object for this parameter, any existing files associated with
+              the page remain in place.</td>
+          </tr>
+          <tr>
+            <td><code>permissions</code></td>
+            <td><code>number</code></td>
+            <td>The permissions to set on the new page. This three-digit code uses the same conventions as Unix
+              permissions, with the <em>owner</em> understood as the person who created the page, the
+              <em>group</em> understood as authenticated members of the Fifth World, and the <em>world</em>
+              understood as the general public. Pages default to <code>774</code>, meaning that any authenticated
+              member of the Fifth World can edit  them, and anyone in the world can read them. A hidden page has
+              a value of <code>700</code>, allowing its owner to see and edit it, but no one else. A locked page
+              has a value of <code>444</code>, allowing  anyone to see it, but only administrators to edit it.</td>
+          </tr>
+          <tr>
+            <td><code>msg</code></td>
+            <td><code>string</code></td>
+            <td>A commit message, describing what changes you made.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>File Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td><code>string</code></td>
+            <td>The file&rsquo;s name (e.g., <code>example.txt</code>).</td>
+          </tr>
+          <tr>
+            <td><code>data</code></td>
+            <td><code><a href="https://nodejs.org/api/buffer.html">Buffer</a></code></td>
+            <td>A Buffer containing the actual binary data of the file.</td>
+          </tr>
+          <tr>
+            <td><code>size</code></td>
+            <td><code>number</code></td>
+            <td>The file&rsquo;s size in bytes.</td>
+          </tr>
+          <tr>
+            <td><code>encoding</code></td>
+            <td><code>string</code></td>
+            <td>A string that specifies the file&rsquo;s encoding.</td>
+          </tr>
+          <tr>
+            <td><code>mimetype</code></td>
+            <td><code>string</code></td>
+            <td>The file&rsquo;s MIME type (e.g., <code>text/plain</code>).</td>
+          </tr>
+          <tr>
+            <td><code>md5</code></td>
+            <td><code>string</code></td>
+            <td>An MD5 hash of the file.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">POST /v1/pages/animalia/chordata/mammalia HTTP/1.1
+Host: api.thefifthworld.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+{
+  "title": "Mammal",
+  "path": "/animalia/chordata/mammalia",
+  "parent": "/animalia/chordata",
+  "description": "Mammals give birth to live young and produce milk to nurse them. As mammals ourselves, we humans often conflate our class with the animal kingdom itself, even though we compromise only a fairly small class among vertebrates.",
+  "body": "{{Stub}}
+
+**Mammals** give birth to live young and produce milk to nurse them. As mammals ourselves, we [[Homo sapiens | humans]] often conflate our class with the [[Animal | animal kingdom]] itself, even though we compromise only a fairly small class among [[Vertebrate | vertebrates]], who themselves make up only a small part of the kingdom.
+
+## Orders
+
+{{Children Type=\"Order (biological taxonomy)\"}}
+
+## External links
+
+* [Wikipedia entry](https://en.wikipedia.org/wiki/Mammalia)
+
+[[Type:Class (biological taxonomy)]]",
+  "msg": "Example for POST /pages/{path}"
+}</code>
+      </figure>
+      <h2>Response</h2>
+      <p>If you provide a path that is already in use by a different page, the endpoint responds with
+        a <code>400</code> HTTP status. If you haven&rsquo;t authenticated, or if you try to edit a
+        page that you do not have write permissions to, the endpoint responds with a <code>401</code>
+        HTTP status. If the path given in the URL does not match any existing page, the endpoint
+        responds with a <code>404</code> HTTP status. Otherwise, the API should make the changes
+        provided and return a <code>200</code> HTTP status and a JSON object representing the page,
+        reflecting the new changes.</p>
+      <table>
+        <tcaption>Response JSON</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>page</code></td>
+            <td><code>object</code></td>
+            <td>This property provides the Page object (see below) for the page requested.</td>
+          </tr>
+          <tr>
+            <td><code>markup</code></td>
+            <td><code>string</code></td>
+            <td>This property provides the rendered HTML for the current body of the page.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Page Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td><code>number</code></td>
+            <td>The page&rsquo;s unique numerical ID.</td>
+          </tr>
+          <tr>
+            <td><code>title</code></td>
+            <td><code>string</code></td>
+            <td>The title of the page.</td>
+          </tr>
+          <tr>
+            <td style="white-space: nowrap;"><code>description</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s description. It appears in the page&rsquo;s header provided to search engines,
+              social media, and other such bots and spiders.</td>
+          </tr>
+          <tr>
+            <td><code>slug</code></td>
+            <td><code>string</code></td>
+            <td>A string used to create the page&rsquo;s unique path.</td>
+          </tr>
+          <tr>
+            <td><code>path</code></td>
+            <td><code>string</code></td>
+            <td>The unique path of this page on the Fifth World website. If you add <code>https://thefifthworld.com</code>
+              to the front of this string, you&rsquo;ll have its URL. By default, we create this string by taking
+              the path of the page&rsquo;s parent and appending a <code>/</code> and the page&rsquo;s own slug to
+              it.</td>
+          </tr>
+          <tr>
+            <td><code>parent</code></td>
+            <td><code>number</code></td>
+            <td>The unique numerical ID of this page&rsquo;s parent page. If equal to <code>0</code>, that means that
+              this page does not have a parent.</td>
+          </tr>
+          <tr>
+            <td><code>depth</code></td>
+            <td><code>number</code></td>
+            <td>How &ldquo;deep&rdquo; the page appears in the overall page hierarchy. A page that has no parent
+              has a depth of 0. Such a page&rsquo;s child would have a depth of 1, and if <em>that</em> page
+              has a child, its depth will equal 2. If you wanted to trace the lineage of a page back to a
+              &ldquo;root&rdquo; page that has no parents, this number tells you how many pages you will need
+              to trace to get there.</td>
+          </tr>
+          <tr>
+            <td><code>permissions</code></td>
+            <td><code>object</code></td>
+            <td>This object has three properties: <code>read</code> (a boolean that indicates if you have read
+              permission for this page, which should alwways equal <code>true</code>), <code>write</code>
+              (a boolean that indicates if you have write permission for this page), and <code>code</code>.
+              This last three-digit code uses the same conventions as Unix permissions, with the <em>owner</em>
+              understood as the person who created the page, the <em>group</em> understood  as authenticated
+              members of the Fifth World, and the <em>world</em> understood as the general public. Pages default
+              to <code>774</code>, meaning that any authenticated member of the Fifth World can edit them, and
+              anyone in the world can read them. A hidden page has a value of <code>700</code>, allowing its
+              owner to see and edit it, but no one else. A locked page has a value of <code>444</code>, allowing
+              anyone to see it, but only administrators to edit it.</td>
+          </tr>
+          <tr>
+            <td><code>type</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s type.</td>
+          </tr>
+          <tr>
+            <td><code>tags</code></td>
+            <td><code>object</code></td>
+            <td>An object that provides the key/value pairs of the page&rsquo;s tags.</td>
+          </tr>
+          <tr>
+            <td><code>location</code></td>
+            <td><code>object</code> <em>or</em> <code style="white-space: nowrap;">boolean</code></td>
+            <td>If a page has a location associated with it (as pages of type <code>Place</code> should), this
+              property provides an object, which itself provides two properties, both numbers: <code>lat</code>
+              (which provides the location&rsquo;s latitude) and <code>lon</code> (which provides the
+              location&rsquo;s longitude). If a page does not have any location associated with it, this
+              property equals <code>false</code>.</td>
+          </tr>
+          <tr>
+            <td><code>likes</code></td>
+            <td><code>array</code></td>
+            <td>This property provides an array of the unique member ID&rsquo;s of everyone who has liked this page.</td>
+          </tr>
+          <tr>
+            <td><code>files</code></td>
+            <td><code>array</code></td>
+            <td>This property provides an array of File objects (see below).</td>
+          </tr>
+          <tr>
+            <td><code>owner</code></td>
+            <td><code>object</code></td>
+            <td>The page&rsquo;s owner (the person who first created it). This object includes properties
+              <code>id</code> (the member&rsquo;s unique numerical ID) and <code>name</code> (the string that
+              this member has provided for hens name).</td>
+          </tr>
+          <tr>
+            <td><code>history</code></td>
+            <td><code>array</code></td>
+            <td>This property provides an array of Change objects (see below), providing the history of
+              changes made to this page.</td>
+          </tr>
+          <tr>
+            <td><code>lineage</code></td>
+            <td><code>array</code></td>
+            <td>This property includes an array of this page&rsquo;s &ldquo;ancestors,&rdquo; so if this page
+              has a parent, a Page object for that page will appear in this array, and if <em>that</em> page
+              has a parent, a Page object for its parent will also appear in the array. The &ldquo;root&rdquo;
+              page (the one that has no parent of its own) appears first, and the page&rsquo;s direct parent
+              comes last. If the page has no parent, then you will find an empty array here.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>File Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td><code>string</code></td>
+            <td>The unique key used to find the file on the CDN.</td>
+          </tr>
+          <tr>
+            <td><code>thumbnail</code></td>
+            <td><code>string</code></td>
+            <td>The unique key used to find the file&rsquo;s thumbnail on the CDN. Only images have thumbnails.</td>
+          </tr>
+          <tr>
+            <td><code>mime</code></td>
+            <td><code>string</code></td>
+            <td>The MIME type of this file.</td>
+          </tr>
+          <tr>
+            <td><code>size</code></td>
+            <td><code>number</code></td>
+            <td>The file&rsquo;s size in bytes.</td>
+          </tr>
+          <tr>
+            <td><code>readableSize</code></td>
+            <td><code>string</code></td>
+            <td>The file&rsquo;s size, parsed into a human-readable string (e.g., if <code>size</code> equals
+              104,864, then <code>readableSize</code> will equal <em>104.9 kB</em>).</td>
+          </tr>
+          <tr>
+            <td><code>page</code></td>
+            <td><code>number</code></td>
+            <td>The unique numerical ID of the page this file belongs to.</td>
+          </tr>
+          <tr>
+            <td><code>timestamp</code></td>
+            <td><code>number</code></td>
+            <td>When the uploader uploaded this file, presented as a Unix Epoch timestamp (the number of seconds
+              since midnight on 1 January 1970 UTC).</td>
+          </tr>
+          <tr>
+            <td><code>uploader</code></td>
+            <td><code>number</code></td>
+            <td>The unique numerical ID of the member who uploaded this file.</td>
+          </tr>
+          <tr>
+            <td><code>urls</code></td>
+            <td><code>object</code></td>
+            <td>An object with two properties: <code>full</code> (providing the URL from which you can access the
+              full file on the CDN) and <code>thumbnail</code> (providing the URL from which you can access the
+              thumbnail on the CDN). Only images have thumbnails.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Change Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td><code>number</code></td>
+            <td>A unique numerical ID for this change.</td>
+          </tr>
+          <tr>
+            <td style="white-space: nowrap;"><code>timestamp</code></td>
+            <td><code>string</code></td>
+            <td>The time when this change happened.</td>
+          </tr>
+          <tr>
+            <td><code>msg</code></td>
+            <td><code>string</code></td>
+            <td>The commit message that the editor provided to explain the change and why hen made it.</td>
+          </tr>
+          <tr>
+            <td><code>content</code></td>
+            <td><code>object</code></td>
+            <td>An object providing the content of the changes made. Many of these properties map to those in the
+              Page object, but they usually include the <code>body</code> property as well. This property includes
+              the unparsed wikitext of the page. When you view the page, the content displayed comes from the
+              <code>body</code> property of the most recent change made, parsed into HTML.</td>
+          </tr>
+          <tr>
+            <td><code>editor</code></td>
+            <td><code>object</code></td>
+            <td>An object with two properties: <code>id</code> (the unique numerical ID of the member who made
+              this change) and <code>name</code> (the name that the member who made this change provided for
+              henself).</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-js">{
+  "page": {
+    "id": 333,
+    "title": "Mammal",
+    "description": "Mammals give birth to live young and produce milk to nurse them. As mammals ourselves, we humans often conflate our class with the animal kingdom itself, even though we compromise only a fairly small class among vertebrates.",
+    "slug": "mammalia",
+    "path": "/animalia/chordata/mammalia",
+    "parent": 301,
+    "depth": 2,
+    "permissions": {
+      "read": true,
+      "write": true,
+      "code": 774
+    },
+    "type": "Class (biological taxonomy)",
+    "tags": {},
+    "location": false,
+    "likes": [],
+    "files": [],
+    "owner": {
+      "id": 1048,
+      "name": "Fifth World Bot"
+    },
+    "history": [
+      {
+        "id": 119807,
+        "timestamp": "2020-01-09T01:53:33.000Z",
+        "msg": "Initial text",
+        "content": {
+          "title": "Mammalia",
+          "path": "/animalia/chordata/mammalia",
+          "parent": "/animalia/chordata",
+          "body": "{{Stub}}\n\nThe class ***Mammalia*** belongs to the phylum [[/animalia/chordata | Chordata]].\n\n## Orders\n\n{{Children Type=\"Order (biological taxonomy)\"}}\n\n## External links\n\n* [Wikipedia entry](https://en.wikipedia.org/wiki/Mammalia)\n\n[[Type:Class (biological taxonomy)]]",
+          "description": "The class Mammalia belongs to the phylum Chordata."
+        },
+        "editor": {
+          "name": "Fifth World Bot",
+          "id": 1048
+        }
+      }
+    ],
+    "lineage": [
+      {
+        "id": 300,
+        "title": "Animal",
+        "description": "Animals form one of the kingdoms of life.",
+        "slug": "animalia",
+        "path": "/animalia",
+        "parent": 0,
+        "depth": 0,
+        "permissions": 774,
+        "type": "Kingdom (biological taxonomy)",
+        "tags": {},
+        "location": false,
+        "likes": [],
+        "files": [],
+        "owner": {
+          "id": 1048,
+          "name": "Fifth World Bot"
+        },
+        "history": [...]
+      },
+      {
+        "id": 301,
+        "title": "Vertebrate",
+        "description": "Vertebrates include humans and other mammals, as well as fish, birds, and most of the other complex living things that we normally think of when we think of animals (even though insects outnumber us all by a wide margin).",
+        "slug": "chordata",
+        "path": "/animalia/chordata",
+        "parent": 300,
+        "depth": 1,
+        "permissions": 774,
+        "type": "Phylum (biological taxonomy)",
+        "tags": {},
+        "location": false,
+        "likes": [],
+        "files": [],
+        "owner": {
+          "id": 1048,
+          "name": "Fifth World Bot"
+        },
+        "history": [...]
+      }
+    ]
+  },
+  "markup": "&lt;aside&gt;We only have a &lt;strong&gt;stub&lt;/strong&gt; for this article right now. Help us out by fleshing it out further.&lt;/aside&gt;\n&lt;p&gt;&lt;strong&gt;Mammals&lt;/strong&gt; give birth to live young and produce milk to nurse them. As mammals ourselves, we &lt;a href=\"/new?title=Homo%20sapiens\" class=\"isNew\"&gt;humans&lt;/a&gt; often conflate our class with the &lt;a href=\"/animalia\" title=\"Animal\"&gt;animal kingdom&lt;/a&gt; itself, even though we compromise only a fairly small class among &lt;a href=\"/animalia/chordata\" title=\"Vertebrate\"&gt;vertebrates&lt;/a&gt;, who themselves make up only a small part of the kingdom.&lt;/p&gt;\n"
+}</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
