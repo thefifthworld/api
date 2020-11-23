@@ -33,7 +33,8 @@
         This makes the page visible to everyone, but takes away write permissions from everyone
         except for administrators (who always have access to everything). Note that this includes
         the page&rsquo;s owner, as well. Only an authenticated administrator can use this
-        endpoint.</p>
+        endpoint. You can reverse the effects of this endpoint with the
+        <code><a href="patch-unlock.html">PATCH /pages/{path}/unlock</a></code> endpoint.</p>
       <h2>Request</h2>
       <table>
         <tcaption>HTTP Headers</tcaption>
