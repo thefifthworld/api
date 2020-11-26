@@ -705,6 +705,54 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /autocomplete', () => {
+    it('returns pages that match fragment', async () => {
+      expect.assertions(6)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test' })
+      expect(res.body.found).toEqual(1)
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.pages[0].id).toBeDefined()
+      expect(typeof res.body.pages[0].id).toEqual('number')
+      expect(res.body.pages[0].path).toEqual('/test-page')
+      expect(res.body.pages[0].title).toEqual('Test Page')
+    })
+
+    it('can match a path query', async () => {
+      expect.assertions(6)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', parent: '/test-page', body: 'This is a child page.' }, editor, 'Initial text', db)
+      const res = await request.post('/autocomplete').send({ path: '/test' })
+      expect(res.body.found).toEqual(2)
+      expect(res.body.pages).toHaveLength(2)
+      expect(res.body.pages[1].id).toBeDefined()
+      expect(typeof res.body.pages[1].id).toEqual('number')
+      expect(res.body.pages[1].path).toEqual('/test-page/child-page')
+      expect(res.body.pages[1].title).toEqual('Child Page')
+    })
+
+    it('can limit query by type', async () => {
+      expect.assertions(6)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', parent: '/test-page', body: 'This is a child page.', type: 'Test' }, editor, 'Initial text', db)
+      const res = await request.post('/autocomplete').send({ path: '/test', type: 'Test' })
+      expect(res.body.found).toEqual(1)
+      expect(res.body.pages).toHaveLength(1)
+      expect(res.body.pages[0].id).toBeDefined()
+      expect(typeof res.body.pages[0].id).toEqual('number')
+      expect(res.body.pages[0].path).toEqual('/test-page/child-page')
+      expect(res.body.pages[0].title).toEqual('Child Page')
+    })
+
+    it('doesn\'t return more than five', async () => {
+      expect.assertions(2)
+      const editor = await Member.load(2, db)
+      for (let i = 2; i < 8; i++) await Page.create({ title: `Test ${i}`, body: 'This is a test' }, editor, 'Initial text', db)
+      const res = await request.post('/autocomplete').send({ fragment: 'Test' })
+      expect(res.body.found).toEqual(5)
+      expect(res.body.pages).toHaveLength(5)
+    })
+  })
+
   describe('GET /near/:lat/:lon/:dist*?', () => {
     it('returns places near a point', async () => {
       expect.assertions(10)

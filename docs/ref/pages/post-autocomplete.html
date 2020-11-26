@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>POST /autocomplete</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li><a href="index.html">Pages API</a></li>
+        <li class="current">Autocomplete</li>
+      </ul>
+      <h1>Autocomplete</h1>
+      <p>This endpoint essentially provides a more specialized version of the
+        <code><a href="get-pages.html">GET /pages</a></code> endpoint. It provides a maximum of
+        five matching pages, and only lists the ID, title, and path for each, making it ideal
+        for an autocomplete function showing several pages that a user might mean, given
+        the string of what she has typed so far.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>Body Parameters</tcaption>
+        <thead>
+          <tr>
+            <th>Query Parameters</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>fragment</code></td>
+            <td>The endpoint will return any pages that use this substring in their titles.</td>
+          </tr>
+          <tr>
+            <td><code>path</code></td>
+            <td>The endpoint will return any pages that <em>begins with</em> this string. This will
+              usually match a page and its descendants, as well as any other pages that happen to
+              share the first several characters of their string (e.g., <code>/anim</code> will
+              match <code>/animalia</code> and all of its children, as well as <code>/animism</code>
+              and all of <em>its</em> children).</td>
+          </tr>
+          <tr>
+            <td><code>type</code></td>
+            <td>A page type to limit the search to. If provided, the endpoint will only return pages
+              that also match the given type.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">POST /v1/autocomplete HTTP/1.1
+Host: api.thefifthworld.com
+
+fragment=Anim</code>
+      </figure>
+      <h2>Response</h2>
+      <p>The endpoint should always respond with a <code>200</code> HTTP status and a JSON object.
+        The object has two properties: <code>found</code> and <code>pages</code>, with <code>found</code>
+        being a number equal to the length of the array in <code>pages</code>. When the criteria
+        provided don&rsquo;t match anything, <code>found</code> equals zero, and <code>pages</code>
+        offers an empty array.</p>
+      <table>
+        <tcaption>JSON Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>pages</code></td>
+            <td><code>AbbreviatedPage[]</code></td>
+            <td>An array of abbreviated page objects.</td>
+          </tr>
+          <tr>
+            <td><code>found</code></td>
+            <td><code>number</code></td>
+            <td>The length of the <code>pages</code> array returned.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Abbreviated Page Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td><code>number</code></td>
+            <td>The page&rsquo;s unique ID.</td>
+          </tr>
+          <tr>
+            <td><code>path</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s unique path.</td>
+          </tr>
+          <tr>
+            <td><code>title</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s title.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-js">{
+  "pages": [
+    {
+      "id": 130,
+      "path": "/animism",
+      "title": "Animism"
+    },
+    {
+      "id": 300,
+      "path": "/animalia",
+      "title": "Animal"
+    }
+  ],
+  "found": 2
+}</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

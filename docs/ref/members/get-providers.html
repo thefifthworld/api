@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GET /members/providers</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li><a href="index.html">Members API</a></li>
+        <li class="current">Get OAuth 2.0 providers</li>
+      </ul>
+      <h1>Get OAuth 2.0 providers</h1>
+      <p>This endpoint returns a list of OAuth 2.0 hosts that the currently logged-in member has added to her
+        account. This endpoint works almost exactly like
+        <code><a href="get-auths.html">GET /members/{id}/auths</a></code>,
+        except where that endpoint expects you to identify the member in question with a path parameter (and thus
+        allowing you to request this information for any arbitrary member), this endpoint only allows you to find
+        it for your own account after you have <a href="post-auth.html">authenticated</a>.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>HTTP Headers</tcaption>
+        <thead>
+        <tr>
+          <th>HTTP Header</th>
+          <th>Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td><code>Authorization</code></td>
+          <td>A valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>
+        </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">GET /v1/members/providers HTTP/1.1
+Host: api.thefifthworld.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code>
+      </figure>
+      <h2>Response</h2>
+      <p>If you&rsquo;ve provided a valid JSON Web Token and the API can save the token given, it responds with a
+        <code>200</code> HTTP status and a JSON object. This object has a single property, <code>auths</code>, which
+        provides an array of strings identifying those providers that you have connected to your account.</p>
+      <p>If the API could not verify your authentication, it responds with a <code>401</code> HTTP status.</p>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-js">{
+  "auths": [ "github", "discord" ]
+}</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

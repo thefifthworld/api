@@ -8,6 +8,7 @@ const pages = require('./routes/pages')
 
 const api = express()
 const router = express.Router()
+api.use('/docs', express.static('docs'))
 
 api.use(bodyParser.urlencoded({ extended: true }))
 api.use(bodyParser.json({ limit: '100mb', extended: true }))
