@@ -195,6 +195,12 @@ pages.get('/requested', async (req, res) => {
   res.status(200).json(links)
 })
 
+// GET /requested/:num
+pages.get('/requested/:num', async (req, res) => {
+  const links = await LinkHandler.loadRequested(db, parseInt(req.params.num))
+  res.status(200).json(links)
+})
+
 // GET /checkpath
 pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
   const path = req.originalUrl.substr(10)

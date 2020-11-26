@@ -61,6 +61,8 @@ class LinkHandler {
   /**
    * Load a list of requested links and which pages are requesting them.
    * @param db {!Pool} - The database connection.
+   * @param num {number=} - Optional. The maximum number of links to return.
+   *   (Default: 25)
    * @param sortFn {function=} - Optional. A function to use to sort the array
    *   of links. By default, it is sorted by the number of links descending.
    * @returns {Promise<{path: string, text: string, isNew: boolean}[]>} -
@@ -68,9 +70,9 @@ class LinkHandler {
    *   requested links saved to the database.
    */
 
-  static async loadRequested (db, sortFn = (a, b) => b.links.length - a.links.length) {
+  static async loadRequested (db, num = 25, sortFn = (a, b) => b.links.length - a.links.length) {
     const links = []
-    const requests = await db.run('SELECT DISTINCT title FROM links WHERE dest IS NULL;')
+    const requests = await db.run(`SELECT DISTINCT title FROM links WHERE dest IS NULL LIMIT ${num};`)
     if (requests) {
       for (const request of requests) {
         const { title } = request
