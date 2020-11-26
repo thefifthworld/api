@@ -70,7 +70,7 @@ class LinkHandler {
 
   static async loadRequested (db, sortFn = (a, b) => b.links.length - a.links.length) {
     const links = []
-    const requests = await db.run('SELECT DISTINCT title FROM links;')
+    const requests = await db.run('SELECT DISTINCT title FROM links WHERE dest IS NULL;')
     if (requests) {
       for (const request of requests) {
         const { title } = request
