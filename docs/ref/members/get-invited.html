@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>GET /members/invited</title>
+  <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+  <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+  <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+  <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+  <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="A design system for the Fifth World." />
+</head>
+<body class="thefifthworld">
+<header>
+  <h1 class="logo">
+    <a href="https://thefifthworld.com">
+      <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+    </a>
+  </h1>
+</header>
+<main>
+  <ul class="breadcrumbs">
+    <li><a href="../..">API Documentation</a></li>
+    <li><a href="..">Reference</a></li>
+    <li><a href="index.html">Members API</a></li>
+    <li class="current">Get invitations sent</li>
+  </ul>
+  <h1>Get invitations sent</h1>
+  <p>When you <a href="post-invitations.html">send invitations</a>, the API creates a member account, which
+    the person can activate by accepting the invitation. This endpoint fetches an array of the member accounts
+    created by the invitations you sent, including whether or not the person has accepted them yet.</p>
+  <h2>Request</h2>
+  <table>
+    <tcaption>HTTP Headers</tcaption>
+    <thead>
+      <tr>
+        <th>HTTP Header</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Authorization</code></td>
+        <td>A valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Examples</h3>
+  <figure class="request-response">
+    <figcaption>Example Request</figcaption>
+    <code class="language-http">GET /v1/members/invited HTTP/1.1
+Host: api.thefifthworld.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code>
+  </figure>
+  <h2>Response</h2>
+  <p>If you&rsquo;ve provided a valid JSON Web Token, the API returns an array of the member objects for
+    members that you have invited. This could return an empty array if you&rsquo;ve never invited anyone.</p>
+  <p>If the API could not verify your authentication, it responds with a <code>401</code> HTTP status.</p>
+  <table>
+    <tcaption>Member object</tcaption>
+    <thead>
+    <tr>
+      <th>Property</th>
+      <th>Value Type</th>
+      <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td><code>number</code></td>
+        <td>The unique numerical ID for this account.</td>
+      </tr>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>string</code></td>
+        <td><em>Optional.</em> The name this member has given for henself. This property only appears if the member
+          has provided a name.</td>
+      </tr>
+      <tr>
+        <td><code>bio</code></td>
+        <td><code>string</code></td>
+        <td><em>Optional.</em> A biographical snippet written by the member, in unparsed
+          <a href="https://thefifthworld.com/markdown">Fifth World Markdown</a>.</td>
+      </tr>
+      <tr>
+        <td><code>links</code></td>
+        <td><code>object</code></td>
+        <td>An object of links that the member has added to hens account. Properties include
+          <code>facebook</code>, <code>twitter</code>, <code>github</code>, <code>patreon</code>, and
+          <code>web</code>.</td>
+      </tr>
+      <tr>
+        <td><code>nopass</code></td>
+        <td><code>boolean</code></td>
+        <td>If <code>true</code>, this member has not yet set a passphrase on hens account. This happens when
+          hen has not accepted the invitation yet, so when <code>nopass</code> equals <code>true</code>, then
+          <code>accepted</code> equals <code>false</code>, and vice versa.</td>
+      </tr>
+      <tr>
+        <td><code>admin</code></td>
+        <td><code>boolean</code></td>
+        <td>If <code>true</code>, then this member has administrative privileges.</td>
+      </tr>
+      <tr>
+        <td><code>accepted</code></td>
+        <td><code>boolean</code></td>
+        <td>If <code>true</code>, then this person has accepted hens invitation and become a member. If
+          <code>false</code>, then this person has not yet accepted hens invitation, and it remains only
+          a potential member account.</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Example</h3>
+  <figure class="request-response">
+    <figcaption>Example Response</figcaption>
+    <code class="language-js">[
+  {
+    "id": 1,
+    "name": "Ish",
+    "bio": "Hello world!",
+    "links": {
+      "facebook": "https://facebook.com/thefifthworld",
+      "twitter": "https://twitter.com/thefifthworld",
+      "github": "https://github.com/thefifthworld",
+      "patreon": "https://patreon.com/thefifthworld"
+    },
+    "nopass": false,
+    "admin": false,
+    "accepted": true
+  },
+  {
+    "id": 2,
+    "links": {},
+    "nopass": true,
+    "admin": false,
+    "accepted": false
+  }
+]</code>
+  </figure>
+</main>
+<footer>
+  <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+  <p class="copyleft">
+    <span class="icons">
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+      <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+    </span>
+    <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+  </p>
+</footer>
+<script src="https://design.thefifthworld.com/js/bundle.js"></script>
+</body>
+</html>

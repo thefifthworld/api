@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GET /requested/{num}</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li><a href="index.html">Pages API</a></li>
+        <li class="current">Get requested links</li>
+      </ul>
+      <h1>Get requested links</h1>
+      <p>This endpoint returns the links that pages have requested, but do not yet exist.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>Path Parameters</tcaption>
+        <thead>
+          <tr>
+            <th>Path Parameters</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>num</code></td>
+            <td><em>Optional.</em> If provided, this sets the number of links to return. So, for example,
+              <code>/v1/requested/50</code> will return the 50 most frequently requested link. A request
+              to <code>/v1/requested</code>, without the <code>num</code> parameter, defaults to 25.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">GET /v1/requested HTTP/1.1
+Host: api.thefifthworld.com</code>
+      </figure>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">GET /v1/requested/30 HTTP/1.1
+Host: api.thefifthworld.com</code>
+      </figure>
+      <h2>Response</h2>
+      <p>This endpoint responds with a <code>200</code> HTTP status and an array of link objects.</p>
+      <table>
+        <tcaption>Link Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>title</code></td>
+            <td><code>string</code></td>
+            <td>Requested links take the form of a link on a page that doesn&rsquo;t go to any existing
+              page. This parameter provides the string that these pages tried to link to as a title.</td>
+          </tr>
+          <tr>
+            <td><code>links</code></td>
+            <td style="white-space: nowrap;"><code>object[]</code></td>
+            <td>An array of objects representing the pages that have requested this link. Each
+              object has <code>id</code>, <code>title</code>, and <code>path</code> properties,
+              presenting each page&rsquo;s ID, title, and path, respectively.</tr>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-js">[
+  {
+    "title": "Salisbury Plain",
+    "links": [
+      {
+        "id": 44377,
+        "title": "Stonehenge",
+        "path": "/eurasia/europe/british-isles/avon/stonehenge"
+      }
+    ]
+  }
+]</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

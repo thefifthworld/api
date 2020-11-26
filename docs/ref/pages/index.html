@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Pages API</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../..">API Documentation</a></li>
+        <li><a href="..">Reference</a></li>
+        <li class="current">Pages API</li>
+      </ul>
+      <h1>Pages API</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th width="40%">Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-pages.html"><code>/pages</code></a></td>
+            <td>Get pages that match given criteria.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-pages.html"><code>/pages</code></a></td>
+            <td>Create a new page.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-page.html"><code>/pages/{path}</code></a></td>
+            <td>Retrieve a particular page.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-page.html"><code>/pages/{path}</code></a></td>
+            <td>Update a page.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-rollback.html"><code>/pages/{path}/rollback/{id}</code></a></td>
+            <td>Roll a page back to a given version.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-like.html"><code>/pages/{path}/like</code></a></td>
+            <td>Like a page.</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><a href="delete-like.html"><code>/pages/{path}/like</code></a></td>
+            <td>Remove your &ldquo;like&rdquo; from a page.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-lock.html"><code>/pages/{path}/lock</code></a></td>
+            <td>Lock a page so that no one can make changes to it.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-unlock.html"><code>/pages/{path}/unlock</code></a></td>
+            <td>Unlock a page so that members can make changes to it.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-hide.html"><code>/pages/{path}/hide</code></a></td>
+            <td>Hide a page so that only its creator or admins can see it.</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><a href="patch-unhide.html"><code>/pages/{path}/unhide</code></a></td>
+            <td>Unhide a page so that everyone can see it.</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><a href="post-autocomplete.html"><code>/autocomplete</code></a></td>
+            <td>Retrieve a list of pages that a given string might refer to.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-near.html"><code>/near/{lat}/{lon}/{dist}</code></a></td>
+            <td>Get a list of places near a given location.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-updates.html"><code>/updates/{num}</code></a></td>
+            <td>Get a list of the most recently updated pages.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-requested.html"><code>/requested/{num}</code></a></td>
+            <td>Get a list of links requested by other pages.</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><a href="get-checkpath.html"><code>/checkpath/{path}</code></a></td>
+            <td>Check the validity of a given path.</td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

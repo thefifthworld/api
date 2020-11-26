@@ -170,7 +170,7 @@ pages.post('/autocomplete', optionalLogIn, async (req, res) => {
 pages.get('/near/:lat/:lon/:dist*?', optionalLogIn, async (req, res) => {
   const { lat, lon, dist } = req.params
   if (lat && lon) {
-    const pages = await Page.placesNear([ lat, lon ], dist, req.user, db)
+    const pages = await Page.placesNear([ lat, lon ], parseFloat(dist), req.user, db)
     res.status(200).json(pages.map(page => page.export()))
   } else {
     res.sendStatus(500)
@@ -192,6 +192,12 @@ pages.get('/updates/:num', async (req, res) => {
 // GET /requested
 pages.get('/requested', async (req, res) => {
   const links = await LinkHandler.loadRequested(db)
+  res.status(200).json(links)
+})
+
+// GET /requested/:num
+pages.get('/requested/:num', async (req, res) => {
+  const links = await LinkHandler.loadRequested(db, parseInt(req.params.num))
   res.status(200).json(links)
 })
 

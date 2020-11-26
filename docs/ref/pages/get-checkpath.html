@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GET /checkpath/{path}</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+  <header>
+    <h1 class="logo">
+      <a href="https://thefifthworld.com">
+        <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+      </a>
+    </h1>
+  </header>
+  <main>
+    <ul class="breadcrumbs">
+      <li><a href="../..">API Documentation</a></li>
+      <li><a href="..">Reference</a></li>
+      <li><a href="index.html">Pages API</a></li>
+      <li class="current">Check path</li>
+    </ul>
+    <h1>Check path</h1>
+    <p>This endpoint checks if a path will work or not. This includes checking to make sure that
+      no other page has already used it, as well as checking that it doesn&rsquo;t match any
+      special, reserved system paths.</p>
+    <h2>Request</h2>
+    <table>
+      <tcaption>Path Parameters</tcaption>
+      <thead>
+        <tr>
+          <th>Path&nbsp;Parameters</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>The path to check. This parameter can include the <code>/</code> character, as in
+            <code>/v1/checkpath/totally/open/path</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Examples</h3>
+    <figure class="request-response">
+      <figcaption>Example Request</figcaption>
+      <code class="language-http">GET /v1/checkpath/pathtotest HTTP/1.1
+Host: api.thefifthworld.com</code>
+    </figure>
+    <figure class="request-response">
+      <figcaption>Example Request</figcaption>
+      <code class="language-http">GET /v1/checkpath/path/to/test HTTP/1.1
+Host: api.thefifthworld.com</code>
+    </figure>
+    <h2>Response</h2>
+    <p>This endpoint responds with a <code>200</code> HTTP status and an object describing the
+      result of your check.</p>
+    <table>
+      <tcaption>JSON Object</tcaption>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value&nbsp;Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ok</code></td>
+          <td><code>boolean</code></td>
+          <td>If <code>true</code>, the path should work. If <code>false</code>, the path won&rsquo;t
+            work.</td>
+        </tr>
+        <tr>
+          <td><code>error</code></td>
+          <td><code>string</code></td>
+          <td>You will only receive this property when <code>ok</code> equals <code>false</code>.
+            This provides a textual description of why the path doesn&rsquo;t work, suitably for
+            displaying back to the user.</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Example</h3>
+    <figure class="request-response">
+      <figcaption>Example Response</figcaption>
+      <code class="language-js">{
+  "ok": true
+}</code>
+    </figure>
+    <figure class="request-response">
+      <figcaption>Example Response</figcaption>
+      <code class="language-js">{
+  "ok": false,
+  "error": "A page with the path &lt;code&gt;/animism&lt;/code&gt; already exists."
+}</code>
+    </figure>
+  </main>
+  <footer>
+    <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+    <p class="copyleft">
+      <span class="icons">
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+      </span>
+      <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    </p>
+  </footer>
+  <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>The Fifth World API Quick Start</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="index.html">API Documentation</a></li>
+        <li class="current">Quick Start</li>
+      </ul>
+      <h1>Quick Start</h1>
+      <p>Walking you through the steps of how to build a site or app lies beyond what we can cover here. We'll
+        make reference to how we did things for the Fifth World website (which we built with JavaScript using
+        <a href="https://nodejs.org">Node.js</a>, <a href="https://expressjs.com">Express.js</a>, and
+        <a href="http://passportjs.org">Passport.js</a>, but you'll have to figure out how that maps to your
+        own project yourself.
+
+        <h2>Example: The Fifth World Map</h2>
+        <p>Let's say that you want to create a web app that shows all of the publicly-available locations
+          listed on the Fifth World website. In this case, you really just need one endpoint: the
+          <a href="/docs/ref/pages/get-pages">Get pages endpoint</a>. Since you just want the publicly-available
+      locations, you don&rsquo;t even need to authenticate.
+      <h2>Example: The Fifth World Writer's App</h2>
+      <p>Let's say you want to provide a distraction-free writing environment specifically for writing
+        stories set in the Fifth World. You have some ideas for soothing jungle sounds and a nice background
+        and some subtle animations that you think will really help writers focus and feel the setting
+        (actually, this sounds pretty great, maybe we should add it to our roadmap&hellip;)</p>
+      <p>For this app, you'll need to deal with <a href="auth.html">authentication</a>>. After all,
+        you don't want every writer who uses your app to write stories credited to <em>you</em>, you want them to
+        write their <em>own</em> stories. That means you'll have to give your users the chance to log in. That
+        will mean making requests to the <a href="/docs/ref/members/post-auth">authentication endpoint</a>
+        to get a JSON Web  Token. You'll have to keep this token handy. Cookies work great for a website or
+        web app, but in this case we want to make a native app, so we store it as a variable on the device.
+        Since the token expires after 15 minutes, we'll need to make a request to the
+        <a href="/docs/ref/members/post-reauth">renew authentication endpoint</a>
+        in the background a little more frequently than that to make sure that our token doesn't expire.</p>
+      <p>Next, the user goes to our lovely writing screen. Our writers might not know what they want to call
+        their stories at first, so we don't bother them with such things just yet. We keep it local on the
+        device and autosave every minute or so. But when you tell us your finished, you back out of the
+        writing environment to a page that shows you all of your current drafts. From here, you can choose
+        to publish a story. There we ask you for anything still missing that a page will need, like title,
+        if we should make it the child of any other page, and tags like author, or if we should treat this
+        as a chapter of a longer work. Once we have all of that, the user presses the <em>Publish</em> button, and
+        our app makes a call to the <a href="/docs/ref/pages/post-pages">Create a new page endpoint</a>
+        to publish the page.</p>
+      <p>After the user has published her first story, we have a list of stories in various states of
+        publication &mdash; some she's begun on our app, some she's begun on the site, and some published. So
+        now we need to make our list of drafts a little more complicated, combining the list we have locally
+        on the device with the results of a call to the <a href="/docs/ref/pages/get-pages">Get pages endpoint</a>.
+        Since we're supplying the user's token, we'll even get unpublished pages that she's created on the site
+        that only she can see. We copy all of those pages to the list we keep on the device, and we add some data
+        in the background that associates the unique path of a published story with the copy we're keeping locally,
+        which also  helps us tell which ones we've published and which we haven't.</p>
+      <p>Now when the user visits the page with her drafts, we make a quick check to the\
+        <a href="/docs/ref/pages/get-pages">Get pages endpoint</a> to  potentially update our list, just in case
+        anything has changed. And when she publishes changes to  stories that she's already published, we use
+        the path we've saved to know to send our request to the <a href="/docs/ref/pages/post-pages-path">Update
+        page endpoint</a>(using the path we have for the published story) instead of simply posting to the
+        <a href="/docs/ref/pages/post-pages">Create a new page endpoint</a>.</p>
+      <aside>
+        <h3>Exmaple: The Fifth World Website</h3>
+        <p>The two examples above &mdash; at least for the time being &mdash; remain hypothetical. For a solid,
+        real-world example of how you might use the Fifth World API, take a look at the
+        <a href="https://github.com/thefifthworld/server">source code</a> for the Ffith World website,
+        available on <a href="https://github.com/thefifthworld">GitHub</a>.</p>
+      </aside>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+                <span class="icons">
+                  <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+                  <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+                  <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+                </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
