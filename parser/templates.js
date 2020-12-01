@@ -143,7 +143,7 @@ const loadChildren = async (template, params, path, member, db, asGallery = fals
   if (children && asGallery) {
     const items = children.map(child => renderAsGalleryItem(child)).filter(c => c !== null)
     const str = items.length > 0
-      ? `<ul class="thumbnails">${items.join()}</ul>`
+      ? `<ul class="thumbnails">${items.join('')}</ul>`
       : ''
     return { match: template, str }
   } else if (children) {
