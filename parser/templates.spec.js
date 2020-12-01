@@ -227,7 +227,7 @@ describe('parseTemplates', () => {
       const h5 = new FileHandler({ name: 'c5.jpg', thumbnail: 'c5.thumb.jpg', mime: 'image/jpeg', size: 50000, page: c5.id, uploader: editor.id }); await h5.save(db)
       const actual = await parseTemplates('{{Gallery}}', parent.path, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<ul class="thumbnails"><li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li>,<li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li></ul>`)
+      expect(actual).toEqual(`<ul class="thumbnails"><li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li></ul>`)
     })
 
     it('creates a gallery of a specified parent', async () => {
@@ -240,7 +240,7 @@ describe('parseTemplates', () => {
       const h2 = new FileHandler({ name: 'c2.jpg', thumbnail: 'c2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: c2.id, uploader: editor.id }); await h2.save(db)
       const actual = await parseTemplates('{{Gallery of="/test-page"}}', null, null, db)
       await testUtils.resetTables(db)
-      expect(actual).toEqual(`<ul class="thumbnails"><li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li>,<li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li></ul>`)
+      expect(actual).toEqual(`<ul class="thumbnails"><li><a href="/test-page/child-2"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c2.thumb.jpg" alt="Child 2" /></a></li><li><a href="/test-page/child-1"><img src="https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/c1.thumb.jpg" alt="Child 1" /></a></li></ul>`)
     })
   })
 
