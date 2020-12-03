@@ -142,7 +142,7 @@ class Page {
      * image, or a File if it's anything else.
      */
 
-    let type = data.type || tagHandler.get('type', true)
+    let type = data.type || tagHandler.get('type', true) || this.type
     if (locationHandler) type = 'Place'
     if (!type && data.files && data.files.file) {
       type = data.files.file.mimetype.startsWith('image/') ? 'Art' : 'File'
