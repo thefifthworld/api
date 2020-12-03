@@ -308,6 +308,23 @@ describe('Page', () => {
       expect(pagesCheck).toHaveLength(1)
       expect(changesCheck).toHaveLength(2)
     })
+
+    it('keeps an art page\'s implicit type', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test.',
+        files: { file: testUtils.mockTXT() }
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      await page.save({ body: 'This is an updated body.' }, editor, 'Test update', db)
+      const file = page && page.files && page.files.length > 0 ? page.files[0] : null
+      await FileHandler.remove(file.name, db)
+      await testUtils.resetTables(db)
+      expect(page.type).toEqual('File')
+    })
   })
 
   describe('rollback', () => {
