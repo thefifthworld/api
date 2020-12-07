@@ -244,7 +244,7 @@ class Member {
     if (rows) {
       for (const row of rows) {
         const member = await Member.load(row.inviteTo, db)
-        const privatized = member ? member.privatize() : {}
+        const privatized = member ? member.privatize([ 'password', 'invitations' ]) : {}
         accounts.push(Object.assign({}, privatized, { accepted: Boolean(row.accepted) }))
       }
     }
