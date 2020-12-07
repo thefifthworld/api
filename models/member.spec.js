@@ -641,7 +641,7 @@ describe('Member', () => {
     })
 
     it('privatizes member accounts', async () => {
-      expect.assertions(4)
+      expect.assertions(2)
       const addrs = [ 'invited1@thefifthworld.com' ]
       await testUtils.populateMembers(db)
       const inviter = await Member.load(2, db)
@@ -652,8 +652,6 @@ describe('Member', () => {
       const actual = await inviter.getInvited(db)
       await testUtils.resetTables(db)
       expect(actual[0].password).not.toBeDefined()
-      expect(actual[0].email).not.toBeDefined()
-      expect(actual[0].active).not.toBeDefined()
       expect(actual[0].invitations).not.toBeDefined()
     })
   })
