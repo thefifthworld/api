@@ -81,6 +81,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
           has provided a name.</td>
       </tr>
       <tr>
+        <td><code>email</code></td>
+        <td><code>string</code></td>
+        <td>The email address associated with this account.</td>
+      </tr>
+      <tr>
         <td><code>bio</code></td>
         <td><code>string</code></td>
         <td><em>Optional.</em> A biographical snippet written by the member, in unparsed
@@ -92,6 +97,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
         <td>An object of links that the member has added to hens account. Properties include
           <code>facebook</code>, <code>twitter</code>, <code>github</code>, <code>patreon</code>, and
           <code>web</code>.</td>
+      </tr>
+      <tr>
+        <td><code>active</code></td>
+        <td><code>boolean</code></td>
+        <td>If <code>true</code>, this member has an active status on the website. If set to
+          <code>false</code>, either the member has not yet accepted her invitation, or an
+          administrator deactivated her account.</td>
       </tr>
       <tr>
         <td><code>nopass</code></td>
@@ -106,7 +118,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
         <td>If <code>true</code>, then this member has administrative privileges.</td>
       </tr>
       <tr>
-        <td><code>accepted</code></td>
+        <td style="white-space: nowrap;"><code>accepted</code></td>
         <td><code>boolean</code></td>
         <td>If <code>true</code>, then this person has accepted hens invitation and become a member. If
           <code>false</code>, then this person has not yet accepted hens invitation, and it remains only
