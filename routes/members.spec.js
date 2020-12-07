@@ -194,7 +194,7 @@ describe('Members API', () => {
     })
 
     it('returns members you\'ve invited', async () => {
-      expect.assertions(10)
+      expect.assertions(14)
       const normal = await Member.load(2, db)
       const emails = [ 'one@thefifthworld.com', 'two@thefifthworld.com' ]
       await normal.sendInvitations(emails, () => {}, db)
@@ -204,12 +204,16 @@ describe('Members API', () => {
       expect(res.status).toEqual(200)
       expect(res.body).toHaveLength(2)
       expect(res.body[0].id).not.toBeNaN()
+      expect(res.body[0].email).toEqual('one@thefifthworld.com')
       expect(res.body[0].links).toEqual({})
       expect(res.body[0].admin).toEqual(false)
+      expect(res.body[0].nopass).toEqual(true)
       expect(res.body[0].accepted).toEqual(false)
       expect(res.body[1].id).not.toBeNaN()
+      expect(res.body[1].email).toEqual('two@thefifthworld.com')
       expect(res.body[1].links).toEqual({})
       expect(res.body[1].admin).toEqual(false)
+      expect(res.body[0].nopass).toEqual(true)
       expect(res.body[1].accepted).toEqual(false)
     })
   })
