@@ -863,6 +863,13 @@ describe('Pages API', () => {
       expect(body.error).toEqual('We reserve <code>/welcome</code> for internal use.')
     })
 
+    it('tells you that you can\'t use a path that ends in a number', async () => {
+      expect.assertions(2)
+      const { body } = await request.get('/checkpath/path/to/test/01')
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+    })
+
     it('tells you that you can\'t use a URL that\'s already in use', async () => {
       expect.assertions(2)
       const { body } = await request.get('/checkpath/test-page')

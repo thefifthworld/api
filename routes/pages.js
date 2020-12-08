@@ -206,6 +206,8 @@ pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
   const path = req.originalUrl.substr(10)
   if (Page.isReservedPath(path)) {
     res.status(200).json({ ok: false, error: `We reserve <code>${path}</code> for internal use.` })
+  } else if (Page.hasNumericalLastElement(path)) {
+    res.status(200).json({ ok: false, error: `Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.` })
   } else {
     const page = path ? await Page.get(path, db) : null
     if (page) {
