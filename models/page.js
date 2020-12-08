@@ -152,6 +152,8 @@ class Page {
       throw new Error(`We reserve ${path} for internal use.`)
     } else if (Page.isReservedTemplate(type, title)) {
       throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
+    } else if (Page.hasNumericalLastElement(path)) {
+      throw new Error('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
     } else {
       const assign = { title, slug, path, type }
       Object.keys(assign).forEach(key => { this[key] = assign[key] })
