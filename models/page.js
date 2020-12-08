@@ -595,6 +595,22 @@ class Page {
   }
 
   /**
+   * Tests if a path ends in a numerical element.
+   * @param path {string} - The path to test.
+   * @returns {boolean} - `true` if the given path ends in a numerical element,
+   *   or `false` if it does not.
+   */
+
+  static hasNumericalLastElement (path) {
+    const elements = path.split('/')
+    const last = elements && Array.isArray(elements) && elements.length > 0
+      ? elements[elements.length - 1]
+      : null
+    const parsed = parseInt(last)
+    return last && !isNaN(parsed)
+  }
+
+  /**
    * Return a description from a given string.
    * @param str {string} - The string to use to derive a description.
    * @returns {string} - A description derived from this string, by returning

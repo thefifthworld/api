@@ -1012,6 +1012,24 @@ describe('Page', () => {
     })
   })
 
+  describe('hasNumericalLastElement', () => {
+    it('returns true if given a numerical path', () => {
+      expect(Page.hasNumericalLastElement('/1')).toEqual(true)
+    })
+
+    it('returns true if given a path that ends with a number', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/parent/01')).toEqual(true)
+    })
+
+    it('returns false if given a path that does not end with a number', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/parent')).toEqual(false)
+    })
+
+    it('returns false if given a path that ends with an element that only uses numbers', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/x01')).toEqual(false)
+    })
+  })
+
   describe('getDescription', () => {
     it('returns the default if not given a string', () => {
       const actual = Page.getDescription()
