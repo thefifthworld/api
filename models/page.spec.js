@@ -346,7 +346,7 @@ describe('Page', () => {
         expect(false).toEqual(true)
       } catch (err) {
         await testUtils.resetTables(db)
-        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.`)
+        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the path <code>/test-page</code> already exists.`)
       }
     })
 
@@ -420,7 +420,7 @@ describe('Page', () => {
         expect(false).toEqual(true)
       } catch (err) {
         await testUtils.resetTables(db)
-        expect(err.message).toEqual('Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.')
+        expect(err.message).toEqual('Sorry, that won&rsquo;t work. A page with the path <code>/test-page</code> already exists.')
       }
     })
 
