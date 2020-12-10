@@ -44,8 +44,8 @@ pages.post('/pages', requireLogIn, async (req, res) => {
     } else {
       res.sendStatus(500)
     }
-  } catch {
-    res.sendStatus(400)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
   }
 })
 
@@ -79,8 +79,8 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
     try {
       await req.page.save(req.body, req.user, req.body.msg, db)
       res.status(200).json(req.page.export())
-    } catch {
-      res.sendStatus(400)
+    } catch (err) {
+      res.status(400).json({ error: err.message })
     }
   } else if (req.page) {
     res.sendStatus(401)
@@ -206,6 +206,8 @@ pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
   const path = req.originalUrl.substr(10)
   if (Page.isReservedPath(path)) {
     res.status(200).json({ ok: false, error: `We reserve <code>${path}</code> for internal use.` })
+  } else if (Page.hasNumericalLastElement(path)) {
+    res.status(200).json({ ok: false, error: `Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.` })
   } else {
     const page = path ? await Page.get(path, db) : null
     if (page) {

@@ -127,16 +127,30 @@ describe('Pages API', () => {
     })
 
     it('returns 400 if you try to create a page with a path that\'s already in use', async () => {
-      expect.assertions(3)
+      expect.assertions(4)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
+      expect(res.body.error).toEqual(`Sorry, that won&rsquo;t work. A page with the path <code>/new-page</code> already exists.`)
       expect(res.status).toEqual(400)
       expect(check).toHaveLength(1)
       expect(check[0].title).toEqual("New Page")
+    })
+
+    it('returns 400 if you try to create a page with a path that ends in a numeric element', async () => {
+      expect.assertions(3)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'New Page', body: 'This is a new page.', path: '/07', msg: 'Initial text' }
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
+      expect(res.body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      expect(res.status).toEqual(400)
+      expect(check).toHaveLength(0)
     })
   })
 
@@ -642,7 +656,7 @@ describe('Pages API', () => {
     })
 
     it('returns 400 if you try to update the page\'s path to one some other page is already using', async () => {
-      expect.assertions(2)
+      expect.assertions(3)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'New Page', body: 'This is a new page.' })
@@ -650,7 +664,19 @@ describe('Pages API', () => {
       const check = await db.run('SELECT id FROM pages;')
 
       expect(res.status).toEqual(400)
+      expect(res.body.error).toEqual('Sorry, that won&rsquo;t work. A page with the path <code>/new-page</code> already exists.')
       expect(check).toHaveLength(2)
+    })
+
+    it('returns 400 if you try to update the page\'s path to end with a numerical element', async () => {
+      expect.assertions(2)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'New Page', body: 'This is a new page.' })
+      const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send({ title: 'Test Page', body: 'This is an update.', path: '/07' })
+
+      expect(res.status).toEqual(400)
+      expect(res.body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
     })
   })
 
@@ -861,6 +887,13 @@ describe('Pages API', () => {
       const { body } = await request.get('/checkpath/welcome')
       expect(body.ok).toEqual(false)
       expect(body.error).toEqual('We reserve <code>/welcome</code> for internal use.')
+    })
+
+    it('tells you that you can\'t use a path that ends in a number', async () => {
+      expect.assertions(2)
+      const { body } = await request.get('/checkpath/path/to/test/01')
+      expect(body.ok).toEqual(false)
+      expect(body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
     })
 
     it('tells you that you can\'t use a URL that\'s already in use', async () => {

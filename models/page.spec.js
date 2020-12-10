@@ -294,6 +294,62 @@ describe('Page', () => {
       expect(changesCheck).toHaveLength(1)
     })
 
+    it('won\'t save a page with a reserved path', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      try {
+        await page.save({ title: 'Dashboard', body: 'This is a test.' }, editor, 'Initial text', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('We reserve /dashboard for internal use.')
+      }
+    })
+
+    it('won\'t save a template with a reserved name', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      try {
+        await page.save({ title: 'Gallery', body: 'This is a test.', type: 'Template' }, editor, 'Initial text', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('We use {{Gallery}} internally. You cannot create a template with that name.')
+      }
+    })
+
+    it('won\'t save a page with a path that ends in a numerical element', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.', path: '/01' }, editor, 'Initial text', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      }
+    })
+
+    it('won\'t save a page with a path identical to another', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Initial text', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the path <code>/test-page</code> already exists.`)
+      }
+    })
+
     it('updates a record in the database', async () => {
       expect.assertions(4)
       await testUtils.createTestPage(Page, Member, db)
@@ -307,6 +363,79 @@ describe('Page', () => {
       expect(page.history.getContent().body).toEqual('This is an updated body.')
       expect(pagesCheck).toHaveLength(1)
       expect(changesCheck).toHaveLength(2)
+    })
+
+    it('won\'t let you update a page to use a reserved path', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      try {
+        await page.save({ body: 'This is a test', path: '/dashboard' }, editor, 'Test update', db)
+        await testUtils.resetTables(db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('We reserve /dashboard for internal use.')
+      }
+    })
+
+    it('won\'t let you update a page to be a reserved template', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      try {
+        await page.save({ title: 'Gallery', body: 'This is a test', type: 'Template' }, editor, 'Test update', db)
+        await testUtils.resetTables(db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('We use {{Gallery}} internally. You cannot create a template with that name.')
+      }
+    })
+
+    it('won\'t let you update a page to use a path with a number as the final element', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      try {
+        await page.save({ body: 'This is a test', path: '/01' }, editor, 'Test update', db)
+        await testUtils.resetTables(db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      }
+    })
+
+    it('won\'t let you update a page to have a path identical to another', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.create({ title: 'New Page', body: 'This is a test.' }, editor, 'Initial Text', db)
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Update that should not work', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Sorry, that won&rsquo;t work. A page with the path <code>/test-page</code> already exists.')
+      }
+    })
+
+    it('won\'t let you update a page to have a path that ends in a numerical element', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.', path: '/07' }, editor, 'Update that should not work', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      }
     })
 
     it('keeps an art page\'s implicit type', async () => {
@@ -1009,6 +1138,24 @@ describe('Page', () => {
 
     it('returns true if given a reserved path', () => {
       expect(Page.isReservedPath('/dashboard')).toEqual(true)
+    })
+  })
+
+  describe('hasNumericalLastElement', () => {
+    it('returns true if given a numerical path', () => {
+      expect(Page.hasNumericalLastElement('/1')).toEqual(true)
+    })
+
+    it('returns true if given a path that ends with a number', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/parent/01')).toEqual(true)
+    })
+
+    it('returns false if given a path that does not end with a number', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/parent')).toEqual(false)
+    })
+
+    it('returns false if given a path that ends with an element that only uses numbers', () => {
+      expect(Page.hasNumericalLastElement('/path/to/test/x01')).toEqual(false)
     })
   })
 
