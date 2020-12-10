@@ -138,6 +138,19 @@ describe('Pages API', () => {
       expect(check).toHaveLength(1)
       expect(check[0].title).toEqual("New Page")
     })
+
+    it('returns 400 if you try to create a page with a path that ends in a numeric element', async () => {
+      expect.assertions(3)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'New Page', body: 'This is a new page.', path: '/07', msg: 'Initial text' }
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
+      expect(res.body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      expect(res.status).toEqual(400)
+      expect(check).toHaveLength(0)
+    })
   })
 
   describe('POST /pages/*/like', () => {

@@ -44,8 +44,8 @@ pages.post('/pages', requireLogIn, async (req, res) => {
     } else {
       res.sendStatus(500)
     }
-  } catch {
-    res.sendStatus(400)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
   }
 })
 
