@@ -134,7 +134,7 @@ describe('Pages API', () => {
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
-      expect(res.body.error).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/new-page</code> already exists.`)
+      expect(res.body.error).toEqual(`Sorry, that won&rsquo;t work. A page with the path <code>/new-page</code> already exists.`)
       expect(res.status).toEqual(400)
       expect(check).toHaveLength(1)
       expect(check[0].title).toEqual("New Page")
