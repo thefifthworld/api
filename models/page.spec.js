@@ -303,6 +303,7 @@ describe('Page', () => {
         await page.save({ title: 'Dashboard', body: 'This is a test.' }, editor, 'Initial text', db)
         expect(false).toEqual(true)
       } catch (err) {
+        await testUtils.resetTables(db)
         expect(err.message).toEqual('We reserve /dashboard for internal use.')
       }
     })
@@ -316,6 +317,7 @@ describe('Page', () => {
         await page.save({ title: 'Gallery', body: 'This is a test.', type: 'Template' }, editor, 'Initial text', db)
         expect(false).toEqual(true)
       } catch (err) {
+        await testUtils.resetTables(db)
         expect(err.message).toEqual('We use {{Gallery}} internally. You cannot create a template with that name.')
       }
     })
@@ -329,6 +331,7 @@ describe('Page', () => {
         await page.save({ title: 'Test Page', body: 'This is a test.', path: '/01' }, editor, 'Initial text', db)
         expect(false).toEqual(true)
       } catch (err) {
+        await testUtils.resetTables(db)
         expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
       }
     })
@@ -342,6 +345,7 @@ describe('Page', () => {
         await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Initial text', db)
         expect(false).toEqual(true)
       } catch (err) {
+        await testUtils.resetTables(db)
         expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.`)
       }
     })
@@ -408,13 +412,29 @@ describe('Page', () => {
 
     it('won\'t let you update a page to have a path identical to another', async () => {
       expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
       const editor = await Member.load(2, db)
       const page = await Page.create({ title: 'New Page', body: 'This is a test.' }, editor, 'Initial Text', db)
       try {
         await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Update that should not work', db)
         expect(false).toEqual(true)
       } catch (err) {
-        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.`)
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.')
+      }
+    })
+
+    it('won\'t let you update a page to have a path that ends in a numerical element', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = await Page.get('/test-page', db)
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.', path: '/07' }, editor, 'Update that should not work', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        await testUtils.resetTables(db)
+        expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
       }
     })
 
