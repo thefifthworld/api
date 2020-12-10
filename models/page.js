@@ -187,7 +187,7 @@ class Page {
         if (this.tags) await this.tags.save(this.id, db)
         if (this.links) await this.links.save(this.id, db)
       } catch (err) {
-        throw new Error(`Sorry, that won&rsquo;t work. A page with the page <code>${path}</code> already exists.`)
+        throw new Error(`Sorry, that won&rsquo;t work. A page with the path <code>${path}</code> already exists.`)
       }
     }
   }
