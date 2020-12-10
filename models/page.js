@@ -152,6 +152,8 @@ class Page {
       throw new Error(`We reserve ${path} for internal use.`)
     } else if (Page.isReservedTemplate(type, title)) {
       throw new Error(`We use {{${title}}} internally. You cannot create a template with that name.`)
+    } else if (Page.hasNumericalLastElement(path)) {
+      throw new Error('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
     } else {
       const assign = { title, slug, path, type }
       Object.keys(assign).forEach(key => { this[key] = assign[key] })
@@ -168,21 +170,25 @@ class Page {
       const links = await parseLinks(data.body, db)
       this.links = links.linkHandler
 
-      if (!this.saved) {
-        await this.insert(data, editor, msg, db)
-      } else {
-        await this.update(data, editor, msg, db)
-      }
+      try {
+        if (!this.saved) {
+          await this.insert(data, editor, msg, db)
+        } else {
+          await this.update(data, editor, msg, db)
+        }
 
-      if (data.files) {
-        const fileHandler = await FileHandler.handle(data.files, this, editor)
-        await fileHandler.save(db)
-        this.files = await FileHandler.load(this, db)
-      }
+        if (data.files) {
+          const fileHandler = await FileHandler.handle(data.files, this, editor)
+          await fileHandler.save(db)
+          this.files = await FileHandler.load(this, db)
+        }
 
-      if (this.location) await this.location.save(this.id, db)
-      if (this.tags) await this.tags.save(this.id, db)
-      if (this.links) await this.links.save(this.id, db)
+        if (this.location) await this.location.save(this.id, db)
+        if (this.tags) await this.tags.save(this.id, db)
+        if (this.links) await this.links.save(this.id, db)
+      } catch (err) {
+        throw new Error(`Sorry, that won&rsquo;t work. A page with the path <code>${path}</code> already exists.`)
+      }
     }
   }
 
@@ -592,6 +598,22 @@ class Page {
       /^\/explore(\/(.*))?$/g
     ]
     return reservedPaths.reduce((acc, curr) => acc || (path.match(curr) !== null), false)
+  }
+
+  /**
+   * Tests if a path ends in a numerical element.
+   * @param path {string} - The path to test.
+   * @returns {boolean} - `true` if the given path ends in a numerical element,
+   *   or `false` if it does not.
+   */
+
+  static hasNumericalLastElement (path) {
+    const elements = path.split('/')
+    const last = elements && Array.isArray(elements) && elements.length > 0
+      ? elements[elements.length - 1]
+      : null
+    const parsed = parseInt(last)
+    return last && !isNaN(parsed)
   }
 
   /**
