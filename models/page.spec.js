@@ -333,6 +333,19 @@ describe('Page', () => {
       }
     })
 
+    it('won\'t save a page with a path identical to another', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Initial text', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.`)
+      }
+    })
+
     it('updates a record in the database', async () => {
       expect.assertions(4)
       await testUtils.createTestPage(Page, Member, db)
@@ -390,6 +403,18 @@ describe('Page', () => {
       } catch (err) {
         await testUtils.resetTables(db)
         expect(err.message).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
+      }
+    })
+
+    it('won\'t let you update a page to have a path identical to another', async () => {
+      expect.assertions(1)
+      const editor = await Member.load(2, db)
+      const page = await Page.create({ title: 'New Page', body: 'This is a test.' }, editor, 'Initial Text', db)
+      try {
+        await page.save({ title: 'Test Page', body: 'This is a test.' }, editor, 'Update that should not work', db)
+        expect(false).toEqual(true)
+      } catch (err) {
+        expect(err.message).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/test-page</code> already exists.`)
       }
     })
 

@@ -170,21 +170,25 @@ class Page {
       const links = await parseLinks(data.body, db)
       this.links = links.linkHandler
 
-      if (!this.saved) {
-        await this.insert(data, editor, msg, db)
-      } else {
-        await this.update(data, editor, msg, db)
-      }
+      try {
+        if (!this.saved) {
+          await this.insert(data, editor, msg, db)
+        } else {
+          await this.update(data, editor, msg, db)
+        }
 
-      if (data.files) {
-        const fileHandler = await FileHandler.handle(data.files, this, editor)
-        await fileHandler.save(db)
-        this.files = await FileHandler.load(this, db)
-      }
+        if (data.files) {
+          const fileHandler = await FileHandler.handle(data.files, this, editor)
+          await fileHandler.save(db)
+          this.files = await FileHandler.load(this, db)
+        }
 
-      if (this.location) await this.location.save(this.id, db)
-      if (this.tags) await this.tags.save(this.id, db)
-      if (this.links) await this.links.save(this.id, db)
+        if (this.location) await this.location.save(this.id, db)
+        if (this.tags) await this.tags.save(this.id, db)
+        if (this.links) await this.links.save(this.id, db)
+      } catch (err) {
+        throw new Error(`Sorry, that won&rsquo;t work. A page with the page <code>${path}</code> already exists.`)
+      }
     }
   }
 
