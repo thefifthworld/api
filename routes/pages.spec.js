@@ -656,7 +656,7 @@ describe('Pages API', () => {
     })
 
     it('returns 400 if you try to update the page\'s path to one some other page is already using', async () => {
-      expect.assertions(2)
+      expect.assertions(3)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'New Page', body: 'This is a new page.' })
@@ -664,7 +664,19 @@ describe('Pages API', () => {
       const check = await db.run('SELECT id FROM pages;')
 
       expect(res.status).toEqual(400)
+      expect(res.body.error).toEqual('Sorry, that won&rsquo;t work. A page with the path <code>/new-page</code> already exists.')
       expect(check).toHaveLength(2)
+    })
+
+    it('returns 400 if you try to update the page\'s path to end with a numerical element', async () => {
+      expect.assertions(2)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'New Page', body: 'This is a new page.' })
+      const res = await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send({ title: 'Test Page', body: 'This is an update.', path: '/07' })
+
+      expect(res.status).toEqual(400)
+      expect(res.body.error).toEqual('Please don’t end a path with a number. That makes it difficult for the system to tell the difference between pages and versions of pages.')
     })
   })
 

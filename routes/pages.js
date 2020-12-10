@@ -79,7 +79,7 @@ pages.post('/pages/*', requireLogIn, loadPage, async (req, res) => {
     try {
       await req.page.save(req.body, req.user, req.body.msg, db)
       res.status(200).json(req.page.export())
-    } catch {
+    } catch (err) {
       res.status(400).json({ error: err.message })
     }
   } else if (req.page) {
