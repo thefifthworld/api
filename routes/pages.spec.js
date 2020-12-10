@@ -127,13 +127,14 @@ describe('Pages API', () => {
     })
 
     it('returns 400 if you try to create a page with a path that\'s already in use', async () => {
-      expect.assertions(3)
+      expect.assertions(4)
       const member = await Member.load(2, db)
       const token = member.generateJWT()
       const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
       const check = await db.run(`SELECT title FROM pages WHERE path = "/new-page";`)
+      expect(res.body.error).toEqual(`Sorry, that won&rsquo;t work. A page with the page <code>/new-page</code> already exists.`)
       expect(res.status).toEqual(400)
       expect(check).toHaveLength(1)
       expect(check[0].title).toEqual("New Page")
