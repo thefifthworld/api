@@ -388,8 +388,12 @@ class Member {
    */
 
   static async loadFromJWT (token, db) {
-    const payload = await jwt.verify(token, config.jwt.secret)
-    return payload && payload.id ? Member.load(payload.id, db) : null
+    try {
+      const payload = await jwt.verify(token, config.jwt.secret)
+      return payload && payload.id ? Member.load(payload.id, db) : undefined
+    } catch {
+      return undefined
+    }
   }
 
   /**

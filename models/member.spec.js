@@ -825,6 +825,13 @@ describe('Member', () => {
       expect(actual.email).toEqual(member.email)
       expect(actual.admin).toEqual(actual.admin)
     })
+
+    it('returns undefined if given an invalid JWT', async () => {
+      expect.assertions(1)
+      const token = jwt.sign({ id: 2, email: 'normal@thefifthworld.com', name: 'Normal' }, 'BADKEY')
+      const actual = await Member.loadFromJWT(token)
+      expect(actual).toEqual(undefined)
+    })
   })
 
   describe('loadFromAuth', () => {
