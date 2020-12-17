@@ -110,6 +110,13 @@ describe('Members API', () => {
       expect(token.iss).toEqual(config.jwt.domain)
       expect(token.sub).toEqual(`${config.jwt.domain}/members/2`)
     })
+
+    it('returns a 401 error when you don\'t have a valid JWT', async () => {
+      expect.assertions(1)
+      const token = jwt.sign({ id: 2, email: 'normal@thefifthworld.com', name: 'Normal' }, 'BADKEY')
+      const res = await request.post('/members/reauth').set('Authorization', `Bearer ${token}`)
+      expect(res.status).toEqual(401)
+    })
   })
 
   describe('POST /members/providers', () => {
