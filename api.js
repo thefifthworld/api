@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 const fileUpload = require('express-fileupload')
 
 const db = require('./db')
@@ -12,6 +13,7 @@ api.use('/docs', express.static('docs'))
 
 api.use(bodyParser.urlencoded({ extended: true }))
 api.use(bodyParser.json({ limit: '100mb', extended: true }))
+api.use(cors())
 api.use(fileUpload())
 
 api.use('/', router)
