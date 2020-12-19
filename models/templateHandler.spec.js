@@ -20,4 +20,14 @@ describe('TemplateHandler', () => {
       expect(actual.templates.test.c).toEqual(3)
     })
   })
+
+  describe('parse', () => {
+    it('parses templates from string', () => {
+      const actual = TemplateHandler.parse('Hello world! {{NoParams}} {{WithParams\n  p1="Hello world!"\n  p2="42"}}')
+      expect(actual.templates.NoParams).toEqual({})
+      expect(actual.templates.WithParams).toBeDefined()
+      expect(actual.templates.WithParams.p1).toEqual('Hello world!')
+      expect(actual.templates.WithParams.p2).toEqual('42')
+    })
+  })
 })
