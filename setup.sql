@@ -189,7 +189,19 @@ CREATE TABLE `tags` (
   PRIMARY KEY (`id`),
   KEY `tagPage` (`page`),
   CONSTRAINT `tagPage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `templates` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `page` int unsigned NOT NULL DEFAULT '0',
+  `template` varchar(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `parameter` varchar(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `value` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  PRIMARY KEY (`id`),
+  KEY `templatePage` (`page`),
+  CONSTRAINT `templatePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 
 SET FOREIGN_KEY_CHECKS = @ORIG_FOREIGN_KEY_CHECKS;
