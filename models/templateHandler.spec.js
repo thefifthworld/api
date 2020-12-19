@@ -28,6 +28,40 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('save', () => {
+    it('saves template data to the database', async () => {
+      expect.assertions(4)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new TemplateHandler()
+      handler.add('test', { a: 1, b: 2, c: 3 })
+      await handler.save(page.id, db)
+      const actual = await db.run('SELECT * FROM templates;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(3)
+      expect(actual[0]).toEqual({ id: 1, page: 1, template: 'test', parameter: 'a', value: '1' })
+      expect(actual[1]).toEqual({ id: 2, page: 1, template: 'test', parameter: 'b', value: '2' })
+      expect(actual[2]).toEqual({ id: 3, page: 1, template: 'test', parameter: 'c', value: '3' })
+    })
+
+    it('updates template data to the database', async () => {
+      expect.assertions(4)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new TemplateHandler()
+      handler.add('test', { a: 1, b: 2, c: 3 })
+      await handler.save(page.id, db)
+      handler.templates.test.b = 42
+      delete handler.templates.test.c
+      handler.templates.test.d = 'Updated data'
+      await handler.save(page.id, db)
+      const actual = await db.run('SELECT * FROM templates;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(3)
+      expect(actual[0]).toEqual({ id: 1, page: 1, template: 'test', parameter: 'a', value: '1' })
+      expect(actual[1]).toEqual({ id: 2, page: 1, template: 'test', parameter: 'b', value: '42' })
+      expect(actual[2]).toEqual({ id: 4, page: 1, template: 'test', parameter: 'd', value: 'Updated data' })
+    })
+  })
+
   describe('parse', () => {
     it('parses templates from string', () => {
       const actual = TemplateHandler.parse('Hello world! {{NoParams}} {{WithParams\n  p1="Hello world!"\n  p2="42"}}')
