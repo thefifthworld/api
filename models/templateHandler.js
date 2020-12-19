@@ -1,3 +1,5 @@
+const { escape } = require('sqlstring')
+
 class TemplateHandler {
   constructor () {
     this.templates = {}
@@ -40,6 +42,27 @@ class TemplateHandler {
         }
         if (name && params) handler.add(name, params)
       }
+    }
+    return handler
+  }
+
+  /**
+   * Loaod a page's templates from the database.
+   * @param id {number} - The page's ID number.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<TemplateHandler>} - A Promise that resolves with a
+   *   TemplateHandler loaded with the templates and parameters saved for this
+   *   given page in the database.
+   */
+
+  static async load (id, db) {
+    const handler = new TemplateHandler()
+    const rows = await db.run(`SELECT * FROM templates WHERE page=${escape(id)};`)
+    if (rows) {
+      rows.forEach(row => {
+        if (!handler.templates[row.template]) handler.templates[row.template] = {}
+        if (row.parameter && row.value) handler.templates[row.template][row.parameter] = row.value
+      })
     }
     return handler
   }
