@@ -1,8 +1,9 @@
 const { escape } = require('sqlstring')
 
 class TemplateHandler {
-  constructor () {
+  constructor (pageModel) {
     this.instances = {}
+    this.pageModel = pageModel
   }
 
   /**

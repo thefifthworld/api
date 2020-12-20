@@ -15,6 +15,11 @@ describe('TemplateHandler', () => {
       const actual = new TemplateHandler()
       expect(actual.instances).toEqual({})
     })
+
+    it('stores a Page model', () => {
+      const actual = new TemplateHandler(Page)
+      expect(actual.pageModel).toEqual(Page)
+    })
   })
 
   describe('add', () => {
