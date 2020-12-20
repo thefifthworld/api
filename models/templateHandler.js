@@ -75,9 +75,6 @@ class TemplateHandler {
    *   pages found as a gallery (Default: `false`).
    * @param options.member {Member} - The member requesting this rendering.
    * @param options.path {string} - The path of the page being rendered.
-   * @param options.ordered {boolean} - A boolean indicating whether or not the
-   *   child pages found should be rendered in an ordered list
-   *   (Default: `false`).
    * @param db {Pool} - The database connection.
    * @returns {Promise<void>} - A Promise that resolves when the instance has
    *   been rendered, and the HTML markup saved to a new property named
