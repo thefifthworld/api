@@ -149,6 +149,23 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderTagged', () => {
+    it('renders a list of pages with a given tag', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: 'Nope' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #3', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #4', body: '[[Test:Yes]]', permissions: 700 }, editor, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Tagged', { tag: 'Test', value: 'Yes' })
+      await handler.renderTagged(handler.instances.Tagged[0], {}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Tagged[0].markup).toEqual('<ul><li><a href="/page-2">Page #2</a></li><li><a href="/page-3">Page #3</a></li></ul>')
+    })
+  })
+
   describe('renderDefault', () => {
     it('renders a template from the database', async () => {
       expect.assertions(4)

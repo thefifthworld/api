@@ -106,6 +106,33 @@ class TemplateHandler {
   }
 
   /**
+   * Render the {{Tagged}} template, which provides a list of pages that have
+   * a particular tag set to a particular value.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>}
+   */
+
+  async renderTagged (instance, options, db) {
+    instance.markup = ''
+    if (instance.tag && instance.value) {
+      const tags = {}
+      tags[instance.tag] = instance.value
+      const finder = this.models.page && typeof this.models.page.find === 'function'
+        ? this.models.page.find
+        : async () => []
+      const pages = await finder({ tags }, options.member, db)
+      if (pages && pages.length > 0) {
+        const items = pages.map(p => `<li><a href="${p.path}">${p.title}</a></li>`)
+        instance.markup = `<ul>${items.join('')}</ul>`
+      }
+    }
+  }
+
+  /**
    * Render a default template.
    * @param template {string} - The name of the template.
    * @param instance {object} - The parameters supplied for this instance of
