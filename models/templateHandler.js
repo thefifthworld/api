@@ -13,7 +13,8 @@ class TemplateHandler {
    */
 
   add (name, obj) {
-    this.templates[name] = Object.assign({}, obj)
+    if (!this.instances[name]) this.instances[name] = []
+    this.instances[name].push(Object.assign({}, obj))
   }
 
   /**

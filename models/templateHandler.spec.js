@@ -21,10 +21,11 @@ describe('TemplateHandler', () => {
     it('adds an object to a property name', () => {
       const actual = new TemplateHandler()
       actual.add('test', { a: 1, b: 2, c: 3 })
-      expect(actual.templates.test).toBeDefined()
-      expect(actual.templates.test.a).toEqual(1)
-      expect(actual.templates.test.b).toEqual(2)
-      expect(actual.templates.test.c).toEqual(3)
+      expect(actual.instances.test).toBeDefined()
+      expect(actual.instances.test).toHaveLength(1)
+      expect(actual.instances.test[0].a).toEqual(1)
+      expect(actual.instances.test[0].b).toEqual(2)
+      expect(actual.instances.test[0].c).toEqual(3)
     })
   })
 
