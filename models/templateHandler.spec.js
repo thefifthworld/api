@@ -36,22 +36,6 @@ describe('TemplateHandler', () => {
     })
   })
 
-  describe('save', () => {
-    it('saves template data to the database', async () => {
-      expect.assertions(4)
-      const page = await testUtils.createTestPage(Page, Member, db)
-      const handler = new TemplateHandler()
-      handler.add('test', { a: 1, b: 2, c: 3 })
-      await handler.save(page.id, db)
-      const actual = await db.run('SELECT * FROM templates;')
-      await testUtils.resetTables(db)
-      expect(actual).toHaveLength(3)
-      expect(actual[0]).toEqual({ id: 1, page: 1, template: 'test', instance: 0, parameter: 'a', value: '1' })
-      expect(actual[1]).toEqual({ id: 2, page: 1, template: 'test', instance: 0, parameter: 'b', value: '2' })
-      expect(actual[2]).toEqual({ id: 3, page: 1, template: 'test', instance: 0, parameter: 'c', value: '3' })
-    })
-  })
-
   describe('renderGalleryItem', () => {
     it('renders a page as a gallery item', async () => {
       expect.assertions(1)
@@ -65,6 +49,22 @@ describe('TemplateHandler', () => {
       await FileHandler.remove(file.name, db)
       await testUtils.resetTables(db)
       expect(actual).toEqual(`<li><a href="/test-page"><img src="${FileHandler.getURL(page.files[0].thumbnail)}" alt="Test page" /></a></li>`)
+    })
+  })
+
+  describe('save', () => {
+    it('saves template data to the database', async () => {
+      expect.assertions(4)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new TemplateHandler()
+      handler.add('test', { a: 1, b: 2, c: 3 })
+      await handler.save(page.id, db)
+      const actual = await db.run('SELECT * FROM templates;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(3)
+      expect(actual[0]).toEqual({ id: 1, page: 1, template: 'test', instance: 0, parameter: 'a', value: '1' })
+      expect(actual[1]).toEqual({ id: 2, page: 1, template: 'test', instance: 0, parameter: 'b', value: '2' })
+      expect(actual[2]).toEqual({ id: 3, page: 1, template: 'test', instance: 0, parameter: 'c', value: '3' })
     })
   })
 
