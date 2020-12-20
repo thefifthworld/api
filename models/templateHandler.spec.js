@@ -263,6 +263,21 @@ describe('TemplateHandler', () => {
       const expected = `<ul class="thumbnails"><li><a href="/test-page/a1"><img src="${urls.a}" alt="A1" /></a></li><li><a href="/test-page/c3"><img src="${urls.c}" alt="C3" /></a></li><li><a href="/test-page/b2"><img src="${urls.b}" alt="B2" /></a></li></ul>`
       expect(handler.instances.Gallery[0].markup).toEqual(expected)
     })
+
+    it('renders {{Tagged}}', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: 'Nope' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #3', body: '[[Test:Yes]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #4', body: '[[Test:Yes]]', permissions: 700 }, editor, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Tagged', { tag: 'Test', value: 'Yes' })
+      await handler.render({}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Tagged[0].markup).toEqual('<ul><li><a href="/page-2">Page #2</a></li><li><a href="/page-3">Page #3</a></li></ul>')
+    })
   })
 
   describe('parse', () => {
