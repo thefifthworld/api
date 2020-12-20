@@ -68,6 +68,87 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderChildren', () => {
+    it('renders a list of the current page\'s children', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Children')
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
+    })
+
+    it('lets you render a list of a different page\'s children', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Children', { of: '/test-page' })
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page/a1', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
+    })
+
+    it('can render the oldest pages first', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Children', { order: 'oldest' })
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li><li><a href="/test-page/a1">A1</a></li></ul>')
+    })
+
+    it('can render the newest pages first', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Children', { order: 'newest' })
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/c3">C3</a></li><li><a href="/test-page/b2">B2</a></li></ul>')
+    })
+
+    it('can render a gallery', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const b = await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const c = await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const a = await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Children')
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page', member: editor, asGallery: true }, db)
+      await FileHandler.remove(a.files[0].name, db)
+      await FileHandler.remove(b.files[0].name, db)
+      await FileHandler.remove(c.files[0].name, db)
+      await testUtils.resetTables(db)
+      const urls = {
+        a: FileHandler.getURL(a.files[0].thumbnail),
+        b: FileHandler.getURL(b.files[0].thumbnail),
+        c: FileHandler.getURL(c.files[0].thumbnail)
+      }
+      const expected = `<ul class="thumbnails"><li><a href="/test-page/a1"><img src="${urls.a}" alt="A1" /></a></li><li><a href="/test-page/c3"><img src="${urls.c}" alt="C3" /></a></li><li><a href="/test-page/b2"><img src="${urls.b}" alt="B2" /></a></li></ul>`
+      expect(handler.instances.Children[0].markup).toEqual(expected)
+    })
+  })
+
   describe('renderDefault', () => {
     it('renders a template from the database', async () => {
       expect.assertions(4)

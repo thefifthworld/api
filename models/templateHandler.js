@@ -67,6 +67,45 @@ class TemplateHandler {
   }
 
   /**
+   * Render a {{Children}} or {{Gallery}} template.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.asGallery {boolean} - Whether or not to render the child
+   *   pages found as a gallery (Default: `false`).
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param options.path {string} - The path of the page being rendered.
+   * @param options.ordered {boolean} - A boolean indicating whether or not the
+   *   child pages found should be rendered in an ordered list
+   *   (Default: `false`).
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered, and the HTML markup saved to a new property named
+   *   `markup`.
+   */
+
+  async renderChildren (instance, options, db) {
+    const { asGallery, member, path, ordered } = options
+    const parent = instance.of || path
+    const type = asGallery ? 'Art' : instance.type || null
+    const order = asGallery ? 'newest' : instance.order || 'alphabetical'
+    const getChildrenOf = this.models.page && typeof this.models.page.getChildrenOf === 'function'
+      ? this.models.page.getChildrenOf
+      : async () => []
+    const children = await getChildrenOf(parent, { type, member, order }, db)
+    if (children && asGallery) {
+      const items = children.map(child => this.renderGalleryItem(child)).filter(c => c !== null)
+      instance.markup = items.length > 0
+        ? `<ul class="thumbnails">${items.join('')}</ul>`
+        : ''
+    } else if (children) {
+      const items = children.map(child => `<li><a href="${child.path}">${child.title}</a></li>`)
+      const tag = ordered ? 'ol' : 'ul'
+      instance.markup = `<${tag}>${items.join('')}</${tag}>`
+    }
+  }
+
+  /**
    * Render a default template.
    * @param template {string} - The name of the template.
    * @param instance {object} - The parameters supplied for this instance of
