@@ -45,6 +45,68 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderDefault', () => {
+    it('renders a template from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}Hello world!{{/Template}}' }, editor, 'Making a test template', db)
+      const handler = new TemplateHandler()
+      handler.add('TestTemplate')
+      await handler.renderDefault('TestTemplate', handler.instances.TestTemplate[0], editor, db)
+      await testUtils.resetTables(db)
+      expect(handler).toBeInstanceOf(TemplateHandler)
+      expect(handler.instances.TestTemplate).toBeDefined()
+      expect(handler.instances.TestTemplate).toHaveLength(1)
+      expect(handler.instances.TestTemplate[0].markup).toEqual('Hello world!')
+    })
+
+    it('renders a blank string if no template exists', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const handler = new TemplateHandler()
+      handler.add('TestTemplate')
+      await handler.renderDefault('TestTemplate', handler.instances.TestTemplate[0], { member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler).toBeInstanceOf(TemplateHandler)
+      expect(handler.instances.TestTemplate).toBeDefined()
+      expect(handler.instances.TestTemplate).toHaveLength(1)
+      expect(handler.instances.TestTemplate[0].markup).toEqual('')
+    })
+  })
+
+  describe('render', () => {
+    it('properly renders an instance that uses a template from the database', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}Hello world!{{/Template}}' }, editor, 'Making a test template', db)
+      const handler = new TemplateHandler()
+      handler.add('TestTemplate')
+      await handler.render({ member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler).toBeInstanceOf(TemplateHandler)
+      expect(handler.instances.TestTemplate).toBeDefined()
+      expect(handler.instances.TestTemplate).toHaveLength(1)
+      expect(handler.instances.TestTemplate[0].markup).toEqual('Hello world!')
+    })
+
+    it('renders a blank string if no template exists', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const handler = new TemplateHandler()
+      handler.add('TestTemplate')
+      await handler.render({ member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler).toBeInstanceOf(TemplateHandler)
+      expect(handler.instances.TestTemplate).toBeDefined()
+      expect(handler.instances.TestTemplate).toHaveLength(1)
+      expect(handler.instances.TestTemplate[0].markup).toEqual('')
+    })
+  })
+
   describe('parse', () => {
     it('parses templates from string', () => {
       const actual = TemplateHandler.parse('Hello world! {{NoParams}} {{WithParams\n  p1="Hello world!"\n  p2="42"}}')

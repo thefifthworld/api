@@ -40,6 +40,61 @@ class TemplateHandler {
   }
 
   /**
+   * Render a default template.
+   * @param template {string} - The name of the template.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderDefault (template, instance, options, db) {
+    instance.markup = ''
+    const versions = await db.run(`SELECT c.json, c.id FROM changes c, pages p WHERE p.title=${escape(template)} AND p.type="Template" AND c.page=p.id ORDER BY c.id DESC LIMIT 1;`)
+    const version = versions && versions.length > 0 ? JSON.parse(versions[0].json) : null
+    if (version && version.body) {
+      const tagged = version.body.match(/{{Template}}(.+?){{\/Template}}/g)
+      if (tagged) {
+        let str = tagged[0].substr(12, tagged[0].length - 25)
+        Object.keys(instance).forEach(param => {
+          const re = new RegExp(`{{{${param}}}}`, 'g')
+          str = str.replace(re, instance[param])
+        })
+        instance.markup = str
+      }
+    }
+  }
+
+  /**
+   * Render the templates. Each template listed in the `instances` property
+   * renders a new `markup` property, providing the render version of that
+   * template instance.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.path {string} - The path of the page that the template is
+   *   being rendered on.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @return Promise<unknown[]> - A Promise that resolves when each template
+   *   instance has been rendered.
+   */
+
+  async render (options, db) {
+    const renderings = []
+    Object.keys(this.instances).forEach(template => {
+      this.instances[template].forEach(instance => {
+        switch (template) {
+          default: renderings.push(this.renderDefault(template, instance, options, db))
+        }
+      })
+    })
+    return Promise.all(renderings)
+  }
+
+  /**
    * Parse a string for template expressions.
    * @param str {string} - A string to parse for template expressions.
    * @returns {TemplateHandler} - A TemplateHandler loaded with the templates
