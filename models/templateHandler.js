@@ -19,28 +19,6 @@ class TemplateHandler {
   }
 
   /**
-   * Save templates to the database.
-   * @param id {number} - The ID of the page that these templates belong to.
-   * @param db {Pool} - The database connection.
-   * @returns {Promise<unknown[]>} - A Promise that resolves when the templates have
-   *   been saved to the database.
-   */
-
-  async save (id, db) {
-    await db.run(`DELETE FROM templates WHERE page=${escape(id)};`)
-    const inserts = []
-    Object.keys(this.instances).forEach(template => {
-      this.instances[template].forEach((instance, index) => {
-        const num = instance.instance || index
-        Object.keys(instance).forEach(parameter => {
-          inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
-        })
-      })
-    })
-    return Promise.all(inserts)
-  }
-
-  /**
    * Render a page as a gallery item.
    * @param page {Page} - A page to render as a gallery item. Only a pages with
    *   image files attached should be rendered as gallery items.
@@ -64,6 +42,28 @@ class TemplateHandler {
     } else {
       return null
     }
+  }
+
+  /**
+   * Save templates to the database.
+   * @param id {number} - The ID of the page that these templates belong to.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<unknown[]>} - A Promise that resolves when the templates have
+   *   been saved to the database.
+   */
+
+  async save (id, db) {
+    await db.run(`DELETE FROM templates WHERE page=${escape(id)};`)
+    const inserts = []
+    Object.keys(this.instances).forEach(template => {
+      this.instances[template].forEach((instance, index) => {
+        const num = instance.instance || index
+        Object.keys(instance).forEach(parameter => {
+          inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
+        })
+      })
+    })
+    return Promise.all(inserts)
   }
 
   /**
