@@ -55,10 +55,11 @@ class TemplateHandler {
 
   async renderDefault (template, instance, options, db) {
     instance.markup = ''
-    const versions = await db.run(`SELECT c.json, c.id FROM changes c, pages p WHERE p.title=${escape(template)} AND p.type="Template" AND c.page=p.id ORDER BY c.id DESC LIMIT 1;`)
-    const version = versions && versions.length > 0 ? JSON.parse(versions[0].json) : null
-    if (version && version.body) {
-      const tagged = version.body.match(/{{Template}}(.+?){{\/Template}}/g)
+    const matches = await this.pageModel.find({ title: template, type: 'Template' }, options.member, db)
+    const match = matches && matches.length > 0 ? matches[0] : null
+    if (match) {
+      const body = match.history.getBody()
+      const tagged = body.match(/{{Template}}(.+?){{\/Template}}/g)
       if (tagged) {
         let str = tagged[0].substr(12, tagged[0].length - 25)
         Object.keys(instance).forEach(param => {
