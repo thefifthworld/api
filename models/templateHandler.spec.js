@@ -52,6 +52,22 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderGalleryItem', () => {
+    it('renders a page as a gallery item', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test page', body: 'This is a test.', files: { file: testUtils.mockJPEG() } }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = page && page.files && page.files.length > 0 ? page.files[0] : null
+      const handler = new TemplateHandler({ fileHandler: FileHandler })
+      const actual = await handler.renderGalleryItem(page)
+      await FileHandler.remove(file.name, db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual(`<li><a href="/test-page"><img src="${FileHandler.getURL(page.files[0].thumbnail)}" alt="Test page" /></a></li>`)
+    })
+  })
+
   describe('renderDefault', () => {
     it('renders a template from the database', async () => {
       expect.assertions(4)

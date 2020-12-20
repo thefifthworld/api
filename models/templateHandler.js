@@ -41,6 +41,32 @@ class TemplateHandler {
   }
 
   /**
+   * Render a page as a gallery item.
+   * @param page {Page} - A page to render as a gallery item. Only a pages with
+   *   image files attached should be rendered as gallery items.
+   * @returns {string|null} - A Promise that resolves, either with the HTML
+   *   with which to render the page as a gallery item, or `null` if the page
+   *   is not appropriate to list in a gallery for some reason (for example,
+   *   if it does not have any files attached to it).
+   */
+
+  renderGalleryItem (page) {
+    const { files } = page
+    if (Array.isArray(files) && files.length > 0) {
+      const { fileHandler } = this.models
+      const { name, thumbnail } = files[0]
+      const getURL = fileHandler && fileHandler.getURL && typeof fileHandler.getURL === 'function'
+        ? fileHandler.getURL
+        : str => str
+      const src = thumbnail ? getURL(thumbnail) : name ? getURL(name) : null
+      const img = src ? `<img src="${src}" alt="${page.title}" />` : null
+      return img ? `<li><a href="${page.path}">${img}</a></li>` : null
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Render a default template.
    * @param template {string} - The name of the template.
    * @param instance {object} - The parameters supplied for this instance of
