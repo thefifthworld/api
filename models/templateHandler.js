@@ -21,61 +21,21 @@ class TemplateHandler {
    * Save templates to the database.
    * @param id {number} - The ID of the page that these templates belong to.
    * @param db {Pool} - The database connection.
-   * @returns {Promise<void>} - A Promise that resolves when the templates have
+   * @returns {Promise<unknown[]>} - A Promise that resolves when the templates have
    *   been saved to the database.
    */
 
   async save (id, db) {
-    // We could potentially chew through an awful lot of ID's and land
-    // ourselves in a tricky situation if we just rely on auto-incrementing
-    // on every save, so let's take the extra effort to figure out what we can
-    // update, and what we need to delete or insert.
-
-    const newRows = []
-    const templates = Object.keys(this.templates)
-    for (let i = 0; i < templates.length; i++) {
-      const params = Object.keys(this.templates[templates[i]])
-      for (let j = 0; j < params.length; j++) {
-        newRows.push({ template: templates[i], parameter: params[j], value: this.templates[templates[i]][params[j]] })
-      }
-    }
-
-    const q = await db.run(`SELECT * FROM templates WHERE page=${escape(id)};`)
-    const oldRows = Array.from(q)
-
-    const del = []
-    const ins = []
-    const upd = []
-
-    for (let i = 0; i < newRows.length; i++) {
-      const nr = newRows[i]
-      const hasSameParam = oldRows.filter(or => or.template === nr.template && or.parameter === nr.parameter)
-      if (hasSameParam.length > 0) {
-        upd.push(Object.assign({}, hasSameParam[0], nr))
-      } else {
-        ins.push(nr)
-      }
-    }
-
-    for (let i = 0; i < oldRows.length; i++) {
-      const or = oldRows[i]
-      const hasSameParam = newRows.filter(nr => nr.template === or.template && nr.parameter === or.parameter)
-      if (hasSameParam.length === 0) {
-        del.push(or)
-      }
-    }
-
-    for (let i = 0; i < del.length; i++) {
-      await db.run(`DELETE FROM templates WHERE id=${escape(del[i].id)};`)
-    }
-
-    for (let i = 0; i < ins.length; i++) {
-      await db.run(`INSERT INTO templates (page, template, parameter, value) VALUES (${escape(id)}, ${escape(ins[i].template)}, ${escape(ins[i].parameter)}, ${escape(ins[i].value)});`)
-    }
-
-    for (let i = 0; i < upd.length; i++) {
-      await db.run(`UPDATE templates SET value=${escape(upd[i].value)} WHERE id=${upd[i].id};`)
-    }
+    await db.run(`DELETE FROM templates WHERE page=${escape(id)};`)
+    const inserts = []
+    Object.keys(this.instances).forEach(template => {
+      this.instances[template].forEach(instance => {
+        Object.keys(instance).forEach(parameter => {
+          inserts.push(db.run(`INSERT INTO templates (page, template, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
+        })
+      })
+    })
+    return Promise.all(inserts)
   }
 
   /**
