@@ -209,6 +209,20 @@ describe('TemplateHandler', () => {
       expect(handler.instances.TestTemplate).toHaveLength(1)
       expect(handler.instances.TestTemplate[0].markup).toEqual('')
     })
+
+    it('renders a list of the current page\'s children', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Children')
+      await handler.render({ path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
+    })
   })
 
   describe('parse', () => {

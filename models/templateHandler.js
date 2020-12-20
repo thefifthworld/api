@@ -154,7 +154,8 @@ class TemplateHandler {
     Object.keys(this.instances).forEach(template => {
       this.instances[template].forEach(instance => {
         switch (template) {
-          default: renderings.push(this.renderDefault(template, instance, options, db))
+          case 'Children': renderings.push(this.renderChildren(instance, options, db)); break
+          default: renderings.push(this.renderDefault(template, instance, options, db)); break
         }
       })
     })
