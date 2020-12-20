@@ -63,7 +63,7 @@ class TemplateHandler {
             }
           })
         }
-        if (name && params) handler.add(name, params)
+        if (name && params) handler.add(name, Object.assign({}, params, { originalWikitext: template }))
       }
     }
     return handler

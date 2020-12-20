@@ -48,7 +48,7 @@ describe('TemplateHandler', () => {
   describe('parse', () => {
     it('parses templates from string', () => {
       const actual = TemplateHandler.parse('Hello world! {{NoParams}} {{WithParams\n  p1="Hello world!"\n  p2="42"}}')
-      expect(actual.instances.NoParams).toEqual([{}])
+      expect(actual.instances.NoParams).toEqual([{ originalWikitext: '{{NoParams}}' }])
       expect(actual.instances.WithParams).toBeDefined()
       expect(actual.instances.WithParams).toHaveLength(1)
       expect(actual.instances.WithParams[0].p1).toEqual('Hello world!')
