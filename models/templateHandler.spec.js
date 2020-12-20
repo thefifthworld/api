@@ -210,7 +210,7 @@ describe('TemplateHandler', () => {
       expect(handler.instances.TestTemplate[0].markup).toEqual('')
     })
 
-    it('renders a list of the current page\'s children', async () => {
+    it('renders {{Children}}', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)
       const editor = await Member.load(2, db)
@@ -222,6 +222,29 @@ describe('TemplateHandler', () => {
       await handler.render({ path: '/test-page', member: editor }, db)
       await testUtils.resetTables(db)
       expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
+    })
+
+    it('renders {{Gallery}}', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const b = await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const c = await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const a = await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page', files: { file: testUtils.mockJPEG() } }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Gallery')
+      await handler.render({ path: '/test-page', member: editor }, db)
+      await FileHandler.remove(a.files[0].name, db)
+      await FileHandler.remove(b.files[0].name, db)
+      await FileHandler.remove(c.files[0].name, db)
+      await testUtils.resetTables(db)
+      const urls = {
+        a: FileHandler.getURL(a.files[0].thumbnail),
+        b: FileHandler.getURL(b.files[0].thumbnail),
+        c: FileHandler.getURL(c.files[0].thumbnail)
+      }
+      const expected = `<ul class="thumbnails"><li><a href="/test-page/a1"><img src="${urls.a}" alt="A1" /></a></li><li><a href="/test-page/c3"><img src="${urls.c}" alt="C3" /></a></li><li><a href="/test-page/b2"><img src="${urls.b}" alt="B2" /></a></li></ul>`
+      expect(handler.instances.Gallery[0].markup).toEqual(expected)
     })
   })
 
