@@ -1,9 +1,9 @@
 const { escape } = require('sqlstring')
 
 class TemplateHandler {
-  constructor (pageModel) {
+  constructor (models) {
     this.instances = {}
-    this.pageModel = pageModel
+    this.models = models
   }
 
   /**
@@ -55,7 +55,7 @@ class TemplateHandler {
 
   async renderDefault (template, instance, options, db) {
     instance.markup = ''
-    const matches = await this.pageModel.find({ title: template, type: 'Template' }, options.member, db)
+    const matches = await this.models.page.find({ title: template, type: 'Template' }, options.member, db)
     const match = matches && matches.length > 0 ? matches[0] : null
     if (match) {
       const body = match.history.getBody()

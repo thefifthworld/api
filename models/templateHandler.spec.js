@@ -5,6 +5,7 @@ const testUtils = require('../test-utils')
 
 const Page = require('./page')
 const Member = require('./member')
+const FileHandler = require('./fileHandler')
 const TemplateHandler = require('./templateHandler')
 
 describe('TemplateHandler', () => {
@@ -16,9 +17,10 @@ describe('TemplateHandler', () => {
       expect(actual.instances).toEqual({})
     })
 
-    it('stores a Page model', () => {
-      const actual = new TemplateHandler(Page)
-      expect(actual.pageModel).toEqual(Page)
+    it('stores model dependencies', () => {
+      const actual = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      expect(actual.models.page).toEqual(Page)
+      expect(actual.models.fileHandler).toEqual(FileHandler)
     })
   })
 
@@ -56,7 +58,7 @@ describe('TemplateHandler', () => {
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
       await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}Hello world!{{/Template}}' }, editor, 'Making a test template', db)
-      const handler = new TemplateHandler(Page)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       handler.add('TestTemplate')
       await handler.renderDefault('TestTemplate', handler.instances.TestTemplate[0], editor, db)
       await testUtils.resetTables(db)
@@ -70,7 +72,7 @@ describe('TemplateHandler', () => {
       expect.assertions(4)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const handler = new TemplateHandler(Page)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       handler.add('TestTemplate')
       await handler.renderDefault('TestTemplate', handler.instances.TestTemplate[0], { member: editor }, db)
       await testUtils.resetTables(db)
@@ -87,7 +89,7 @@ describe('TemplateHandler', () => {
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
       await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}Hello world!{{/Template}}' }, editor, 'Making a test template', db)
-      const handler = new TemplateHandler(Page)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       handler.add('TestTemplate')
       await handler.render({ member: editor }, db)
       await testUtils.resetTables(db)
@@ -101,7 +103,7 @@ describe('TemplateHandler', () => {
       expect.assertions(4)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      const handler = new TemplateHandler(Page)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       handler.add('TestTemplate')
       await handler.render({ member: editor }, db)
       await testUtils.resetTables(db)
