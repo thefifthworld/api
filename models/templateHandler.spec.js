@@ -13,7 +13,7 @@ describe('TemplateHandler', () => {
   describe('constructor', () => {
     it('prepares an object for storing templates', () => {
       const actual = new TemplateHandler()
-      expect(actual.templates).toEqual({})
+      expect(actual.instances).toEqual({})
     })
   })
 

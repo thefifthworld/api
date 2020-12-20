@@ -2,7 +2,7 @@ const { escape } = require('sqlstring')
 
 class TemplateHandler {
   constructor () {
-    this.templates = {}
+    this.instances = {}
   }
 
   /**
