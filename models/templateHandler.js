@@ -29,9 +29,10 @@ class TemplateHandler {
     await db.run(`DELETE FROM templates WHERE page=${escape(id)};`)
     const inserts = []
     Object.keys(this.instances).forEach(template => {
-      this.instances[template].forEach(instance => {
+      this.instances[template].forEach((instance, index) => {
+        const num = instance.instance || index
         Object.keys(instance).forEach(parameter => {
-          inserts.push(db.run(`INSERT INTO templates (page, template, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
+          inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
         })
       })
     })
@@ -79,11 +80,13 @@ class TemplateHandler {
 
   static async load (id, db) {
     const handler = new TemplateHandler()
-    const rows = await db.run(`SELECT * FROM templates WHERE page=${escape(id)};`)
+    const { instances } = handler
+    const rows = await db.run(`SELECT * FROM templates WHERE page=${escape(id)} ORDER BY instance ASC;`)
     if (rows) {
       rows.forEach(row => {
-        if (!handler.templates[row.template]) handler.templates[row.template] = {}
-        if (row.parameter && row.value) handler.templates[row.template][row.parameter] = row.value
+        if (!instances[row.template]) instances[row.template] = []
+        while (row.instance >= instances[row.template].length) instances[row.template].push({})
+        if (row.parameter && row.value) instances[row.template][row.instance][row.parameter] = row.value
       })
     }
     return handler
