@@ -196,7 +196,7 @@ describe('TemplateHandler', () => {
   })
 
   describe('renderDownload', () => {
-    it('can parse a file', async () => {
+    it('renders a file download component', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -212,7 +212,7 @@ describe('TemplateHandler', () => {
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
-    it('can parse a file from a different page identified by title', async () => {
+    it('renders a file download component for a file from a different page identified by title', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -228,7 +228,7 @@ describe('TemplateHandler', () => {
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
-    it('can parse a file from a different page identified by path', async () => {
+    it('renders a file download component for a file from a different page identified by path', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
@@ -244,7 +244,7 @@ describe('TemplateHandler', () => {
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
-    it('doesn\'t show a file you don\'t have permission to see', async () => {
+    it('won\'t show a file you don\'t have permission to see', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
