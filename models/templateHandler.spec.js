@@ -195,7 +195,7 @@ describe('TemplateHandler', () => {
     })
   })
 
-  describe('renderDownload', () => {
+  describe('renderFile', () => {
     it('renders a file download component', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
@@ -207,7 +207,7 @@ describe('TemplateHandler', () => {
       const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       const actual = {}
       const url = FileHandler.getURL(file.name)
-      await handler.renderDownload(actual, { path: '/test-page' }, db)
+      await handler.renderFile(actual, { path: '/test-page' }, db)
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
@@ -222,7 +222,7 @@ describe('TemplateHandler', () => {
       const filehandler = new FileHandler(file); await filehandler.save(db)
       const actual = { file: 'Test Page' }
       const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
-      await handler.renderDownload(actual, {}, db)
+      await handler.renderFile(actual, {}, db)
       const url = FileHandler.getURL(file.name)
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
@@ -238,7 +238,7 @@ describe('TemplateHandler', () => {
       const filehandler = new FileHandler(file); await filehandler.save(db)
       const actual = { file: '/test-page' }
       const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
-      await handler.renderDownload(actual, {}, db)
+      await handler.renderFile(actual, {}, db)
       const url = FileHandler.getURL(file.name)
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
@@ -254,7 +254,7 @@ describe('TemplateHandler', () => {
       const filehandler = new FileHandler(file); await filehandler.save(db)
       const actual = {}
       const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
-      await handler.renderDownload(actual, { path: '/test-page' }, db)
+      await handler.renderFile(actual, { path: '/test-page' }, db)
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual('')
     })

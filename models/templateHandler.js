@@ -139,9 +139,7 @@ class TemplateHandler {
   }
 
   /**
-   * Render the {{Download}} template, which renders a file download component
-   * for the current page, or for a different page if it is given a `file`
-   * parameter with another page's path.
+   * Render the {{Art}} or {{Download}} templates.
    * @param instance {object} - The parameters supplied for this instance of
    *   the template's use.
    * @param options {object} - Options necessary for rendering templates.
@@ -152,7 +150,7 @@ class TemplateHandler {
    *   markup for that instance.
    */
 
-  async renderDownload (instance, options, db) {
+  async renderFile (instance, options, db) {
     instance.markup = ''
     const p = instance.file || options.path || null
     const getIfAllowed = this.models.page && typeof this.models.page.getIfAllowed === 'function'
@@ -293,7 +291,7 @@ class TemplateHandler {
         switch (template) {
           case 'Artists': renderings.push(this.renderArtists(instance, options, db)); break
           case 'Children': renderings.push(this.renderChildren(instance, options, db)); break
-          case 'Download': renderings.push(this.renderDownload(instance, options, db)); break
+          case 'Download': renderings.push(this.renderFile(instance, options, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
