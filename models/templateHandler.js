@@ -139,6 +139,46 @@ class TemplateHandler {
   }
 
   /**
+   * Render the {{Novels}} template, which provides a gallery of novels with
+   * their covers.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderNovels (instance, options, db) {
+    instance.markup = ''
+    const { member } = options
+    const finder = this.models.page && typeof this.models.page.find === 'function'
+      ? this.models.page.find
+      : async () => []
+    const getChildrenOf = this.models.page && typeof this.models.page.getChildrenOf === 'function'
+      ? this.models.page.getChildrenOf
+      : async () => []
+    const getURL = this.models.fileHandler && typeof this.models.fileHandler.getURL === 'function'
+      ? this.models.fileHandler.getURL
+      : str => str
+    const novels = await finder({ type: 'Novel' }, options.member, db)
+    if (novels && novels.length > 0) {
+      const list = []
+      for (const novel of novels) {
+        const art = await getChildrenOf(novel, { type: 'Art', member, order: 'newest' }, db)
+        const covers = art ? art.filter(a => Object.keys(a.tags).includes('cover')) : []
+        const cover = covers.length > 0 ? covers[0] : null
+        if (cover && cover.files && cover.files.length > 0) {
+          list.push(`<li><a href="${novel.path}"><img src="${getURL(cover.files[0].name)}" alt="${novel.title}" /></a></li>`)
+        }
+      }
+      if (list.length > 0) instance.markup = `<ul class="novel-listing">${list.join('')}</ul>`
+    }
+  }
+
+  /**
    * Render the {{Tagged}} template, which provides a list of pages that have
    * a particular tag set to a particular value.
    * @param instance {object} - The parameters supplied for this instance of

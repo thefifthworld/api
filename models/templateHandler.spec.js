@@ -195,6 +195,22 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderNovels', () => {
+    it('lists all novels', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const novel = await Page.create({ title: 'Children of Wormwood', body: '[[Type:Novel]]' }, editor, 'Initial text', db)
+      const cover = await Page.create({ title: 'Cover', body: '[[Type:Art]] [[Cover:Children of Wormwood]]', parent: novel.id }, editor, 'Initial text', db)
+      const art = new FileHandler({ name: 'cover.jpg', thumbnail: 'cover.thumb.jpg', mime: 'image/jpeg', size: 20000, page: cover.id, uploader: editor.id }); await art.save(db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Novels')
+      await handler.renderNovels(handler.instances.Novels[0], {}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Novels[0].markup).toEqual(`<ul class="novel-listing"><li><a href="/children-of-wormwood"><img src="${FileHandler.getURL(art.name)}" alt="Children of Wormwood" /></a></li></ul>`)
+    })
+  })
+
   describe('renderTagged', () => {
     it('renders a list of pages with a given tag', async () => {
       expect.assertions(1)
