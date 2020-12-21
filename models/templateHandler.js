@@ -152,7 +152,7 @@ class TemplateHandler {
 
   async renderFile (instance, options, db) {
     instance.markup = ''
-    const p = instance.file || options.path || null
+    const p = instance.file || instance.src || options.path || null
     const getIfAllowed = this.models.page && typeof this.models.page.getIfAllowed === 'function'
       ? this.models.page.getIfAllowed
       : async () => []
@@ -162,12 +162,23 @@ class TemplateHandler {
       const getURL = this.models.fileHandler && typeof this.models.fileHandler.getURL === 'function'
         ? this.models.fileHandler.getURL
         : str => str
-      const getFileSizeStr = this.models.fileHandler && typeof this.models.fileHandler.getFileSizeStr === 'function'
-        ? this.models.fileHandler.getFileSizeStr
-        : str => str
-      const name = `<span class="label">${file.name}</span>`
-      const size = `<span class="details">${file.mime}; ${getFileSizeStr(file.size)}</span>`
-      instance.markup = `<a href="${getURL(file.name)}" class="download">${name}${size}</a>`
+      if (options.art) {
+        const open = instance.numbered ? '<figcaption class="numbered">' : '<figcaption>'
+        const caption = instance.caption ? `${open}${instance.caption}</figcaption>` : null
+        const alt = instance.caption || page.title
+        const img = instance.useThumbnail && file.thumbnail
+          ? `<img src="${getURL(file.thumbnail)}" alt="${alt}" />`
+          : `<img src="${getURL(file.name)}" alt="${alt}" />`
+        const link = `<a href="${page.path}">${img}</a>`
+        instance.markup = caption ? `<figure>${link}${caption}</figure>` : `<figure>${link}</figure>`
+      } else {
+        const getFileSizeStr = this.models.fileHandler && typeof this.models.fileHandler.getFileSizeStr === 'function'
+          ? this.models.fileHandler.getFileSizeStr
+          : str => str
+        const name = `<span class="label">${file.name}</span>`
+        const size = `<span class="details">${file.mime}; ${getFileSizeStr(file.size)}</span>`
+        instance.markup = `<a href="${getURL(file.name)}" class="download">${name}${size}</a>`
+      }
     }
   }
 

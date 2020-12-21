@@ -258,6 +258,117 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual('')
     })
+
+    it('renders art', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = {}
+      await handler.renderFile(actual, { path: '/art', art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="Art" /></a></figure>`)
+    })
+
+    it('can add a caption', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art caption="This is not an upload."}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = { caption: 'This is not an upload.' }
+      await handler.renderFile(actual, { path: '/art', art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="This is not an upload." /></a><figcaption>This is not an upload.</figcaption></figure>`)
+    })
+
+    it('can add a numbered caption', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art caption="This is not an upload."}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = { caption: 'This is not an upload.', numbered: 'true' }
+      await handler.renderFile(actual, { path: '/art', art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="This is not an upload." /></a><figcaption class="numbered">This is not an upload.</figcaption></figure>`)
+    })
+
+    it('can use a thumbnail', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art useThumbnail="true"}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.thumbnail)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = { useThumbnail: 'true' }
+      await handler.renderFile(actual, { path: '/art', art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="Art" /></a></figure>`)
+    })
+
+    it('can parse a different page\'s art, identified by title', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = { src: 'Art' }
+      await handler.renderFile(actual, { art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="Art" /></a></figure>`)
+    })
+
+    it('can parse a different page\'s art, identified by path', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', thumbnail: 'test.thumb.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = { src: '/art' }
+      await handler.renderFile(actual, { art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="Art" /></a></figure>`)
+    })
+
+    it('doesn\'t show art you don\'t have permission to', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}', permissions: 700 }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = {}
+      await handler.renderFile(actual, { path: '/art', art: 'true' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('')
+    })
   })
 
   describe('renderNovels', () => {
