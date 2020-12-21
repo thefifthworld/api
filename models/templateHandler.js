@@ -216,6 +216,7 @@ class TemplateHandler {
     Object.keys(this.instances).forEach(template => {
       this.instances[template].forEach(instance => {
         switch (template) {
+          case 'Artists': renderings.push(this.renderArtists(instance, options, db)); break
           case 'Children': renderings.push(this.renderChildren(instance, options, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
