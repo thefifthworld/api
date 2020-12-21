@@ -465,6 +465,22 @@ describe('TemplateHandler', () => {
       expect(handler.instances.TestTemplate[0].markup).toEqual('')
     })
 
+    it('renders {{Art}}', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Art', body: '{{Art}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.jpg', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Art')
+      await handler.render({ path: '/art' }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Art[0].markup).toEqual(`<figure><a href="/art"><img src="${url}" alt="Art" /></a></figure>`)
+    })
+
     it('renders {{Artists}}', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
