@@ -412,6 +412,22 @@ describe('TemplateHandler', () => {
       expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
     })
 
+    it('renders {{Download}}', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); filehandler.save(db)
+      const url = FileHandler.getURL(file.name)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Download')
+      await handler.render({ path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Download[0].markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
     it('renders {{Gallery}}', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)
