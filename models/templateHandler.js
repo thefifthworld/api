@@ -139,6 +139,41 @@ class TemplateHandler {
   }
 
   /**
+   * Render the {{Download}} template, which renders a file download component
+   * for the current page, or for a different page if it is given a `file`
+   * parameter with another page's path.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderDownload (instance, options, db) {
+    instance.markup = ''
+    const p = instance.file || options.path || null
+    const getIfAllowed = this.models.page && typeof this.models.page.getIfAllowed === 'function'
+      ? this.models.page.getIfAllowed
+      : async () => []
+    const page = p ? await getIfAllowed(p, options.member, db) : null
+    if (page && page.files && Array.isArray(page.files) && page.files.length > 0) {
+      const file = page.files[0]
+      const getURL = this.models.fileHandler && typeof this.models.fileHandler.getURL === 'function'
+        ? this.models.fileHandler.getURL
+        : str => str
+      const getFileSizeStr = this.models.fileHandler && typeof this.models.fileHandler.getFileSizeStr === 'function'
+        ? this.models.fileHandler.getFileSizeStr
+        : str => str
+      const name = `<span class="label">${file.name}</span>`
+      const size = `<span class="details">${file.mime}; ${getFileSizeStr(file.size)}</span>`
+      instance.markup = `<a href="${getURL(file.name)}" class="download">${name}${size}</a>`
+    }
+  }
+
+  /**
    * Render the {{Novels}} template, which provides a gallery of novels with
    * their covers.
    * @param instance {object} - The parameters supplied for this instance of

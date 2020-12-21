@@ -195,6 +195,71 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderDownload', () => {
+    it('can parse a file', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); filehandler.save(db)
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      const actual = {}
+      const url = FileHandler.getURL(file.name)
+      await handler.renderDownload(actual, { path: '/test-page' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
+    it('can parse a file from a different page identified by title', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const actual = { file: 'Test Page' }
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      await handler.renderDownload(actual, {}, db)
+      const url = FileHandler.getURL(file.name)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
+    it('can parse a file from a different page identified by path', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}' }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const actual = { file: '/test-page' }
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      await handler.renderDownload(actual, {}, db)
+      const url = FileHandler.getURL(file.name)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
+    })
+
+    it('doesn\'t show a file you don\'t have permission to see', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{Download}}', permissions: 700 }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const file = { name: 'test.txt', mime: 'plain/text', size: 0, page: page.id, uploader: editor.id }
+      const filehandler = new FileHandler(file); await filehandler.save(db)
+      const actual = {}
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      await handler.renderDownload(actual, { path: '/test-page' }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('')
+    })
+  })
+
   describe('renderNovels', () => {
     it('lists all novels', async () => {
       expect.assertions(1)
