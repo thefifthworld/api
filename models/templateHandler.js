@@ -103,6 +103,42 @@ class TemplateHandler {
   }
 
   /**
+   * Render the {{Arists}} template, which lists all of the artists listed on
+   * the site, each with a gallery of their four most recent works.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderArtists (instance, options, db) {
+    instance.markup = ''
+    const finder = this.models.page && typeof this.models.page.find === 'function'
+      ? this.models.page.find
+      : async () => []
+    const getChildrenOf = this.models.page && typeof this.models.page.getChildrenOf === 'function'
+      ? this.models.page.getChildrenOf
+      : async () => []
+    const artists = await finder({ type: 'Artist' }, options.member, db)
+    if (artists && artists.length > 0) {
+      const sections = []
+      for (const artist of artists) {
+        const work = await getChildrenOf(artist.id, { type: 'Art', member: options.member, order: 'newest' }, db)
+        const show = work ? work.slice(0, 4) : []
+        const gallery = show && show.length > 0
+          ? `<ul class="thumbnails">${show.map(piece => this.renderGalleryItem(piece)).join('')}</ul>`
+          : null
+        if (gallery) sections.push(`<section class="artist"><h2><a href="${artist.path}">${artist.title}</a></h2>${gallery}</section>`)
+      }
+      instance.markup = sections.join('')
+    }
+  }
+
+  /**
    * Render the {{Tagged}} template, which provides a list of pages that have
    * a particular tag set to a particular value.
    * @param instance {object} - The parameters supplied for this instance of
@@ -110,7 +146,9 @@ class TemplateHandler {
    * @param options {object} - Options necessary for rendering templates.
    * @param options.member {Member} - The member requesting this rendering.
    * @param db {Pool} - The database connection.
-   * @returns {Promise<void>}
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
    */
 
   async renderTagged (instance, options, db) {

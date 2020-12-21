@@ -149,6 +149,52 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderArtists', () => {
+    it('lists the artists', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const a1 = await Page.create({ title: 'Giulianna Maria Lamanna', body: '[[Type:Artist]]' }, editor, 'Initial text', db)
+      const a2 = await Page.create({ title: 'Jason Godesky', body: '[[Type:Artist]]' }, editor, 'Initial text', db)
+      const a3 = await Page.create({ title: 'Banksy', body: '[[Type:Artist]]', permissions: 700 }, editor, 'Initial text', db)
+      const a1p1 = await Page.create({ title: 'Giulianna #1', body: '[[Type:Art]]', parent: a1.id }, editor, 'Initial text', db)
+      const a1p2 = await Page.create({ title: 'Giulianna #2', body: '[[Type:Art]]', parent: a1.id, permissions: 700 }, editor, 'Initial text', db)
+      const a1p3 = await Page.create({ title: 'Giulianna #3', body: '[[Type:Art]]', parent: a1.id }, editor, 'Initial text', db)
+      const a1p4 = await Page.create({ title: 'Giulianna #4', body: '[[Type:Art]]', parent: a1.id }, editor, 'Initial text', db)
+      const a1p5 = await Page.create({ title: 'Giulianna #5', body: '[[Type:Art]]', parent: a1.id }, editor, 'Initial text', db)
+      const a1p6 = await Page.create({ title: 'Giulianna #6', body: '[[Type:Art]]', parent: a1.id }, editor, 'Initial text', db)
+      const a2p1 = await Page.create({ title: 'Jason #1', body: '[[Type:Art]]', parent: a2.id }, editor, 'Initial text', db)
+      const a2p2 = await Page.create({ title: 'Jason #2', body: '[[Type:Art]]', parent: a2.id, permissions: 700 }, editor, 'Initial text', db)
+      const a2p3 = await Page.create({ title: 'Jason #3', body: '[[Type:Art]]', parent: a2.id }, editor, 'Initial text', db)
+      const a3p1 = await Page.create({ title: 'Banksy #1', body: '[[Type:Art]]', parent: a3.id }, editor, 'Initial text', db)
+      const a3p2 = await Page.create({ title: 'Banksy #2', body: '[[Type:Art]]', parent: a3.id, permissions: 700 }, editor, 'Initial text', db)
+      const a1p1h = new FileHandler({ name: 'a1p1.jpg', thumbnail: 'a1p1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p1.id, uploader: editor.id }); await a1p1h.save(db)
+      const a1p2h = new FileHandler({ name: 'a1p2.jpg', thumbnail: 'a1p2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p2.id, uploader: editor.id }); await a1p2h.save(db)
+      const a1p3h = new FileHandler({ name: 'a1p3.jpg', thumbnail: 'a1p3.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p3.id, uploader: editor.id }); await a1p3h.save(db)
+      const a1p4h = new FileHandler({ name: 'a1p4.jpg', thumbnail: 'a1p4.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p4.id, uploader: editor.id }); await a1p4h.save(db)
+      const a1p5h = new FileHandler({ name: 'a1p5.jpg', thumbnail: 'a1p5.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p5.id, uploader: editor.id }); await a1p5h.save(db)
+      const a1p6h = new FileHandler({ name: 'a1p6.jpg', thumbnail: 'a1p6.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a1p6.id, uploader: editor.id }); await a1p6h.save(db)
+      const a2p1h = new FileHandler({ name: 'a2p1.jpg', thumbnail: 'a2p1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a2p1.id, uploader: editor.id }); await a2p1h.save(db)
+      const a2p2h = new FileHandler({ name: 'a2p2.jpg', thumbnail: 'a2p2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a2p2.id, uploader: editor.id }); await a2p2h.save(db)
+      const a2p3h = new FileHandler({ name: 'a2p3.jpg', thumbnail: 'a2p3.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a2p3.id, uploader: editor.id }); await a2p3h.save(db)
+      const a3p1h = new FileHandler({ name: 'a3p1.jpg', thumbnail: 'a3p1.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a3p1.id, uploader: editor.id }); await a3p1h.save(db)
+      const a3p2h = new FileHandler({ name: 'a3p2.jpg', thumbnail: 'a3p2.thumb.jpg', mime: 'image/jpeg', size: 20000, page: a3p2.id, uploader: editor.id }); await a3p2h.save(db)
+
+      const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
+      handler.add('Artists')
+      await handler.renderArtists(handler.instances.Artists[0], {}, db)
+      await testUtils.resetTables(db)
+
+      const a1a = [[a1p6, a1p6h], [a1p5, a1p5h], [a1p4, a1p4h], [a1p3, a1p3h]]
+      const a2a = [[a2p3, a2p3h], [a2p1, a2p1h]]
+      const a1p = a1a.map(pair => `<li><a href="${pair[0].path}"><img src="${FileHandler.getURL(pair[1].thumbnail)}" alt="${pair[0].title}" /></a></li>`)
+      const a2p = a2a.map(pair => `<li><a href="${pair[0].path}"><img src="${FileHandler.getURL(pair[1].thumbnail)}" alt="${pair[0].title}" /></a></li>`)
+      const a1str = `<section class="artist"><h2><a href="${a1.path}">${a1.title}</a></h2><ul class="thumbnails">${a1p.join('')}</ul></section>`
+      const a2str = `<section class="artist"><h2><a href="${a2.path}">${a2.title}</a></h2><ul class="thumbnails">${a2p.join('')}</ul></section>`
+      expect(handler.instances.Artists[0].markup).toEqual(`${a1str}${a2str}`)
+    })
+  })
+
   describe('renderTagged', () => {
     it('renders a list of pages with a given tag', async () => {
       expect.assertions(1)
