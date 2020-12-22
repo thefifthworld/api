@@ -1,3 +1,4 @@
+const slugify = require('slugify')
 const { escape } = require('sqlstring')
 
 class TemplateHandler {
@@ -179,6 +180,41 @@ class TemplateHandler {
         const size = `<span class="details">${file.mime}; ${getFileSizeStr(file.size)}</span>`
         instance.markup = `<a href="${getURL(file.name)}" class="download">${name}${size}</a>`
       }
+    }
+  }
+
+  /**
+   * Render the {{Form}} template.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderForm (instance, db) {
+    instance.markup = ''
+    if (instance.name) {
+      const id = `<input type="hidden" name="form" value="${instance.name}" />`
+      const fields = instance.fields.match(/{(.*?)}/g).map(str => {
+        const components = str.slice(1, str.length - 1).split('|').map(s => s.trim())
+        if (components.length === 3) {
+          const id = slugify(`form ${instance.name} ${components[0]}`, { lower: true, strict: true })
+          const name = slugify(components[0], { lower: true, strict: true })
+          const note = components[1] && components[1] !== ''
+            ? `<p class="note">${components[1]}</p>`
+            : ''
+          const label = `<label for="${id}">${components[0]}${note}</label>`
+          const field = components[2] === 'textarea'
+            ? `<textarea id="${id}" name="${name}"></textarea>`
+            : `<input type="${components[2]}" id="${id}" name="${name}" />`
+          return `${label}${field}`
+        } else {
+          return null
+        }
+      }).filter(f => f !== null)
+      instance.markup = `<form action="/save-form" method="post">${id}${fields.join('')}<button>Send</button></form>`
     }
   }
 
