@@ -565,6 +565,14 @@ describe('TemplateHandler', () => {
       expect(handler.instances.Download[0].markup).toEqual(`<a href="${url}" class="download"><span class="label">test.txt</span><span class="details">plain/text; 0 B</span></a>`)
     })
 
+    it('renders {{Form}}', async () => {
+      expect.assertions(1)
+      const handler = new TemplateHandler()
+      handler.add('Form', { name: 'Test', fields: '{Email||email}{Reason|Why do you want to join the Fifth World?|textarea}' })
+      await handler.render({}, db)
+      expect(handler.instances.Form[0].markup).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /><label for="form-test-email">Email</label><input type="email" id="form-test-email" name="email" /><label for="form-test-reason">Reason<p class="note">Why do you want to join the Fifth World?</p></label><textarea id="form-test-reason" name="reason"></textarea><button>Send</button></form>')
+    })
+
     it('renders {{Gallery}}', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)

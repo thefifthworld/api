@@ -340,6 +340,7 @@ class TemplateHandler {
           case 'Artists': renderings.push(this.renderArtists(instance, options, db)); break
           case 'Children': renderings.push(this.renderChildren(instance, options, db)); break
           case 'Download': renderings.push(this.renderFile(instance, options, db)); break
+          case 'Form': renderings.push(this.renderForm(instance, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
