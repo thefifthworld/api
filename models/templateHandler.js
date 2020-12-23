@@ -354,12 +354,15 @@ class TemplateHandler {
   /**
    * Parse a string for template expressions.
    * @param str {string} - A string to parse for template expressions.
+   * @param models {object} - Models to pass to the constructor.
+   * @param models.Page {function} - The Page model to use.
+   * @param models.fileHandler {function} - The FileHandler model to use.
    * @returns {TemplateHandler} - A TemplateHandler loaded with the templates
    *   expressed in the string.
    */
 
-  static parse (str) {
-    const handler = new TemplateHandler()
+  static parse (str, models) {
+    const handler = new TemplateHandler(models)
     const templates = str.match(/{{((.*?)\n?)*?}}/gm)
     if (templates) {
       for (const template of templates) {

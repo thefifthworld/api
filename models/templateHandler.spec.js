@@ -635,6 +635,12 @@ describe('TemplateHandler', () => {
       expect(actual.instances.WithParams[0].p1).toEqual('Hello world!')
       expect(actual.instances.WithParams[0].p2).toEqual('42')
     })
+
+    it('passes models to constructor', () => {
+      const actual = TemplateHandler.parse('Hello world!', { page: Page, fileHandler: FileHandler })
+      expect(actual.models.page).toEqual(Page)
+      expect(actual.models.fileHandler).toEqual(FileHandler)
+    })
   })
 
   describe('load', () => {
