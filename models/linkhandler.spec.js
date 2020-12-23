@@ -95,6 +95,34 @@ describe('LinkHandler', () => {
     })
   })
 
+  describe('parse', () => {
+    it('parses links', async () => {
+      expect.assertions(3)
+      await testUtils.createTestPage(Page, Member, db)
+      const actual = await LinkHandler.parse('Here\'s some links: [[Test Page | hello]] [[Test Page]]', db)
+      await testUtils.resetTables(db)
+      expect(actual.str).toEqual('Here\'s some links: <a href="/test-page" title="Test Page">hello</a> <a href="/test-page">Test Page</a>')
+      expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
+      expect(actual.linkHandler.links).toHaveLength(2)
+    })
+
+    it('parses new links', async () => {
+      expect.assertions(3)
+      const actual = await LinkHandler.parse('Here\'s a link: [[hello]]', db)
+      expect(actual.str).toEqual('Here\'s a link: <a href="/new?title=hello" class="isNew">hello</a>')
+      expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
+      expect(actual.linkHandler.links).toEqual([ { id: null, text: 'hello', title: 'hello', path: '/new?title=hello', isNew: true } ])
+    })
+
+    it('doesn\'t parse tags', async () => {
+      expect.assertions(3)
+      const actual = await LinkHandler.parse('Here\'s a tag: [[World:Hello]]', db)
+      expect(actual.str).toEqual('Here\'s a tag: [[World:Hello]]')
+      expect(actual.linkHandler).toBeInstanceOf(LinkHandler)
+      expect(actual.linkHandler.links).toEqual([])
+    })
+  })
+
   describe('loadRequested', () => {
     it('loads requested links', async () => {
       expect.assertions(8)
