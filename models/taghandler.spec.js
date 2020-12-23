@@ -130,6 +130,19 @@ describe('TagHandler', () => {
     })
   })
 
+  describe('parse', () => {
+    it('finds tags', async () => {
+      const actual = TagHandler.parse('This [[Hello:World]] is [[Hello : Test]] text [[Tag: 1]] outside of tags.\n\nAnd here is a [[Test:true]] second paragraph.')
+      expect(actual.tagHandler).toBeInstanceOf(TagHandler)
+      expect(actual.tagHandler.tags).toEqual({ hello: [ 'World', 'Test' ], tag: [ '1' ], test: [ 'true' ] })
+    })
+
+    it('strips tags from the text', async () => {
+      const actual = TagHandler.parse('This [[Hello:World]] is [[Hello : Test]] text [[Tag: 1]] outside of tags.\n\nAnd here is a [[Test:true]] second paragraph.')
+      expect(actual.stripped).toEqual('This is text outside of tags.\n\nAnd here is a second paragraph.')
+    })
+  })
+
   describe('load', () => {
     it('loads tags from the database', async () => {
       expect.assertions(2)
