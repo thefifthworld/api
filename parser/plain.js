@@ -1,5 +1,5 @@
 const { Remarkable } = require('remarkable')
-const parseTags = require('./tags')
+const TagHandler = require('../models/taghandler')
 
 /**
  * Parses a block of wikitext to plain text.
@@ -9,7 +9,7 @@ const parseTags = require('./tags')
 
 const parsePlainText = str => {
   const md = new Remarkable()
-  const { stripped: strippedTags } = parseTags(str)
+  const { stripped: strippedTags } = TagHandler.parse(str)
   const strippedTemplates = strippedTags.replace(/{{(.*)}}/gm, '')
   const html = md.render(strippedTemplates)
   return html.replace(/(<([^>]+)>)/ig, '')
