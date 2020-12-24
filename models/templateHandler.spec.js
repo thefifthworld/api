@@ -57,7 +57,7 @@ describe('TemplateHandler', () => {
       expect.assertions(4)
       const page = await testUtils.createTestPage(Page, Member, db)
       const handler = new TemplateHandler()
-      handler.add('test', { a: 1, b: 2, c: 3 })
+      handler.add('test', { a: 1, b: 2, c: 3, originalWikitext: '{{test a="1" b="2" c="3"}}' })
       await handler.save(page.id, db)
       const actual = await db.run('SELECT * FROM templates;')
       await testUtils.resetTables(db)

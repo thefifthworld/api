@@ -58,8 +58,10 @@ class TemplateHandler {
     const inserts = []
     Object.keys(this.instances).forEach(template => {
       this.instances[template].forEach((instance, index) => {
-        const num = instance.instance || index
-        Object.keys(instance).forEach(parameter => {
+        const cpy = Object.assign({}, instance)
+        delete cpy.originalWikitext
+        const num = cpy.instance || index
+        Object.keys(cpy).forEach(parameter => {
           inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
         })
       })
