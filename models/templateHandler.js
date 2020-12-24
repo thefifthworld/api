@@ -61,9 +61,14 @@ class TemplateHandler {
         const cpy = Object.assign({}, instance)
         delete cpy.originalWikitext
         const num = cpy.instance || index
-        Object.keys(cpy).forEach(parameter => {
-          inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
-        })
+        const keys = Object.keys(cpy)
+        if (keys.length > 0) {
+          keys.forEach(parameter => {
+            inserts.push(db.run(`INSERT INTO templates (page, template, instance, parameter, value) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)}, ${escape(parameter)}, ${escape(instance[parameter])});`))
+          })
+        } else {
+          inserts.push(db.run(`INSERT INTO templates (page, template, instance) VALUES (${escape(id)}, ${escape(template)}, ${escape(num)});`))
+        }
       })
     })
     return Promise.all(inserts)

@@ -66,6 +66,18 @@ describe('TemplateHandler', () => {
       expect(actual[1]).toEqual({ id: 2, page: 1, template: 'test', instance: 0, parameter: 'b', value: '2' })
       expect(actual[2]).toEqual({ id: 3, page: 1, template: 'test', instance: 0, parameter: 'c', value: '3' })
     })
+
+    it('saves template data with no parameters', async () => {
+      expect.assertions(2)
+      const page = await testUtils.createTestPage(Page, Member, db)
+      const handler = new TemplateHandler()
+      handler.add('test', { originalWikitext: '{{test}}' })
+      await handler.save(page.id, db)
+      const actual = await db.run('SELECT * FROM templates;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0]).toEqual({ id: 1, page: 1, template: 'test', instance: 0, parameter: null, value: null })
+    })
   })
 
   describe('renderChildren', () => {
