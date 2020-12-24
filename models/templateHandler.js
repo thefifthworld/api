@@ -413,6 +413,60 @@ class TemplateHandler {
     }
     return handler
   }
+
+  /**
+   * Query the database for template usage.
+   * @param name {string} - The name of the template you're looking for.
+   * @param parameter {?string} - Optional. If provided, this only returns
+   *   instances that use this parameter.
+   * @param value {?string} - Optional. If provided, this only returns
+   *   instances with a parameter equal to this value.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<[]>} - A Promise that resolves with an array of objects.
+   *   Each object in this array represents a page that matches the query, with
+   *   properties `title` and `path` for the page. They each also have an array
+   *   called `templates`. Each object in this array provides the template data
+   *   for each template instance that matches the query.
+   */
+
+  static async query (name, parameter, value, db) {
+    const query = [`template=${escape(name)}`]
+    if (parameter) query.push(`parameter=${escape(parameter)}`)
+    if (value) query.push(`value=${escape(value)}`)
+    const instances = await db.run(`SELECT page, template, instance FROM templates WHERE ${query.join(' AND ')};`)
+    let rows = []
+    for (const instance of instances) {
+      const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE page=${instance.page} AND template="${instance.template}" AND instance=${instance.instance};`)
+      rows = [...rows, ...r]
+    }
+
+    const pages = {}
+    rows.forEach(row => {
+      if (!pages[row.path]) pages[row.path] = { title: row.title, templates: {} }
+      const page = pages[row.path]
+      if (!page.templates[row.template]) page.templates[row.template] = {}
+      const template = page.templates[row.template]
+      if (!template[row.instance]) template[row.instance] = {}
+      if (row.parameter && row.value) {
+        template[row.instance][row.parameter] = row.value
+      } else if (row.parameter) {
+        template[row.instance][row.parameter] = true
+      }
+    })
+
+    const res = []
+    Object.keys(pages).forEach(path => {
+      const page = { path, title: pages[path].title, templates: [] }
+      Object.keys(pages[path].templates).forEach(template => {
+        Object.keys(pages[path].templates[template]).forEach(index => {
+          page.templates.push(Object.assign({}, pages[path].templates[template][index], { template }))
+        })
+      })
+      res.push(page)
+    })
+
+    return res
+  }
 }
 
 module.exports = TemplateHandler
