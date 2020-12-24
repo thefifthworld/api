@@ -831,6 +831,20 @@ describe('Page', () => {
       expect(page.tags.tag3).toEqual([ 'Something', 'Else' ])
     })
 
+    it('loads the page\'s templates', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = { title: 'Test Page', body: '{{TestTemplate param1="Hello world!"}} {{TestTemplate param1="42"}} {{TestTemplate2}}' }
+      await Page.create(data, editor, 'Initial text', db)
+      const page = await Page.get(1, db)
+      await testUtils.resetTables(db)
+      expect(page.templates.instances.TestTemplate).toHaveLength(2)
+      expect(page.templates.instances.TestTemplate[0].param1).toEqual('Hello world!')
+      expect(page.templates.instances.TestTemplate[1].param1).toEqual('42')
+      expect(page.templates.instances.TestTemplate2).toEqual([{}])
+    })
+
     it('loads the page\'s likes', async () => {
       expect.assertions(2)
       const before = await testUtils.createTestPage(Page, Member, db)
