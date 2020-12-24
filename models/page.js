@@ -4,9 +4,8 @@ const History = require('./history')
 const FileHandler = require('./fileHandler')
 const TagHandler = require('./taghandler')
 const LikesHandler = require('./likesHandler')
+const LinkHandler = require('./linkhandler')
 const LocationHandler = require('./locationHandler')
-const parseTags = require('../parser/tags')
-const parseLinks = require('../parser/links')
 const parsePlainText = require('../parser/plain')
 
 class Page {
@@ -124,7 +123,7 @@ class Page {
    */
 
   async save (data, editor, msg, db) {
-    const tagHandler = parseTags(data.body).tagHandler
+    const tagHandler = TagHandler.parse(data.body).tagHandler
     const locationHandler = tagHandler && Object.keys(tagHandler.tags).includes('location')
       ? new LocationHandler(tagHandler.get('location', true).split(',').map(el => el.trim()))
       : undefined
@@ -167,7 +166,7 @@ class Page {
 
       this.tags = tagHandler
       this.location = locationHandler
-      const links = await parseLinks(data.body, db)
+      const links = await LinkHandler.parse(data.body, db)
       this.links = links.linkHandler
 
       try {
