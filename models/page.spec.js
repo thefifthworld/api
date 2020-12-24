@@ -454,6 +454,64 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(page.type).toEqual('File')
     })
+
+    it('saves a page\'s link', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test. [[Link]]'
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const actual = await db.run('SELECT * FROM links;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].src).toEqual(page.id)
+      expect(actual[0].dest).toEqual(null)
+      expect(actual[0].title).toEqual('Link')
+    })
+
+    it('saves a page\'s tags', async () => {
+      expect.assertions(4)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test. [[Hello:World]]'
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const actual = await db.run('SELECT * FROM tags;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].page).toEqual(page.id)
+      expect(actual[0].tag).toEqual('hello')
+      expect(actual[0].value).toEqual('World')
+    })
+
+    it('saves a page\'s templates', async () => {
+      expect.assertions(11)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const data = {
+        title: 'Test page',
+        body: 'This is a test. {{TestTemplate param1="Hello world!" param2="42"}}'
+      }
+      const page = await Page.create(data, editor, 'Initial text', db)
+      const actual = await db.run('SELECT * FROM templates;')
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+      expect(actual[0].page).toEqual(page.id)
+      expect(actual[0].template).toEqual('TestTemplate')
+      expect(actual[0].instance).toEqual(0)
+      expect(actual[0].parameter).toEqual('param1')
+      expect(actual[0].value).toEqual('Hello world!')
+      expect(actual[1].page).toEqual(page.id)
+      expect(actual[1].template).toEqual('TestTemplate')
+      expect(actual[1].instance).toEqual(0)
+      expect(actual[1].parameter).toEqual('param2')
+      expect(actual[1].value).toEqual('42')
+    })
   })
 
   describe('rollback', () => {

@@ -2,10 +2,11 @@ const { escape } = require('sqlstring')
 const slugify = require('slugify')
 const History = require('./history')
 const FileHandler = require('./fileHandler')
-const TagHandler = require('./taghandler')
 const LikesHandler = require('./likesHandler')
 const LinkHandler = require('./linkhandler')
 const LocationHandler = require('./locationHandler')
+const TagHandler = require('./taghandler')
+const TemplateHandler = require('./templateHandler')
 const parsePlainText = require('../parser/plain')
 
 class Page {
@@ -123,6 +124,7 @@ class Page {
    */
 
   async save (data, editor, msg, db) {
+    const templateHandler = TemplateHandler.parse(data.body, { page: Page, fileHandler: FileHandler })
     const tagHandler = TagHandler.parse(data.body).tagHandler
     const locationHandler = tagHandler && Object.keys(tagHandler.tags).includes('location')
       ? new LocationHandler(tagHandler.get('location', true).split(',').map(el => el.trim()))
@@ -165,6 +167,7 @@ class Page {
       this.lineage = await this.getLineage(db)
 
       this.tags = tagHandler
+      this.templates = templateHandler
       this.location = locationHandler
       const links = await LinkHandler.parse(data.body, db)
       this.links = links.linkHandler
@@ -184,6 +187,7 @@ class Page {
 
         if (this.location) await this.location.save(this.id, db)
         if (this.tags) await this.tags.save(this.id, db)
+        if (this.templates) await this.templates.save(this.id, db)
         if (this.links) await this.links.save(this.id, db)
       } catch (err) {
         throw new Error(`Sorry, that won&rsquo;t work. A page with the path <code>${path}</code> already exists.`)
