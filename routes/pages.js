@@ -1,5 +1,6 @@
 const express = require('express')
 const LinkHandler = require('../models/linkhandler')
+const TemplateHandler = require('../models/templateHandler')
 const Page = require('../models/page')
 const { loadPage, requireLogIn, optionalLogIn } = require('../security')
 const parser = require('../parser')
@@ -151,6 +152,12 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
   const code = req.page.permissions
   req.page.permissions = { read, write, code }
   res.status(200).json({ page: req.page.export(), markup: parsed.html })
+})
+
+// GET /templates
+pages.get('/templates', optionalLogIn, async (req, res) => {
+  const instances = await TemplateHandler.query(req.query, req.user, db)
+  res.status(200).json(instances)
 })
 
 // POST /autocomplete

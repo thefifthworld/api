@@ -59,6 +59,34 @@ class LinkHandler {
   }
 
   /**
+   * Parses a wikitext string to create a new `LinkHandler` object, as well as
+   * a version of the text with the links properly rendered within it.
+   * @param str {string} - A wikitext string to parse.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<{str: *, linkHandler: LinkHandler}>} - A Promise that
+   *   resolves with an object with two properties. The `str` property is a
+   *   string containing the wikitext with all links within it properly
+   *   rendered. The `linkHandler` property is an instance of `LinkHandler`
+   *   with the links parsed from the wikitext loaded into it.
+   */
+
+  static async parse (str, db) {
+    const res = { str, linkHandler: new LinkHandler() }
+    const matches = str.match(/\[\[([^:]*?)\]\]/gm)
+    if (matches) {
+      for (const match of matches) {
+        const link = await res.linkHandler.add(match, db)
+        let a = `<a href="${link.path}"`
+        if (!link.isNew && link.title !== link.text) a += ` title="${link.title}"`
+        if (link.isNew) a += ` class="isNew"`
+        a += `>${link.text}</a>`
+        res.str = res.str.replace(match, a)
+      }
+    }
+    return res
+  }
+
+  /**
    * Load a list of requested links and which pages are requesting them.
    * @param db {!Pool} - The database connection.
    * @param num {number=} - Optional. The maximum number of links to return.

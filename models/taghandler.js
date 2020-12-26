@@ -61,6 +61,36 @@ class TagHandler {
   }
 
   /**
+   * Parses a wikitext string to create a new `TagHandler` object, as well as
+   * a version of the text with the tags stripped out.
+   * @param str {string} - A wikitext string to parse.
+   * @returns returnObj {object} - An object containing the wikitext string
+   *   stripped of tags, as well as an instance of `TagHandler` loaded with
+   *   the parsed tag data.
+   * @returns returnObj.stripped {string} - The original wikitext string, but
+   *   stripped of all tags.
+   * @returns returnObj.tagHandler {TagHandler} - A `TagHandler` instance
+   *   loaded with the tag data parsed from the string.
+   */
+
+  static parse (str) {
+    const tagHandler = new TagHandler()
+    let stripped = str
+    const matches = str.match(/\[\[(.*?):(.*?)\]\]/gm)
+    if (matches) {
+      matches.forEach(match => {
+        stripped = stripped.replace(match, '')
+        const pair = match.substr(2, match.length - 4).split(':').map(el => el.trim())
+        if (pair && pair.length > 1) {
+          tagHandler.add(...pair)
+        }
+      })
+    }
+    stripped = stripped.replace(/ +/gm, ' ')
+    return { stripped, tagHandler }
+  }
+
+  /**
    * Load tags for a given page from the database into a new TagHandler.
    * @param id {!number} - The primary key of a page in the database.
    * @param db {!Pool} - The database connection.
