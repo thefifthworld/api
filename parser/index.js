@@ -1,7 +1,9 @@
 const { Remarkable } = require('remarkable')
-const parseTags = require('./tags')
-const parseLinks = require('./links')
-const parseTemplates = require('./templates')
+const Page = require('../models/Page')
+const FileHandler = require('../models/fileHandler')
+const LinkHandler = require('../models/linkhandler')
+const TagHandler = require('../models/taghandler')
+const TemplateHandler = require('../models/templateHandler')
 
 /**
  * Remove code blocks from the string, so that we don't parse tags, links, or
@@ -60,10 +62,20 @@ const parser = async (str, path, member, db) => {
   str = typeof str === 'string' ? str : ''
   const md = new Remarkable({ html: true, xhtmlOut: true })
   const { blocked, blocks } = saveBlocks(str)
-  const { stripped, tagHandler } = parseTags(blocked)
-  const templated = await parseTemplates(stripped, path, member, db)
+  const { stripped, tagHandler } = TagHandler.parse(blocked)
+
+  // Render templates
+  let templated = stripped
+  const templates = await TemplateHandler.parse(stripped, { page: Page, fileHandler: FileHandler })
+  await templates.render({ path, member }, db)
+  for (const key of Object.keys(templates.instances)) {
+    for (const instance of templates.instances[key]) {
+      templated = templated.replace(instance.originalWikitext, instance.markup)
+    }
+  }
+
   let html = md.render(templated)
-  const { str: linked, linkHandler } = await parseLinks(html, db)
+  const { str: linked, linkHandler } = await LinkHandler.parse(html, db)
   html = restoreBlocks(linked, blocks)
   return { html, tagHandler, linkHandler }
 }

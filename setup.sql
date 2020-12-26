@@ -46,7 +46,7 @@ CREATE TABLE `authorizations` (
   PRIMARY KEY (`id`),
   KEY `authMember` (`member`),
   CONSTRAINT `authMember` FOREIGN KEY (`member`) REFERENCES `members` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `changes` (
@@ -59,7 +59,7 @@ CREATE TABLE `changes` (
   PRIMARY KEY (`id`),
   KEY `changePage` (`page`),
   CONSTRAINT `changePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `communities` (
@@ -82,7 +82,7 @@ CREATE TABLE `files` (
   PRIMARY KEY (`id`),
   KEY `filePage` (`page`),
   CONSTRAINT `filePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `invitations` (
@@ -92,7 +92,7 @@ CREATE TABLE `invitations` (
   `inviteCode` varchar(128) NOT NULL DEFAULT '',
   `accepted` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `likes` (
@@ -101,7 +101,7 @@ CREATE TABLE `likes` (
   `page` int(11) unsigned NOT NULL DEFAULT '0',
   `member` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `links` (
@@ -113,7 +113,7 @@ CREATE TABLE `links` (
   KEY `linkSrc` (`src`),
   KEY `linkDest` (`dest`),
   CONSTRAINT `linkSrc` FOREIGN KEY (`src`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `messages` (
@@ -124,7 +124,7 @@ CREATE TABLE `messages` (
   PRIMARY KEY (`id`),
   KEY `messageMember` (`member`),
   CONSTRAINT `messageMember` FOREIGN KEY (`member`) REFERENCES `members` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `pages` (
@@ -142,7 +142,7 @@ CREATE TABLE `pages` (
   `depth` tinyint(3) unsigned DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `path` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `places` (
@@ -153,7 +153,7 @@ CREATE TABLE `places` (
   SPATIAL KEY `location` (`location`),
   KEY `placePage` (`page`),
   CONSTRAINT `placePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `responses` (
@@ -189,7 +189,19 @@ CREATE TABLE `tags` (
   PRIMARY KEY (`id`),
   KEY `tagPage` (`page`),
   CONSTRAINT `tagPage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `templates` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `page` int unsigned NOT NULL DEFAULT '0',
+  `template` varchar(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `parameter` varchar(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `value` longtext CHARACTER SET utf8 COLLATE utf8_general_ci,
+  PRIMARY KEY (`id`),
+  KEY `templatePage` (`page`),
+  CONSTRAINT `templatePage` FOREIGN KEY (`page`) REFERENCES `pages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 
 SET FOREIGN_KEY_CHECKS = @ORIG_FOREIGN_KEY_CHECKS;
