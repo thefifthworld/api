@@ -416,11 +416,13 @@ class TemplateHandler {
 
   /**
    * Query the database for template usage.
-   * @param name {string} - The name of the template you're looking for.
-   * @param parameter {?string} - Optional. If provided, this only returns
-   *   instances that use this parameter.
-   * @param value {?string} - Optional. If provided, this only returns
+   * @param search {object} - An object providing the parameters of the search.
+   * @param search.name {string} - The name of the template you're looking for.
+   * @param search.parameter {?string} - Optional. If provided, this only
+   *   returns instances that use this parameter.
+   * @param search.value {?string} - Optional. If provided, this only returns
    *   instances with a parameter equal to this value.
+   * @param member {Member} - The member conducting the search.
    * @param db {Pool} - The database connection.
    * @returns {Promise<[]>} - A Promise that resolves with an array of objects.
    *   Each object in this array represents a page that matches the query, with
@@ -429,11 +431,17 @@ class TemplateHandler {
    *   for each template instance that matches the query.
    */
 
-  static async query (name, parameter, value, db) {
-    const query = [`template=${escape(name)}`]
-    if (parameter) query.push(`parameter=${escape(parameter)}`)
-    if (value) query.push(`value=${escape(value)}`)
-    const instances = await db.run(`SELECT page, template, instance FROM templates WHERE ${query.join(' AND ')};`)
+  static async query (search, member, db) {
+    const { name, parameter, value } = search
+    const query = ['p.id=t.page', `t.template=${escape(name)}`]
+    if (parameter) query.push(`t.parameter=${escape(parameter)}`)
+    if (value) query.push(`t.value=${escape(value)}`)
+    if (member && member.id && !member.admin) {
+      query.push(`(p.permissions % 100 >= 40 OR p.owner=${member.id})`)
+    } else if (!member || !member.id) {
+      query.push('p.permissions % 10 >= 4')
+    }
+    const instances = await db.run(`SELECT t.page, t.template, t.instance FROM templates t, pages p WHERE ${query.join(' AND ')};`)
     let rows = []
     for (const instance of instances) {
       const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE page=${instance.page} AND template="${instance.template}" AND instance=${instance.instance};`)
