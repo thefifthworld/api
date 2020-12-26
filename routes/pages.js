@@ -156,8 +156,7 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
 
 // GET /templates
 pages.get('/templates', optionalLogIn, async (req, res) => {
-  const { name, parameter, value } = req.query
-  const instances = await TemplateHandler.query(name, parameter, value, db)
+  const instances = await TemplateHandler.query(req.query, req.user, db)
   res.status(200).json(instances)
 })
 
