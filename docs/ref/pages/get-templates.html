@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GET /templates</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="A design system for the Fifth World." />
+  </head>
+  <body class="thefifthworld">
+    <header>
+      <h1 class="logo">
+        <a href="https://thefifthworld.com">
+          <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+        </a>
+      </h1>
+    </header>
+    <main>
+      <ul class="breadcrumbs">
+        <li><a href="../../index.html">API Documentation</a></li>
+        <li><a href="../index.html">Reference</a></li>
+        <li><a href="index.html">Pages API</a></li>
+        <li class="current">Get templates</li>
+      </ul>
+      <h1>Get templates</h1>
+      <p>Many pages on the Fifth World website use <em>templates</em>. We define a few special templates in our
+        system, like <em>Children</em> or <em>Gallery</em>, but members can create their own templates just by
+        creating a new page. A page with the type <em>Template</em> can use variables. Then, when another page uses
+        that template, it can define those variables, and when we render the page, we replace the template invocation
+        with the template, rendered with the variables provided.</p>
+      <p>But some pages also use this format even without a defined template used for rendering, as a means of
+        applying structured data to a page.</p>
+      <p>This endpoint allows you to query the database for pages that use a given template, as well as the
+        parameters supplied for each instance.</p>
+      <h2>Request</h2>
+      <table>
+        <tcaption>HTTP Headers</tcaption>
+        <thead>
+          <tr>
+            <th>HTTP Header</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Authorization</code></td>
+            <td>A valid JSON Web Token, of the form <code>Bearer ENCODEDHEADER.ENCODEDPAYLOAD.ENCODEDSIGNATURE</code>.
+              If not supplied, your response will only include publicly-readable items. If supplied, your response
+              can include other items that you have permission to view.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Query Parameters</tcaption>
+        <thead>
+          <tr>
+            <th>Query Parameter</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td><em>Required.</em> The name of the template you want to find.</td>
+          </tr>
+          <tr>
+            <td><code>parameter</code></td>
+            <td><em>Optional.</em> The name of a parameter used by the template. If provided, the endpoint will
+              only return those pages that use the template and provide this parameter.</td>
+          </tr>
+          <tr>
+            <td><code>value</code></td>
+            <td><em>Optional.</em> The value of a parameter used by the template. If you provide both this and
+              <code>parameter</code>, the endpoint will only return those pages that use the template, provide
+              the given parameter, and set it to this value.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Examples</h3>
+      <figure class="request-response">
+        <figcaption>Example Request</figcaption>
+        <code class="language-http">GET /v1/templates?name=Artists HTTP/1.1
+Host: api.thefifthworld.com</code>
+      </figure>
+      <h2>Response</h2>
+      <p>The endpoint responds with a <code>200</code> HTTP code and a JSON string with an array of objects. Each
+        object in this array represents a page that uses the template you queried, with <code>path</code> and
+        <code>title</code> properties, along with a <code>templates</code> property, which provides an array of
+        template instances on the page matching your query. The name of the template is also a property in these
+        objects, called <code>template</code>.</p>
+      <table>
+        <tcaption>Response JSON</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>path</code></td>
+            <td><code>string</code></td>
+            <td>The unique path of the page.</td>
+          </tr>
+          <tr>
+            <td><code>title</code></td>
+            <td><code>string</code></td>
+            <td>The page&rsquo;s title.</td>
+          </tr>
+          <tr>
+            <td><code>templates</code></td>
+            <td><code>array</code></td>
+            <td>An array of instance objects.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tcaption>Instance Object</tcaption>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Value Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="white-space: nowrap;"><code>template</code></td>
+            <td><code>string</code></td>
+            <td>The name of the template.</td>
+          </tr>
+          <tr>
+            <td><em>Varies</em></td>
+            <td><code>string</code></td>
+            <td>The parameters used by this instance of the template each become a property in the returned
+              instance object, set to the values provided for them. For example, the string
+              <code>{{Example param="val"}}</code> comes back as
+              <code>{ template: 'Example', param: 'val' }</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Example</h3>
+      <figure class="request-response">
+        <figcaption>Example Response</figcaption>
+        <code class="language-js">[
+  {
+    path: '/art',
+    title: 'Art',
+    templates: [
+      { template: 'Artists' }
+    ]
+  }
+]</code>
+      </figure>
+    </main>
+    <footer>
+      <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+      <p class="copyleft">
+        <span class="icons">
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+          <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+        </span>
+        <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </footer>
+    <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
