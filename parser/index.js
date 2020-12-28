@@ -1,5 +1,5 @@
 const { Remarkable } = require('remarkable')
-const Page = require('../models/Page')
+const Page = require('../models/page')
 const FileHandler = require('../models/fileHandler')
 const LinkHandler = require('../models/linkhandler')
 const TagHandler = require('../models/taghandler')
