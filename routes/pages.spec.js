@@ -749,6 +749,17 @@ describe('Pages API', () => {
       expect(res.body[0].templates[0].b).toEqual('2')
       expect(res.body[0].templates[0].c).not.toBeDefined()
     })
+
+    it('doesn\'t return pages that don\'t use the template', async () => {
+      expect.assertions(1)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'Test Page', body: 'This is an update.', msg: 'Testing template query' }
+      await request.post('/pages/test-page').set('Authorization', `Bearer ${token}`).send(data)
+      const res = await request.get('/templates?name=Test&parameter=a')
+      await testUtils.resetTables(db)
+      expect(res.body).toHaveLength(0)
+    })
   })
 
   describe('POST /autocomplete', () => {
