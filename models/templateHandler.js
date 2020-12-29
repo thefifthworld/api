@@ -444,7 +444,7 @@ class TemplateHandler {
     const instances = await db.run(`SELECT t.page, t.template, t.instance FROM templates t, pages p WHERE ${query.join(' AND ')};`)
     let rows = []
     for (const instance of instances) {
-      const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE page=${instance.page} AND template="${instance.template}" AND instance=${instance.instance};`)
+      const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE p.id=t.page AND t.page=${instance.page} AND t.template="${instance.template}" AND t.instance=${instance.instance};`)
       rows = [...rows, ...r]
     }
 
