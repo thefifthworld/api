@@ -756,5 +756,16 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(0)
     })
+
+    it('doesn\'t return pages that don\'t use the template', async () => {
+      expect.assertions(2)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Page with Template', body: '{{Test}}' }, editor, 'Initial text', db)
+      const actual = await TemplateHandler.query({ name: 'Test' }, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+      expect(actual[0].title).toEqual('Page with Template')
+    })
   })
 })
