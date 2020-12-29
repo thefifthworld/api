@@ -756,5 +756,13 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(0)
     })
+
+    it('doesn\'t return pages that don\'t use the template', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const actual = await TemplateHandler.query({ name: 'Test' }, null, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(0)
+    })
   })
 })
