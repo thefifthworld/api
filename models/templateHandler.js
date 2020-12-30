@@ -226,7 +226,7 @@ class TemplateHandler {
   }
 
   /**
-   * Render the {{ListPages}} template, which provides a list of pages that
+   * Renders the {{ListPages}} template, which provides a list of pages that
    * match the given search criteria.
    * @param instance {object} - The parameters supplied for this instance of
    *   the template's use.
@@ -287,6 +287,37 @@ class TemplateHandler {
     const pages = await find(query, member, db)
     if (pages.length > 0) {
       instance.markup = `<ul>${pages.map(page => `<li><a href="${page.path}">${page.title}</a></li>`).join('')}</ul>`
+    }
+  }
+
+  /**
+   * Render the {{ListPagesUsingTemplate}} template, which provides a list of
+   * pages that use a given template (or use it in a given way).
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param instance.template {string} - The name of the template you're
+   *   searching for.
+   * @param instance.parameter {?string} - The name of a parameter used by the
+   *   named template. If provided, the list will only include those pages that
+   *   use the named template and provide this parameter.
+   * @param instance.value {?string} - The value of a parameter used by the
+   *   named template. If this and `instance.parameter` are both provided, the
+   *   list will only include those pages that use the named template, provide
+   *   the named parameter, and set it to this value.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderListPagesUsingTemplate (instance, options, db) {
+    instance.markup = ''
+    const { member } = options
+    const res = await TemplateHandler.query({ name: instance.template, parameter: instance.parameter, value: instance.value }, member, db)
+    if (res && Array.isArray(res) && res.length > 0) {
+      instance.markup = `<ul>${res.map(page => `<li><a href="${page.path}">${page.title}</a></li>`).join('')}</ul>`
     }
   }
 
@@ -415,6 +446,7 @@ class TemplateHandler {
           case 'Form': renderings.push(this.renderForm(instance, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
           case 'ListPages': renderings.push(this.renderListPages(instance, options, db)); break
+          case 'ListPagesUsingTemplate': renderings.push(this.renderListPagesUsingTemplate(instance, options, db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
           default: renderings.push(this.renderDefault(template, instance, options, db)); break
