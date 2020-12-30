@@ -78,4 +78,10 @@ describe('Parser', () => {
     const actual = await parser('```\r\n{{Artists}}\r\n```\n\nThis is outside of the code block.', null, null, db)
     expect(actual.html).toEqual('<pre><code>\r\n{{Artists}}\r\n</code></pre>\n<p>This is outside of the code block.</p>\n')
   })
+
+  it('doesn\'t render anything inside of {{Template}}', async () => {
+    expect.assertions(1)
+    const actual = await parser('{{Template}}\r\nThis is inside of a template block.\r\n{{/Template}}\r\n\r\nThis is outside of the template block.', null, null, db)
+    expect(actual.html).toEqual('<p>This is outside of the template block.</p>\n')
+  })
 })
