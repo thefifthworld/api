@@ -726,6 +726,19 @@ describe('TemplateHandler', () => {
       expect(handler.instances.Gallery[0].markup).toEqual(expected)
     })
 
+    it('renders {{ListPages}}', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test Page #2', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('ListPages', { path: '/test' })
+      await handler.render({}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.ListPages[0].markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page-2">Test Page #2</a></li></ul>')
+    })
+
     it('renders {{Novels}}', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
