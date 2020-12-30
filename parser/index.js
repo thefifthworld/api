@@ -65,7 +65,7 @@ const parser = async (str, path, member, db) => {
   const { stripped, tagHandler } = TagHandler.parse(blocked)
 
   // Render templates
-  let templated = stripped
+  let templated = stripped.replace(/{{Template}}(\r|\n|.)*?{{\/Template}}/gm, '')
   const templates = await TemplateHandler.parse(stripped, { page: Page, fileHandler: FileHandler })
   await templates.render({ path, member }, db)
   for (const key of Object.keys(templates.instances)) {
