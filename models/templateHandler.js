@@ -226,6 +226,102 @@ class TemplateHandler {
   }
 
   /**
+   * Renders the {{ListPages}} template, which provides a list of pages that
+   * match the given search criteria.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param instance.path {?string} - Finds any pages with paths that begin
+   *   with the given string.
+   * @param instance.title {?string} - Finds any pages that partially match the
+   *   given string.
+   * @param instance.type {?string} - Finds any pages that match the given
+   *   type.
+   * @param instance.tags {?string} - A string that supplies tag criteria for
+   *   the search. This string takes the form of a semicolon-separated list,
+   *   where each item can either provide a key-value pair separated by a
+   *   colon (e.g., `key:value`), or a standalone key (e.g., `key`). If given
+   *   a key-value pair, the criterion matches pages that have the tag `key`
+   *   where it equals `value`. If given a standalone key, it matches pages
+   *   that have the given tag.
+   * @param instance.logic {?string} - Can be either `and` or `or`. Setting
+   *   this to `or` will return any page that matches any given criteria.
+   *   Setting it to `and` will only match pages that match all of the given
+   *   criteria. (Default: `and`)
+   * @param instance.limit {?number} - The maximum number of results to return.
+   *   (Default: 10)
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderListPages (instance, options, db) {
+    instance.markup = ''
+    const { member } = options
+    const find = this.models.page && typeof this.models.page.find === 'function'
+      ? this.models.page.find
+      : async () => []
+
+    const query = {}
+    if (instance.path) query.path = instance.path
+    if (instance.title) query.title = instance.title
+    if (instance.type) query.type = instance.type
+    if (instance.logic) query.logic = instance.logic
+    if (instance.limit) query.limit = parseInt(instance.limit)
+
+    if (instance.tags) {
+      const split = instance.tags.split(';').map(pair => pair.trim().split(':').map(el => el.trim()))
+      split.forEach(arr => {
+        if (arr.length > 1) {
+          if (!query.tags) query.tags = {}
+          query.tags[arr[0]] = arr[1]
+        } else if(arr.length > 0) {
+          if (!query.hasTags) query.hasTags = []
+          query.hasTags = [...query.hasTags, arr[0]]
+        }
+      })
+    }
+
+    const pages = await find(query, member, db)
+    if (pages.length > 0) {
+      instance.markup = `<ul>${pages.map(page => `<li><a href="${page.path}">${page.title}</a></li>`).join('')}</ul>`
+    }
+  }
+
+  /**
+   * Render the {{ListPagesUsingTemplate}} template, which provides a list of
+   * pages that use a given template (or use it in a given way).
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param instance.template {string} - The name of the template you're
+   *   searching for.
+   * @param instance.parameter {?string} - The name of a parameter used by the
+   *   named template. If provided, the list will only include those pages that
+   *   use the named template and provide this parameter.
+   * @param instance.value {?string} - The value of a parameter used by the
+   *   named template. If this and `instance.parameter` are both provided, the
+   *   list will only include those pages that use the named template, provide
+   *   the named parameter, and set it to this value.
+   * @param options {object} - Options necessary for rendering templates.
+   * @param options.member {Member} - The member requesting this rendering.
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderListPagesUsingTemplate (instance, options, db) {
+    instance.markup = ''
+    const { member } = options
+    const res = await TemplateHandler.query({ name: instance.template, parameter: instance.parameter, value: instance.value }, member, db)
+    if (res && Array.isArray(res) && res.length > 0) {
+      instance.markup = `<ul>${res.map(page => `<li><a href="${page.path}">${page.title}</a></li>`).join('')}</ul>`
+    }
+  }
+
+  /**
    * Render the {{Novels}} template, which provides a gallery of novels with
    * their covers.
    * @param instance {object} - The parameters supplied for this instance of
@@ -349,6 +445,8 @@ class TemplateHandler {
           case 'Download': renderings.push(this.renderFile(instance, options, db)); break
           case 'Form': renderings.push(this.renderForm(instance, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
+          case 'ListPages': renderings.push(this.renderListPages(instance, options, db)); break
+          case 'ListPagesUsingTemplate': renderings.push(this.renderListPagesUsingTemplate(instance, options, db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
           default: renderings.push(this.renderDefault(template, instance, options, db)); break

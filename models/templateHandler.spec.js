@@ -393,6 +393,165 @@ describe('TemplateHandler', () => {
     })
   })
 
+  describe('renderListPages', () => {
+    it('renders a list of pages with a matching title', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test Page #2', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', title: 'Test Page' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page-2">Test Page #2</a></li></ul>')
+    })
+
+    it('renders a list of pages with a matching path', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page.', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', path: '/test' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages with a matching type', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Type:Test]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', type: 'Test' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages that have a given tag', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Test:Hello world!]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page. [[Test:42]]' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', tags: 'Test' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li><li><a href="/something-else">Something Else</a></li></ul>')
+    })
+
+    it('renders a list of pages that have a given tag set to a given value', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Test:Hello world!]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page. [[Test:42]]' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', tags: 'Test:Hello world!' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages that have all of the given tags', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Test:Hello world!]] [[Test2:Something else]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page. [[Test:42]]' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', tags: 'Test:Hello world!;Test2' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages found applying AND logic', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Test:Hello world!]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', path: '/test', tags: 'Test' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages found applying OR logic', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page. [[Test:Hello world!]]', parent: root.path }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', path: '/test', tags: 'Test', logic: 'or' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+    })
+
+    it('renders a list of pages that respects a given limit', async () => {
+      expect.assertions(1)
+      const root = await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Child Page', body: 'This is also a test page.', parent: root.path }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', path: '/test', limit: '1' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li></ul>')
+    })
+  })
+
+  describe('renderListPagesUsingTemplate', () => {
+    it('returns a list of pages that use a given template', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPagesUsingTemplate', template: 'TestTemplate' }
+      const handler = new TemplateHandler()
+      await handler.renderListPagesUsingTemplate(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
+    })
+
+    it('returns a list of pages that use a given template with a given parameter', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate param="Hello world!"}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      const actual = { name: 'ListPagesUsingTemplate', template: 'TestTemplate', parameter: 'param' }
+      const handler = new TemplateHandler()
+      await handler.renderListPagesUsingTemplate(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
+    })
+
+    it('returns a list of pages that use a given template with a given parameter set to a given value', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate param="Hello world!"}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test. {{TestTemplate param="Nope"}}' }, member, 'Initial text', db)
+      const actual = { name: 'ListPagesUsingTemplate', template: 'TestTemplate', parameter: 'param', value: 'Hello world!' }
+      const handler = new TemplateHandler()
+      await handler.renderListPagesUsingTemplate(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
+    })
+  })
+
   describe('renderNovels', () => {
     it('lists all novels', async () => {
       expect.assertions(1)
@@ -606,6 +765,32 @@ describe('TemplateHandler', () => {
       }
       const expected = `<ul class="thumbnails"><li><a href="/test-page/a1"><img src="${urls.a}" alt="A1" /></a></li><li><a href="/test-page/c3"><img src="${urls.c}" alt="C3" /></a></li><li><a href="/test-page/b2"><img src="${urls.b}" alt="B2" /></a></li></ul>`
       expect(handler.instances.Gallery[0].markup).toEqual(expected)
+    })
+
+    it('renders {{ListPages}}', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test Page #2', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('ListPages', { path: '/test' })
+      await handler.render({}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.ListPages[0].markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page-2">Test Page #2</a></li></ul>')
+    })
+
+    it('renders {{ListPagesUsingTemplate}}', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test.' }, member, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('ListPagesUsingTemplate', { template: 'TestTemplate' })
+      await handler.render({}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.ListPagesUsingTemplate[0].markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
     })
 
     it('renders {{Novels}}', async () => {

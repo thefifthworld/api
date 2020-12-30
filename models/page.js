@@ -439,9 +439,7 @@ class Page {
 
   /**
    * Find pages that match a query.
-   * @param query {{ ?path: string, ?title: string, ?type: string, ?tags: {},
-   *   ?logic: string, ?limit: number, ?offset: number }} - An object
-   *   representing the query being made.
+   * @param query {object} - An object representing the query being made.
    * @param query.path {?string} - Finds any pages with paths that begin with
    *   the given string.
    * @param query.title {?string} - Finds any pages that partially match the
