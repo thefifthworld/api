@@ -446,6 +446,7 @@ class TemplateHandler {
           case 'Form': renderings.push(this.renderForm(instance, db)); break
           case 'Gallery': renderings.push(this.renderChildren(instance, Object.assign({}, options, { asGallery: true }), db)); break
           case 'ListPages': renderings.push(this.renderListPages(instance, options, db)); break
+          case 'ListPagesUsingTemplate': renderings.push(this.renderListPagesUsingTemplate(instance, options, db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
           default: renderings.push(this.renderDefault(template, instance, options, db)); break

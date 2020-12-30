@@ -780,6 +780,19 @@ describe('TemplateHandler', () => {
       expect(handler.instances.ListPages[0].markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page-2">Test Page #2</a></li></ul>')
     })
 
+    it('renders {{ListPagesUsingTemplate}}', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test.' }, member, 'Initial text', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('ListPagesUsingTemplate', { template: 'TestTemplate' })
+      await handler.render({}, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.ListPagesUsingTemplate[0].markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
+    })
+
     it('renders {{Novels}}', async () => {
       expect.assertions(1)
       await testUtils.populateMembers(db)
