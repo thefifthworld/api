@@ -72,4 +72,10 @@ describe('Parser', () => {
     await testUtils.resetTables(db)
     expect(actual.html).toEqual('<p>Hello world!</p>\n')
   })
+
+  it('doesn\'t parse templates that are inside code blocks', async () => {
+    expect.assertions(1)
+    const actual = await parser('```\r\n{{Artists}}\r\n```\n\nThis is outside of the code block.', null, null, db)
+    expect(actual.html).toEqual('<pre><code>\r\n{{Artists}}\r\n</code></pre>\n<p>This is outside of the code block.</p>\n')
+  })
 })
