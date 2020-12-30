@@ -16,7 +16,7 @@ const TemplateHandler = require('../models/templateHandler')
 
 const saveBlocks = str => {
   let blocked = str
-  const b = str.match(/```(\n|.)*```/gm)
+  const b = str.match(/```(\r|\n|.)*?```/gm)
   const blocks = b ? b.map(b => b.substr(3, b.length - 6)) : []
   blocks.forEach((block, index) => {
     const placeholder = `||||BLOCK${index}||||`
