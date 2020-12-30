@@ -226,7 +226,7 @@ class TemplateHandler {
   }
 
   /**
-   * Render the {{ListPages}} template, which provides a list of pages that
+   * Renders the {{ListPages}} template, which provides a list of pages that
    * match the given search criteria.
    * @param instance {object} - The parameters supplied for this instance of
    *   the template's use.
