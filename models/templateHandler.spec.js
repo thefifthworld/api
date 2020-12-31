@@ -6,6 +6,7 @@ const testUtils = require('../test-utils')
 const Page = require('./page')
 const Member = require('./member')
 const FileHandler = require('./fileHandler')
+const LinkHandler = require('./linkhandler')
 const TemplateHandler = require('./templateHandler')
 
 describe('TemplateHandler', () => {
@@ -565,6 +566,25 @@ describe('TemplateHandler', () => {
       await handler.renderNovels(handler.instances.Novels[0], {}, db)
       await testUtils.resetTables(db)
       expect(handler.instances.Novels[0].markup).toEqual(`<ul class="novel-listing"><li><a href="/children-of-wormwood"><img src="${FileHandler.getURL(art.name)}" alt="Children of Wormwood" /></a></li></ul>`)
+    })
+  })
+
+  describe('renderRequestedLinks', () => {
+    it('renders a list of requested links', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: '[[Link 1]] [[Link 2]] [[Link 3]] [[Link 4]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '[[Link 1]] [[Link 2]] [[Link 3]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #3', body: '[[Link 1]] [[Link 2]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #4', body: '[[Link 1]] [[Link 2]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #5', body: '[[Link 1]]' }, editor, 'Initial text', db)
+      await Page.create({ title: 'Page #6', body: '[[Link 1]]' }, editor, 'Initial text', db)
+      const actual = { name: 'RequestedLinks' }
+      const handler = new TemplateHandler({ linkHandler: LinkHandler })
+      await handler.renderRequestedLinks(actual, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<table class="requested-links"><thead><tr><th>Requested page</th><th>Requested by</th></tr><tbody><tr><td><a href="/new?title=Link 1">Link 1</a></td><td class="listing"><a href="/page-1">Page #1</a>, <a href="/page-2">Page #2</a>, <a href="/page-3">Page #3</a>, and 3 others</td></tr><tr><td><a href="/new?title=Link 2">Link 2</a></td><td class="listing"><a href="/page-1">Page #1</a>, <a href="/page-2">Page #2</a>, <a href="/page-3">Page #3</a>, and 1 other</td></tr><tr><td><a href="/new?title=Link 3">Link 3</a></td><td class="listing"><a href="/page-1">Page #1</a> and <a href="/page-2">Page #2</a></td></tr><tr><td><a href="/new?title=Link 4">Link 4</a></td><td class="listing"><a href="/page-1">Page #1</a></td></tr></tbody></table>')
     })
   })
 
