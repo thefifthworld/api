@@ -564,6 +564,19 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
     })
+
+    it('does not list the template page itself', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'TestTemplate', body: '{{Template}}This is a test.{{/Template}}\n\n## Example\n\n{{TestTemplate}}', type: 'Template' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test Page', body: '{{TestTemplate}}' }, member, 'Initial text', db)
+      const actual = { name: 'ListPagesUsingTemplate', template: 'TestTemplate' }
+      const handler = new TemplateHandler()
+      await handler.renderListPagesUsingTemplate(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li></ul>')
+    })
   })
 
   describe('renderNovels', () => {
