@@ -315,7 +315,13 @@ class TemplateHandler {
   async renderListPagesUsingTemplate (instance, options, db) {
     instance.markup = ''
     const { member } = options
-    const res = await TemplateHandler.query({ name: instance.template, parameter: instance.parameter, value: instance.value }, member, db)
+    const query = {
+      name: instance.template,
+      parameter: instance.parameter,
+      value: instance.value,
+      limit: parseInt(instance.limit)
+    }
+    const res = await TemplateHandler.query(query, member, db)
     if (res && Array.isArray(res) && res.length > 0) {
       instance.markup = `<ul>${res.map(page => `<li><a href="${page.path}">${page.title}</a></li>`).join('')}</ul>`
     }
