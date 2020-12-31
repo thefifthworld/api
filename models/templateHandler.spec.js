@@ -551,6 +551,19 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
     })
+
+    it('limits the number of pages returned', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test #1', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test #2', body: 'This is a test. {{TestTemplate}}' }, member, 'Initial text', db)
+      const actual = { name: 'ListPagesUsingTemplate', template: 'TestTemplate', limit: '1' }
+      const handler = new TemplateHandler()
+      await handler.renderListPagesUsingTemplate(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-1">Test #1</a></li></ul>')
+    })
   })
 
   describe('renderNovels', () => {
@@ -988,6 +1001,17 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual).toHaveLength(1)
       expect(actual[0].title).toEqual('Page with Template')
+    })
+
+    it('limits the number of pages returned', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: '{{Test}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '{{Test}}' }, member, 'Initial text', db)
+      const actual = await TemplateHandler.query({ name: 'Test', limit: 1 }, member, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
     })
   })
 })
