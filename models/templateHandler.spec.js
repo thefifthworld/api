@@ -989,5 +989,16 @@ describe('TemplateHandler', () => {
       expect(actual).toHaveLength(1)
       expect(actual[0].title).toEqual('Page with Template')
     })
+
+    it('limits the number of pages returned', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Page #1', body: '{{Test}}' }, member, 'Initial text', db)
+      await Page.create({ title: 'Page #2', body: '{{Test}}' }, member, 'Initial text', db)
+      const actual = await TemplateHandler.query({ name: 'Test', limit: 1 }, member, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(1)
+    })
   })
 })

@@ -565,6 +565,8 @@ class TemplateHandler {
    *   returns instances that use this parameter.
    * @param search.value {?string} - Optional. If provided, this only returns
    *   instances with a parameter equal to this value.
+   * @param search.limit {?number} - Optional. The maximum number of results to
+   *   return (Default: `25`).
    * @param member {Member} - The member conducting the search.
    * @param db {Pool} - The database connection.
    * @returns {Promise<[]>} - A Promise that resolves with an array of objects.
@@ -576,6 +578,7 @@ class TemplateHandler {
 
   static async query (search, member, db) {
     const { name, parameter, value } = search
+    const limit = search.limit || 25
     const query = ['p.id=t.page', `t.template=${escape(name)}`]
     if (parameter) query.push(`t.parameter=${escape(parameter)}`)
     if (value) query.push(`t.value=${escape(value)}`)
@@ -590,9 +593,10 @@ class TemplateHandler {
       const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE p.id=t.page AND t.page=${instance.page} AND t.template="${instance.template}" AND t.instance=${instance.instance};`)
       rows = [...rows, ...r]
     }
+    const limitedRows = rows.slice(0, limit)
 
     const pages = {}
-    rows.forEach(row => {
+    limitedRows.forEach(row => {
       if (!pages[row.path]) pages[row.path] = { title: row.title, templates: {} }
       const page = pages[row.path]
       if (!page.templates[row.template]) page.templates[row.template] = {}
