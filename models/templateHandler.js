@@ -362,6 +362,50 @@ class TemplateHandler {
   }
 
   /**
+   * Render the {{RequestedLinks}} template, which provides a listing of
+   * requested links.
+   * @param instance {object} - The parameters supplied for this instance of
+   *   the template's use.
+   * @param instance.num {string} - The maximum number of requested links to
+   *   list (Default: `25`).
+   * @param db {Pool} - The database connection.
+   * @returns {Promise<void>} - A Promise that resolves when the instance has
+   *   been rendered by adding a new `markup` property to it with the rendered
+   *   markup for that instance.
+   */
+
+  async renderRequestedLinks (instance, db) {
+    instance.markup = ''
+    const num = parseInt(instance.num) || 25
+    const loadRequested = this.models.linkHandler && typeof this.models.linkHandler.loadRequested === 'function'
+      ? this.models.linkHandler.loadRequested
+      : () => []
+    const requests = await loadRequested(db, num)
+    if (requests.length > 0) {
+      const thead = '<thead><tr><th>Requested page</th><th>Requested by</th></tr>'
+      const rows = requests.map(request => {
+        const link = `<a href="/new?title=${request.title}">${request.title}</a>`
+        const shown = request.links.slice(0, 3)
+        let listing = ''
+        if (request.links.length > shown.length) {
+          const num = request.links.length - shown.length
+          const others = num === 1 ? '1 other' : `${num} others`
+          listing = `${shown.map(link => `<a href="${link.path}">${link.title}</a>`).join(', ')}, and ${others}`
+        } else if (shown.length > 1) {
+          const notLast = shown.slice(0, -1)
+          const isLast = shown.slice(-1)
+          const oxford = notLast.length > 1 ? ',' : ''
+          listing = `${notLast.map(link => `<a href="${link.path}">${link.title}</a>`).join(', ')}${oxford} and <a href="${isLast[0].path}">${isLast[0].title}</a>`
+        } else if (shown.length === 1) {
+          listing = `<a href="${shown[0].path}">${shown[0].title}</a>`
+        }
+        return `<tr><td>${link}</td><td class="listing">${listing}</td></tr>`
+      })
+      instance.markup = `<table class="requested-links">${thead}<tbody>${rows.join('')}</tbody></table>`
+    }
+  }
+
+  /**
    * Render the {{Tagged}} template, which provides a list of pages that have
    * a particular tag set to a particular value.
    * @param instance {object} - The parameters supplied for this instance of
@@ -448,6 +492,7 @@ class TemplateHandler {
           case 'ListPages': renderings.push(this.renderListPages(instance, options, db)); break
           case 'ListPagesUsingTemplate': renderings.push(this.renderListPagesUsingTemplate(instance, options, db)); break
           case 'Novels': renderings.push(this.renderNovels(instance, options, db)); break
+          case 'RequestedLinks': renderings.push(this.renderRequestedLinks(instance, db)); break
           case 'Tagged': renderings.push(this.renderTagged(instance, options, db)); break
           default: renderings.push(this.renderDefault(template, instance, options, db)); break
         }
