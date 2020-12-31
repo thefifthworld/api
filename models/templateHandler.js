@@ -585,7 +585,11 @@ class TemplateHandler {
   static async query (search, member, db) {
     const { name, parameter, value } = search
     const limit = search.limit || 25
-    const query = ['p.id=t.page', `t.template=${escape(name)}`]
+    const query = [
+      'p.id=t.page',
+      `t.template=${escape(name)}`,
+      `!(p.type="Template" AND p.title=${escape(name)})`
+    ]
     if (parameter) query.push(`t.parameter=${escape(parameter)}`)
     if (value) query.push(`t.value=${escape(value)}`)
     if (member && member.id && !member.admin) {
