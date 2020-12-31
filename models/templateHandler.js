@@ -585,7 +585,7 @@ class TemplateHandler {
   static async query (search, member, db) {
     const { name, parameter, value } = search
     const limit = search.limit || 25
-    const query = [
+    let query = [
       'p.id=t.page',
       `t.template=${escape(name)}`,
       `!(p.type="Template" AND p.title=${escape(name)})`
@@ -597,16 +597,10 @@ class TemplateHandler {
     } else if (!member || !member.id) {
       query.push('p.permissions % 10 >= 4')
     }
-    const instances = await db.run(`SELECT t.page, t.template, t.instance FROM templates t, pages p WHERE ${query.join(' AND ')};`)
-    let rows = []
-    for (const instance of instances) {
-      const r = await db.run(`SELECT p.title, p.path, t.template, t.instance, t.parameter, t.value FROM pages p, templates t WHERE p.id=t.page AND t.page=${instance.page} AND t.template="${instance.template}" AND t.instance=${instance.instance};`)
-      rows = [...rows, ...r]
-    }
-    const limitedRows = rows.slice(0, limit)
+    const rows = await db.run(`SELECT p.path, p.title, t.page, t.template, t.instance, t.parameter, t.value FROM pages p, templates t INNER JOIN (SELECT DISTINCT t.page FROM templates t, pages p WHERE ${query.join(' AND ')} LIMIT ${limit}) j ON j.page=t.page WHERE p.id=t.page;`)
 
     const pages = {}
-    limitedRows.forEach(row => {
+    rows.forEach(row => {
       if (!pages[row.path]) pages[row.path] = { title: row.title, templates: {} }
       const page = pages[row.path]
       if (!page.templates[row.template]) page.templates[row.template] = {}
