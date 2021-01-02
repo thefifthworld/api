@@ -179,6 +179,12 @@ class Page {
           await this.update(data, editor, msg, db)
         }
 
+        try {
+          await db.run(`UPDATE links SET dest=${this.id}, title=${escape(this.title)} WHERE (LOWER(title)=${escape(this.title.toLowerCase())} OR LOWER(title)=${escape(this.path.toLowerCase())}) AND dest IS NULL;`)
+        } catch {
+          console.error('Failed to update links table')
+        }
+
         if (data.files) {
           const fileHandler = await FileHandler.handle(data.files, this, editor)
           await fileHandler.save(db)
