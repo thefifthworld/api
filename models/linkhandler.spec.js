@@ -161,5 +161,18 @@ describe('LinkHandler', () => {
       await testUtils.resetTables(db)
       expect(actual[0].links).toHaveLength(1)
     })
+
+    it('doesn\'t report a requested link after it has been created', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Test Page', body: 'This is a page. [[Link]]' }, editor, 'Initial text', db)
+      const before = await LinkHandler.loadRequested(db)
+      await Page.create({ title: 'Link', body: 'This is the other page.' }, editor, 'Initial text', db)
+      const after = await LinkHandler.loadRequested(db)
+      await testUtils.resetTables(db)
+      expect(before).toHaveLength(1)
+      expect(after).toHaveLength(0)
+    })
   })
 })
