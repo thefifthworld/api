@@ -151,5 +151,15 @@ describe('LinkHandler', () => {
       expect(actual[1].title).toEqual('Page Four')
       expect(actual[1].links[0].id).toEqual(p1.id)
     })
+
+    it('lists each page that has requested a link only once', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'Test Page', body: 'This is a page. [[Link]] [[Link]] [[Link]]' }, editor, 'Initial text', db)
+      const actual = await LinkHandler.loadRequested(db)
+      await testUtils.resetTables(db)
+      expect(actual[0].links).toHaveLength(1)
+    })
   })
 })

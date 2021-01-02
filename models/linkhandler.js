@@ -104,7 +104,7 @@ class LinkHandler {
     if (requests) {
       for (const request of requests) {
         const { title } = request
-        const rows = await db.run(`SELECT p.id, p.title, p.path FROM pages p, links l WHERE l.title = ${escape(title)} AND l.dest IS NULL AND p.id=l.src;`)
+        const rows = await db.run(`SELECT DISTINCT p.id, p.title, p.path FROM pages p, links l WHERE l.title = ${escape(title)} AND l.dest IS NULL AND p.id=l.src;`)
         const link = {
           title,
           links: rows

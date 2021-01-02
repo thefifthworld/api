@@ -743,7 +743,7 @@ describe('Pages API', () => {
       expect(res.body).toHaveLength(1)
       expect(res.body[0].path).toEqual('/test-page')
       expect(res.body[0].title).toEqual('Test Page')
-      expect(res.body[0].templates).toHaveLength(1)
+      expect(res.body[0].templates).toHaveLength(2)
       expect(res.body[0].templates[0].template).toEqual('Test')
       expect(res.body[0].templates[0].a).toEqual('1')
       expect(res.body[0].templates[0].b).toEqual('2')
