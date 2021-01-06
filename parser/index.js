@@ -1,4 +1,5 @@
 const { Remarkable } = require('remarkable')
+const RemarkableHeaders = require('remarkable-header-ids')
 const Page = require('../models/Page')
 const FileHandler = require('../models/fileHandler')
 const LinkHandler = require('../models/linkhandler')
@@ -60,7 +61,9 @@ const restoreBlocks = (str, blocks) => {
 
 const parser = async (str, path, member, db) => {
   str = typeof str === 'string' ? str : ''
-  const md = new Remarkable({ html: true, xhtmlOut: true })
+  const mdopts = { html: true, xhtmlOut: true }
+  const headeropts = { headerId: slug => slug }
+  const md = new Remarkable(mdopts).use(RemarkableHeaders(headeropts))
   const { blocked, blocks } = saveBlocks(str)
   const { stripped, tagHandler } = TagHandler.parse(blocked)
 
