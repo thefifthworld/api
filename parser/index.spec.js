@@ -24,7 +24,7 @@ describe('Parser', () => {
   it('creates headings with anchors', async () => {
     expect.assertions(1)
     const actual = await parser('## Test heading', null, null, db)
-    expect(actual.html).toEqual('<a name="test-heading"></a><h2>Test heading</h2>')
+    expect(actual.html).toEqual('<h2 id="test-heading"><a class="header-anchor" id="test-heading" href="#test-heading">#</a>Test heading</h2>\n')
   })
 
   it('renders HTML', async () => {
