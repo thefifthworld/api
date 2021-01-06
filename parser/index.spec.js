@@ -21,6 +21,12 @@ describe('Parser', () => {
     expect(actual.html).toEqual('<p><em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong></p>\n')
   })
 
+  it('creates headings with anchors', async () => {
+    expect.assertions(1)
+    const actual = await parser('## Test heading', null, null, db)
+    expect(actual.html).toEqual('<a name="test-heading"></a><h2>Test heading</h2>')
+  })
+
   it('renders HTML', async () => {
     expect.assertions(1)
     const actual = await parser('<em>Hello</em> <strong><a href="https://thefifthworld.com">world</a></strong>', null, null, db)
