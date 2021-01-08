@@ -530,7 +530,7 @@ class TemplateHandler {
           paramStrings.forEach(str => {
             const pair = str.trim().split('=')
             if (Array.isArray(pair) && pair.length > 0) {
-              params[pair[0].trim()] = pair[1].substr(1, pair[1].length - 2).trim()
+              params[pair[0].trim().toLowerCase()] = pair[1].substr(1, pair[1].length - 2).trim()
             }
           })
         }

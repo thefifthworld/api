@@ -96,6 +96,20 @@ describe('TemplateHandler', () => {
       expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/a1">A1</a></li><li><a href="/test-page/b2">B2</a></li><li><a href="/test-page/c3">C3</a></li></ul>')
     })
 
+    it('renders a list of the current page\'s children of a particular type', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      await Page.create({ title: 'B2', body: 'This is a test.', parent: '/test-page', type: 'Test' }, editor, 'This is a test', db)
+      await Page.create({ title: 'C3', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      await Page.create({ title: 'A1', body: 'This is a test.', parent: '/test-page' }, editor, 'This is a test', db)
+      const handler = new TemplateHandler({ page: Page })
+      handler.add('Children', { type: 'Test' })
+      await handler.renderChildren(handler.instances.Children[0], { path: '/test-page', member: editor }, db)
+      await testUtils.resetTables(db)
+      expect(handler.instances.Children[0].markup).toEqual('<ul><li><a href="/test-page/b2">B2</a></li></ul>')
+    })
+
     it('lets you render a list of a different page\'s children', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)
@@ -900,6 +914,11 @@ describe('TemplateHandler', () => {
       const actual = TemplateHandler.parse('Hello world!', { page: Page, fileHandler: FileHandler })
       expect(actual.models.page).toEqual(Page)
       expect(actual.models.fileHandler).toEqual(FileHandler)
+    })
+
+    it('makes all params lowercase', () => {
+      const actual = TemplateHandler.parse('Hello world! {{Test Param="Val" Type="Sure"}}')
+      expect(actual.instances.Test).toEqual([{ originalWikitext: '{{Test Param="Val" Type="Sure"}}', param: 'Val', type: 'Sure' }])
     })
   })
 
