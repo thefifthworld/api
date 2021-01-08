@@ -240,10 +240,10 @@ class Member {
 
   async getInvited (db) {
     const accounts = []
-    const rows = await db.run(`SELECT inviteTo, accepted FROM invitations WHERE inviteFrom=${this.id};`)
+    const rows = await db.run(`SELECT m.id, i.accepted FROM invitations i, members m WHERE m.id=i.inviteTo AND i.inviteFrom=${this.id};`)
     if (rows) {
       for (const row of rows) {
-        const member = await Member.load(row.inviteTo, db)
+        const member = await Member.load(row.id, db)
         const privatized = member ? member.privatize([ 'password', 'invitations' ]) : {}
         accounts.push(Object.assign({}, privatized, { accepted: Boolean(row.accepted) }))
       }
