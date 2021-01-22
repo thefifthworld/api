@@ -61,17 +61,17 @@ describe('Parser', () => {
   it('parses links', async () => {
     expect.assertions(2)
     await testUtils.createTestPage(Page, Member, db)
-    const actual = await parser('[[Test Page | Hello]]', null, null, db)
+    const actual = await parser('[[Test Page#Section Title | Hello]]', null, null, db)
     await testUtils.resetTables(db)
-    expect(actual.html).toEqual('<p><a href="/test-page" title="Test Page">Hello</a></p>\n')
-    expect(actual.linkHandler.links).toEqual([ { id: 1, text: 'Hello', title: 'Test Page', path: '/test-page', isNew: false } ])
+    expect(actual.html).toEqual('<p><a href="/test-page#section-title" title="Test Page">Hello</a></p>\n')
+    expect(actual.linkHandler.links).toEqual([ { id: 1, text: 'Hello', title: 'Test Page', path: '/test-page#section-title', anchor: 'section-title', isNew: false } ])
   })
 
   it('parses new links', async () => {
     expect.assertions(2)
-    const actual = await parser('[[Test Page | Hello]]', null, null, db)
+    const actual = await parser('[[Test Page#Section Title | Hello]]', null, null, db)
     expect(actual.html).toEqual('<p><a href="/new?title=Test%20Page" class="isNew">Hello</a></p>\n')
-    expect(actual.linkHandler.links).toEqual([ { id: null, text: 'Hello', title: 'Test Page', path: '/new?title=Test%20Page', isNew: true } ])
+    expect(actual.linkHandler.links).toEqual([ { id: null, text: 'Hello', title: 'Test Page', path: '/new?title=Test%20Page', anchor: 'section-title', isNew: true } ])
   })
 
   it('parses templates', async () => {
