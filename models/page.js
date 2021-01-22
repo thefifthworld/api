@@ -133,7 +133,8 @@ class Page {
     const title = data.title || ''
     const slug = data.slug || slugify(title, { lower: true, strict: true })
     const parent = data.parent ? await Page.get(data.parent, db) : null
-    const path = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
+    const givenPath = data.path ? data.path : parent ? `${parent.path}/${slug}` : `/${slug}`
+    const path = givenPath.substr(0, 1) === '/' ? givenPath : `/${givenPath}`
 
     /**
      * Determine type.
