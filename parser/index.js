@@ -80,6 +80,7 @@ const parser = async (str, path, member, db) => {
   let html = md.render(templated)
   const { str: linked, linkHandler } = await LinkHandler.parse(html, db)
   html = restoreBlocks(linked, blocks)
+  html = html.replace(/\<pre\>\<code\>[\n|\r]*/gi, '<pre><code>').replace(/[\n|\r]*\<\/code\>\<\/pre\>/gi, '</code></pre>')
   return { html, tagHandler, linkHandler }
 }
 
