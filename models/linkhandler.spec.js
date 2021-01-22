@@ -26,6 +26,13 @@ describe('LinkHandler', () => {
       expect(actual).toEqual({ id: null, path: '/new?title=Link', text: 'Link', title: 'Link', isNew: true })
     })
 
+    it('handles anchors', async () => {
+      expect.assertions(1)
+      const handler = new LinkHandler()
+      const actual = await handler.add('[[Link#Section]]', db)
+      expect(actual).toEqual({ id: null, path: '/new?title=Link', anchor: 'section', text: 'Link#Section', title: 'Link', isNew: true })
+    })
+
     it('returns link info for an existing link', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)
@@ -33,6 +40,15 @@ describe('LinkHandler', () => {
       const actual = await handler.add('[[Test Page]]', db)
       await testUtils.resetTables(db)
       expect(actual).toEqual({ id: 1, path: '/test-page', text: 'Test Page', title: 'Test Page', isNew: false })
+    })
+
+    it('returns link info for an existing link with an anchor', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const handler = new LinkHandler()
+      const actual = await handler.add('[[Test Page#Section Title]]', db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual({ id: 1, path: '/test-page#section-title', anchor: 'section-title', text: 'Test Page#Section Title', title: 'Test Page', isNew: false })
     })
   })
 
