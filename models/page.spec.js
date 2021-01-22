@@ -512,6 +512,18 @@ describe('Page', () => {
       expect(actual[1].parameter).toEqual('param2')
       expect(actual[1].value).toEqual('42')
     })
+
+    it('adds a slash to the path if you didn\'t', async () => {
+      expect.assertions(2)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const page = new Page()
+      await page.save({ title: 'Test Page', body: 'This is a test.', path: 'test' }, editor, 'Initial text', db)
+      const pagesCheck = await db.run(`SELECT path FROM pages WHERE id=${page.id};`)
+      await testUtils.resetTables(db)
+      expect(page.path).toEqual('/test')
+      expect(pagesCheck[0].path).toEqual(page.path)
+    })
   })
 
   describe('rollback', () => {
