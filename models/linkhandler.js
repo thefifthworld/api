@@ -1,4 +1,5 @@
 const { escape } = require('sqlstring')
+const slugify = require('slugify')
 
 class LinkHandler {
   constructor () {
@@ -23,15 +24,18 @@ class LinkHandler {
 
   async add (str, db) {
     const pair = str.substr(2, str.length - 4).split('|').map(el => el.trim())
-    const check = await db.run(`SELECT title, path, id FROM pages WHERE title=${escape(pair[0])} OR path=${escape(pair[0])};`)
+    const path = pair && pair.length > 0 ? pair[0].split('#') : false
+    const check = path ? await db.run(`SELECT title, path, id FROM pages WHERE title=${escape(path[0])} OR path=${escape(path[0])};`) : false
     const found = check && check.length > 0
     const link = {
       text: pair[pair.length - 1],
-      title: found ? check[0].title : pair[0],
+      title: found ? check[0].title : path && path[0] ? path[0] : pair[0],
       id: found ? check[0].id : null,
-      path: found ? check[0].path : `/new?title=${encodeURIComponent(pair[0])}`,
+      path: found ? check[0].path : `/new?title=${encodeURIComponent(path[0])}`,
       isNew: !found
     }
+    if (path && path.length > 1) link.anchor = slugify(path[1]).toLowerCase()
+    if (link.anchor && !link.isNew) link.path = `${link.path}#${link.anchor}`
     this.links.push(link)
     return link
   }
