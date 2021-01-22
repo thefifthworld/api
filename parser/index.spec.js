@@ -46,10 +46,16 @@ describe('Parser', () => {
     expect(actual.tagHandler.tags).toEqual({ hello: [ 'World', 'Test' ], tag: [ '1' ], test: [ 'true' ] })
   })
 
+  it('doesn\'t add line breaks inside code blocks', async () => {
+    expect.assertions(1)
+    const actual = await parser('```\nLine 1\nLine 2\nLine 3\n```\n\nThis is outside of the code block.', null, null, db)
+    expect(actual.html).toEqual('<pre><code>Line 1\nLine 2\nLine 3</code></pre>\n<p>This is outside of the code block.</p>\n')
+  })
+
   it('doesn\'t parse tags that are inside code blocks', async () => {
     expect.assertions(1)
     const actual = await parser('```\n[[Test:Hello]]\n```\n\nThis is outside of the code block.', null, null, db)
-    expect(actual.html).toEqual('<pre><code>\n[[Test:Hello]]\n</code></pre>\n<p>This is outside of the code block.</p>\n')
+    expect(actual.html).toEqual('<pre><code>[[Test:Hello]]</code></pre>\n<p>This is outside of the code block.</p>\n')
   })
 
   it('parses links', async () => {
