@@ -5,6 +5,7 @@ const Page = require('../models/page')
 const { loadPage, requireLogIn, optionalLogIn } = require('../security')
 const parser = require('../parser')
 const db = require('../db')
+const { escape } = require('sqlstring')
 const pages = express.Router()
 
 // GET /pages
@@ -223,6 +224,12 @@ pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
       res.status(200).json({ ok: true })
     }
   }
+})
+
+// POST /response
+pages.post('/response', async (req, res) => {
+  await db.run(`INSERT INTO responses (form, data) VALUES (${escape(req.body.form)}, ${escape(req.body.data)});`)
+  res.status(200).json(Object.assign({}, { name: req.body.form }, JSON.parse(req.body.data)))
 })
 
 module.exports = pages
