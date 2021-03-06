@@ -204,6 +204,9 @@ class TemplateHandler {
     instance.markup = ''
     if (instance.name) {
       const id = `<input type="hidden" name="form" value="${instance.name}" />`
+      const returnURL = instance.returnURL
+        ? `<input type="hidden" name="returnURL" value="${instance.returnURL}" />`
+        : ''
       const fields = instance.fields.match(/{(.*?)}/g).map(str => {
         const components = str.slice(1, str.length - 1).split('|').map(s => s.trim())
         if (components.length === 3) {
@@ -221,7 +224,7 @@ class TemplateHandler {
           return null
         }
       }).filter(f => f !== null)
-      instance.markup = `<form action="/save-form" method="post">${id}${fields.join('')}<button>Send</button></form>`
+      instance.markup = `<form action="/save-form" method="post">${id}${returnURL}${fields.join('')}<button>Send</button></form>`
     }
   }
 
