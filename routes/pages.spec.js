@@ -951,4 +951,23 @@ describe('Pages API', () => {
       expect(body.error).not.toBeDefined()
     })
   })
+
+  describe('POST /response', () => {
+    it('returns the response given', async () => {
+      expect.assertions(3)
+      const res = await request.post('/response').send({ form: 'Test', data: '{"test":true}' })
+      await testUtils.resetTables(db)
+      expect(res.status).toEqual(200)
+      expect(res.body.name).toEqual('Test')
+      expect(res.body.test).toEqual(true)
+    })
+
+    it('inserts a new record into the database', async () => {
+      expect.assertions(1)
+      await request.post('/response').send({ form: 'Test', data: '{"test":true}' })
+      const check = await db.run('SELECT id FROM responses;')
+      await testUtils.resetTables(db)
+      expect(check).toHaveLength(1)
+    })
+  })
 })
