@@ -401,10 +401,10 @@ describe('TemplateHandler', () => {
   describe('renderForm', () => {
     it('renders a form', async () => {
       expect.assertions(1)
-      const actual = { name: 'Test', fields: '{Email||email}{Reason|Why do you want to join the Fifth World?|textarea}' }
+      const actual = { name: 'Test', returnURL: '/test', fields: '{Email||email}{Reason|Why do you want to join the Fifth World?|textarea}' }
       const handler = new TemplateHandler()
       await handler.renderForm(actual, db)
-      expect(actual.markup).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /><label for="form-test-email">Email</label><input type="email" id="form-test-email" name="email" /><label for="form-test-reason">Reason<p class="note">Why do you want to join the Fifth World?</p></label><textarea id="form-test-reason" name="reason"></textarea><button>Send</button></form>')
+      expect(actual.markup).toEqual('<form action="/save-form" method="post"><input type="hidden" name="form" value="Test" /><input type="hidden" name="returnURL" value="/test" /><label for="form-test-email">Email</label><input type="email" id="form-test-email" name="email" /><label for="form-test-reason">Reason<p class="note">Why do you want to join the Fifth World?</p></label><textarea id="form-test-reason" name="reason"></textarea><button>Send</button></form>')
     })
   })
 
