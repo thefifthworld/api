@@ -42,6 +42,24 @@ describe('LinkHandler', () => {
       expect(actual).toEqual({ id: 1, path: '/test-page', text: 'Test Page', title: 'Test Page', isNew: false })
     })
 
+    it('handles path links', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const handler = new LinkHandler()
+      const actual = await handler.add('[[/test-page]]', db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual({ id: 1, path: '/test-page', text: '/test-page', title: 'Test Page', isNew: false })
+    })
+
+    it('handles path links with aliases', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const handler = new LinkHandler()
+      const actual = await handler.add('[[/test-page|This is a test.]]', db)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual({ id: 1, path: '/test-page', text: 'This is a test.', title: 'Test Page', isNew: false })
+    })
+
     it('returns link info for an existing link with an anchor', async () => {
       expect.assertions(1)
       await testUtils.createTestPage(Page, Member, db)
