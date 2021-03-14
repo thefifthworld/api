@@ -27,6 +27,42 @@ describe('Parser', () => {
     expect(actual.html).toEqual('<p><a href="https://thefifthworld.com" title="The Fifth World Homepage">You can also provide a title along with your external links.</a></p>\n')
   })
 
+  it('renders a table with pretty markdown', async () => {
+    expect.assertions(1)
+    const actual = await parser('| Tables        | Are           | Cool  |\n' +
+      '| ------------- |:-------------:| -----:|\n' +
+      '| col 3 is      | right-aligned | $1600 |\n' +
+      '| col 2 is      | centered      |   $12 |\n' +
+      '| zebra stripes | are neat      |    $1 |')
+    expect(actual.html).toEqual('<table>\n' +
+      '<thead>\n' +
+      '<tr><th>Tables</th><th style="text-align:center">Are</th><th style="text-align:right">Cool</th></tr>\n' +
+      '</thead>\n' +
+      '<tbody>\n' +
+      '<tr><td>col 3 is</td><td style="text-align:center">right-aligned</td><td style="text-align:right">$1600</td></tr>\n' +
+      '<tr><td>col 2 is</td><td style="text-align:center">centered</td><td style="text-align:right">$12</td></tr>\n' +
+      '<tr><td>zebra stripes</td><td style="text-align:center">are neat</td><td style="text-align:right">$1</td></tr>\n' +
+      '</tbody>\n' +
+      '</table>\n')
+  })
+
+  it('renders a table with simple markdown', async () => {
+    expect.assertions(1)
+    const actual = await parser('Markdown | Less | Pretty\n' +
+      '--- | --- | ---\n' +
+      '*Still* | `renders` | **nicely**\n' +
+      '1 | 2 | 3')
+    expect(actual.html).toEqual('<table>\n' +
+      '<thead>\n' +
+      '<tr><th>Markdown</th><th>Less</th><th>Pretty</th></tr>\n' +
+      '</thead>\n' +
+      '<tbody>\n' +
+      '<tr><td><em>Still</em></td><td><code>renders</code></td><td><strong>nicely</strong></td></tr>\n' +
+      '<tr><td>1</td><td>2</td><td>3</td></tr>\n' +
+      '</tbody>\n' +
+      '</table>\n')
+  })
+
   it('creates headings with anchors', async () => {
     expect.assertions(1)
     const actual = await parser('## Test heading', null, null, db)
