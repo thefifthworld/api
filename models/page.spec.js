@@ -1113,6 +1113,19 @@ describe('Page', () => {
       expect(actual).toContain(t2.id)
     })
 
+    it('returns pages that are descended from a given Page object', async () => {
+      expect.assertions(1)
+      const t1 = await testUtils.createTestPage(Page, Member, db)
+      const editor = await Member.load(2, db)
+      const t2 = await Page.create({ title: 'Child Page', body: 'Child page.', parent: t1.id }, editor, 'Initial text', db)
+      const t3 = await Page.create({ title: 'Grandchild Page', body: 'Grandchild page.', parent: t2.id }, editor, 'Initial text', db)
+      await Page.create({ title: 'Another Root Page', body: 'Another root page.' }, editor, 'Initial text', db)
+      const found = await Page.find({ ancestor: t1 }, null, db)
+      const actual = found.map(p => p.id)
+      await testUtils.resetTables(db)
+      expect(actual).toEqual([ t2.id, t3.id ])
+    })
+
     it('returns pages in alphabetical order by default', async () => {
       expect.assertions(2)
       await testUtils.populateMembers(db)
