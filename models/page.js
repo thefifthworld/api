@@ -538,7 +538,7 @@ class Page {
       const ancestorCheck = ancestor
         ? page && page.lineage.map(page => page.path).includes(ancestor)
         : true
-      if (tagCheck && ancestorCheck) pages.push(page)
+      if (page && tagCheck && ancestorCheck) pages.push(page)
     }
     return pages
   }
