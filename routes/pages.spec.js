@@ -360,7 +360,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?path=%2Fparent-page')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(2)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id ])
     })
 
     it('queries by title', async () => {
