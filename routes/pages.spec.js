@@ -520,6 +520,32 @@ describe('Pages API', () => {
       expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id, r3.body.id ])
     })
 
+    it('sorts pages alphabetically by default', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Banana', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Apple', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Cocoa', body: 'This is definitely a page.', msg: 'Initial text' })
+      const actual = await request.get('/pages')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(4)
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id, r3.body.id, 1 ])
+    })
+
+    it('can sort pages in reverse alphabetical order', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Banana', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Apple', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Cocoa', body: 'This is definitely a page.', msg: 'Initial text' })
+      const actual = await request.get('/pages?order=reverse%20alphabetical')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(4)
+      expect(actual.body.map(p => p.id)).toEqual([ 1, r3.body.id, r1.body.id, r2.body.id ])
+    })
+
     it('limits the number of responses', async () => {
       expect.assertions(3)
       const member = await Member.load('normal@thefifthworld.com', db)
