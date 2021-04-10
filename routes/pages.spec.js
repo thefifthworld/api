@@ -14,6 +14,7 @@ describe('Pages API', () => {
   let request = {}
 
   beforeAll(async () => { server = await api.listen(8888) })
+
   beforeEach(async done => {
     request = supertest(server)
     await testUtils.resetTables(db)
