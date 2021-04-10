@@ -458,6 +458,9 @@ class Page {
    * @param query.hasTags (?string[]} - An array of strings to search for. It
    *   returns pages that have these tags, regardless of the value of those
    *   tags.
+   * @param query.ancestor {?string|?number|?Page} - Finds pages that are
+   *   descendants of the given page. This property can take a page's path, ID,
+   *   or the Page object itself.
    * @param query.logic {?string} - Can be either `and` or `or`. Setting this
    *   to `or` will return any page that matches any given criteria. Setting it
    *   to `and` will only match pages that match all of the given criteria.
@@ -485,7 +488,7 @@ class Page {
     const limit = query.limit || 10
     const offset = query.offset || 0
     const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
-    const clause = conditions.join(logic)
+    const clause = conditions.length > 0 ? `WHERE ${conditions.join(logic)}` : ''
     let order = 'title ASC'
     if (query.order && query.order.toLowerCase() === 'reverse alphabetical') {
       order = 'title DESC'
@@ -499,10 +502,8 @@ class Page {
       order = 'updated DESC'
     }
 
-    const q = `SELECT id, title, path, type, created, updated FROM (SELECT p.id, p.title, p.path, p.type, MIN(c.timestamp) AS created, MAX(c.timestamp) AS updated FROM changes c, pages p WHERE c.page=p.id GROUP BY c.page) AS changes WHERE ${clause} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset};`
-    const rows = conditions.length > 0
-      ? await db.run(q)
-      : null
+    const q = `SELECT id, title, path, type, created, updated FROM (SELECT p.id, p.title, p.path, p.type, MIN(c.timestamp) AS created, MAX(c.timestamp) AS updated FROM changes c, pages p WHERE c.page=p.id GROUP BY c.page) AS changes ${clause} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset};`
+    const rows = await db.run(q)
     let ids = rows ? rows.map(p => p.id) : null
 
     // Tags require a little extra work
@@ -526,7 +527,15 @@ class Page {
     if (ids === null) ids = []
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
-      if (page) pages.push(page)
+      const ancestor = query.ancestor && query.ancestor.path
+        ? query.ancestor.path
+        : !isNaN(query.ancestor)
+          ? await Page.get(query.ancestor).path
+          : query.ancestor
+      const push = ancestor
+        ? page && page.lineage.map(page => page.path).includes(ancestor)
+        : page
+      if (push) pages.push(page)
     }
     return pages
   }

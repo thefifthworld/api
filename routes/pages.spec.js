@@ -415,6 +415,20 @@ describe('Pages API', () => {
       expect(actual.body.map(p => p.id)).toEqual([ r2.body.id ])
     })
 
+    it('filters by ancestor', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child.', parent: r1.body.id, msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page.', parent: r1.body.id, msg: 'Initial text' })
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Another Root Page', body: 'This is another page.', msg: 'Initial text' })
+      const actual = await request.get('/pages?ancestor=/parent-page')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(2)
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r3.body.id ])
+    })
+
     it('returns any page with one of the tags with OR logic', async () => {
       expect.assertions(3)
       const member = await Member.load('normal@thefifthworld.com', db)
@@ -504,6 +518,32 @@ describe('Pages API', () => {
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(3)
       expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id, r3.body.id ])
+    })
+
+    it('sorts pages alphabetically by default', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Banana', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Apple', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Cocoa', body: 'This is definitely a page.', msg: 'Initial text' })
+      const actual = await request.get('/pages')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(4)
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id, r3.body.id, 1 ])
+    })
+
+    it('can sort pages in reverse alphabetical order', async () => {
+      expect.assertions(3)
+      const member = await Member.load('normal@thefifthworld.com', db)
+      const token = member.generateJWT()
+      const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Banana', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Apple', body: 'This is definitely a page.', msg: 'Initial text' })
+      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Cocoa', body: 'This is definitely a page.', msg: 'Initial text' })
+      const actual = await request.get('/pages?order=reverse%20alphabetical')
+      expect(actual.status).toEqual(200)
+      expect(actual.body).toHaveLength(4)
+      expect(actual.body.map(p => p.id)).toEqual([ 1, r3.body.id, r1.body.id, r2.body.id ])
     })
 
     it('limits the number of responses', async () => {

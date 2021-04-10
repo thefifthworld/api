@@ -83,6 +83,23 @@
               these sets interact in the response provided.</td>
           </tr>
           <tr>
+            <td><code>ancestor</code></td>
+            <td>If given a path, this will limit the pages you get back to only those who descend from the
+              page with this path (e.g., children of this page, or children of children of this page, and
+              so on). If you pass something <em>other</em> than a valid page path, you&rsquo;ll get an
+              empty array back, because <em>no</em> pages will find that path among its ancestors.</td>
+          </tr>
+          <tr>
+            <td><code>order</code></td>
+            <td>By default, the endpoint returns pages in alphabetical order, sorted by their titles. With
+              this parameter, you can specify any of the following sorting orders:<br />
+              <code>reverse alphabetical</code><br />
+              <code>first created</code><br />
+              <code>last created</code><br />
+              <code>oldest update</code><br />
+              <code>most recent update</code><br /></td>
+          </tr>
+          <tr>
             <td><code>limit</code></td>
             <td>By default the endpoint returns the first 10 pages that match the criteria provided, but you
               can change that number by setting this parameter to a different number.</td>
