@@ -466,6 +466,10 @@ class Page {
    *   (Default: 10)
    * @param query.offset {?number} - The number of results to skip (e.g., if
    *   paging through results). (Default: 0)
+   * @param query.order {?string=} - How the pages should be ordered. Valid
+   *   options are `alphabetical`, `reverse alphabetical`, `first created`,
+   *   `last created`, `oldest update`, and `most recent update`
+   *   (Default: `alphabetical`).
    * @param searcher {?Member} - The person who is searching.
    * @param db {Pool} - The database connection.
    * @returns {Promise<Page[]>} - A Promise that resolves with an array of
@@ -482,8 +486,22 @@ class Page {
     const offset = query.offset || 0
     const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
     const clause = conditions.join(logic)
+    let order = 'title ASC'
+    if (query.order && query.order.toLowerCase() === 'reverse alphabetical') {
+      order = 'title DESC'
+    } else if (query.order && query.order.toLowerCase() === 'first created') {
+      order = 'created ASC'
+    } else if (query.order && query.order.toLowerCase() === 'last created') {
+      order = 'created DESC'
+    } else if (query.order && query.order.toLowerCase() === 'oldest update') {
+      order = 'updated ASC'
+    } else if (query.order && query.order.toLowerCase() === 'most recent update') {
+      order = 'updated DESC'
+    }
+
+    const q = `SELECT id, title, path, type, created, updated FROM (SELECT p.id, p.title, p.path, p.type, MIN(c.timestamp) AS created, MAX(c.timestamp) AS updated FROM changes c, pages p WHERE c.page=p.id GROUP BY c.page) AS changes WHERE ${clause} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset};`
     const rows = conditions.length > 0
-      ? await db.run(`SELECT DISTINCT id FROM pages WHERE ${clause} LIMIT ${limit} OFFSET ${offset};`)
+      ? await db.run(q)
       : null
     let ids = rows ? rows.map(p => p.id) : null
 
@@ -505,7 +523,7 @@ class Page {
     }
 
     // We have our ID, so load them as pages and return the array
-    ids = ids && Array.isArray(ids) ? ids.sort((a, b) => a - b) : []
+    if (ids === null) ids = []
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
       if (page) pages.push(page)
