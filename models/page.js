@@ -509,27 +509,28 @@ class Page {
     // Tags require a little extra work
     const tags = query.tags ? Object.keys(query.tags) : []
     if (Array.isArray(tags) && tags.length > 0) {
+      let taggedIDs = []
       for (const tag of tags) {
         const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
-        ids = await Page.subfind(sql, ids, logic, db)
+        taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
       }
+      ids = ids.filter(id => taggedIDs.includes(id))
     }
 
     // Check for pages that have a tag, regardless of its value
     if (query.hasTags && Array.isArray(query.hasTags)) {
+      let taggedIDs = []
       for (const tag of query.hasTags) {
         const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)};`
-        ids = await Page.subfind(sql, ids, logic, db)
+        taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
       }
+      ids = ids.filter(id => taggedIDs.includes(id))
     }
 
     // We have our ID, so load them as pages and return the array
     if (ids === null) ids = []
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
-      const allTags = tags.map(t => t.toLowerCase())
-      const pageTags = page && page.tags ? Object.keys(page.tags) : []
-      const tagCheck = tags.length === 0 || allTags.filter(val => pageTags.includes(val)).length > 0
       const ancestor = query.ancestor && query.ancestor.path
         ? query.ancestor.path
         : !isNaN(query.ancestor)
@@ -538,7 +539,7 @@ class Page {
       const ancestorCheck = ancestor
         ? page && page.lineage.map(page => page.path).includes(ancestor)
         : true
-      if (page && tagCheck && ancestorCheck) pages.push(page)
+      if (page && ancestorCheck) pages.push(page)
     }
     return pages
   }

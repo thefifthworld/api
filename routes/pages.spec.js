@@ -491,7 +491,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?tag=Tag1&tag=Tag2&logic=or')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(2)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id ])
     })
 
     it('can combine tag and type queries', async () => {
