@@ -509,7 +509,7 @@ class Page {
     // Tags require a little extra work
     const tags = query.tags ? Object.keys(query.tags) : []
     if (Array.isArray(tags) && tags.length > 0) {
-      let taggedIDs = []
+      let taggedIDs = null
       for (const tag of tags) {
         const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
         taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
@@ -519,7 +519,7 @@ class Page {
 
     // Check for pages that have a tag, regardless of its value
     if (query.hasTags && Array.isArray(query.hasTags)) {
-      let taggedIDs = []
+      let taggedIDs = null
       for (const tag of query.hasTags) {
         const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)};`
         taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
