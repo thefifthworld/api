@@ -382,11 +382,11 @@ describe('Pages API', () => {
       const token = member.generateJWT()
       const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
       const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:Hello]] [[Tag2:World]]', parent: r1.body.id, msg: 'Initial text' })
-      const r3 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page. [[Type:Test]]', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
-      const actual = await request.get('/pages?title=Page').set('Authorization', `Bearer ${token}`)
+      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page. [[Type:Test]]', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
+      const actual = await request.get('/pages?title=Page')
       expect(actual.status).toEqual(200)
-      expect(actual.body).toHaveLength(4)
-      expect(actual.body.map(p => p.id)).toEqual([ 1, r1.body.id, r2.body.id, r3.body.id ])
+      expect(actual.body).toHaveLength(3)
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id, 1 ])
     })
 
     it('queries by type', async () => {
