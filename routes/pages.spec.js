@@ -439,7 +439,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?tag=Tag1:Hello&tag=Tag2:World&logic=or')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(2)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id ])
     })
 
     it('returns only pages that have both tags with default AND logic', async () => {

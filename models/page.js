@@ -527,15 +527,18 @@ class Page {
     if (ids === null) ids = []
     for (let id of ids) {
       const page = await Page.getIfAllowed(id, searcher, db)
+      const allTags = tags.map(t => t.toLowerCase())
+      const pageTags = page && page.tags ? Object.keys(page.tags) : []
+      const tagCheck = tags.length === 0 || allTags.filter(val => pageTags.includes(val)).length > 0
       const ancestor = query.ancestor && query.ancestor.path
         ? query.ancestor.path
         : !isNaN(query.ancestor)
           ? await Page.get(query.ancestor).path
           : query.ancestor
-      const push = ancestor
+      const ancestorCheck = ancestor
         ? page && page.lineage.map(page => page.path).includes(ancestor)
-        : page
-      if (push) pages.push(page)
+        : true
+      if (tagCheck && ancestorCheck) pages.push(page)
     }
     return pages
   }
