@@ -226,6 +226,17 @@ pages.get('/checkpath/*', optionalLogIn, async (req, res) => {
   }
 })
 
+// POST /parse
+pages.post('/parse', async (req, res) => {
+  const p = await parser(req.body.str, req.body.path, req.user, db)
+  res.status(200).json({
+    orig: req.body.str,
+    html: p.html,
+    tags: p.tagHandler.tags,
+    links: p.linkHandler.links
+  })
+})
+
 // POST /response
 pages.post('/response', async (req, res) => {
   await db.run(`INSERT INTO responses (form, data) VALUES (${escape(req.body.form)}, ${escape(req.body.data)});`)
