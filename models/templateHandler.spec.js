@@ -432,7 +432,7 @@ describe('TemplateHandler', () => {
       const handler = new TemplateHandler({ page: Page })
       await handler.renderListPages(actual, { member }, db)
       await testUtils.resetTables(db)
-      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li><li><a href="/test-page">Test Page</a></li></ul>')
     })
 
     it('renders a list of pages with a matching type', async () => {
@@ -510,7 +510,7 @@ describe('TemplateHandler', () => {
       const handler = new TemplateHandler({ page: Page })
       await handler.renderListPages(actual, { member }, db)
       await testUtils.resetTables(db)
-      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page/child-page">Child Page</a></li></ul>')
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li><li><a href="/test-page">Test Page</a></li></ul>')
     })
 
     it('renders a list of pages that respects a given limit', async () => {
@@ -522,7 +522,7 @@ describe('TemplateHandler', () => {
       const handler = new TemplateHandler({ page: Page })
       await handler.renderListPages(actual, { member }, db)
       await testUtils.resetTables(db)
-      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li></ul>')
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
     })
   })
 

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>POST /parse</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="This endpoint shows you how the API will parse a string." />
+  </head>
+  <body class="thefifthworld">
+  <header>
+    <h1 class="logo">
+      <a href="https://thefifthworld.com">
+        <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+      </a>
+    </h1>
+  </header>
+  <main>
+    <ul class="breadcrumbs">
+      <li><a href="../../index.html">API Documentation</a></li>
+      <li><a href="../index.html">Reference</a></li>
+      <li><a href="index.html">Pages API</a></li>
+      <li class="current">Parse</li>
+    </ul>
+    <h1>Parse</h1>
+    <p>This endpoint returns the result from parsing a given string.</p>
+    <h2>Request</h2>
+    <table>
+      <caption>Body Parameters</caption>
+      <thead>
+        <tr>
+          <th>Query Parameters</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>str</code></td>
+          <td>The string to parse.</td>
+        </tr>
+        <tr>
+          <td><code>path</code></td>
+          <td>Sometimes, which page does the parsing will affect the outcome. For example, the <code>{{Children}}</code>
+            template looks for the children of the current page by default. This string provides the path to use
+            in these cases.</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Examples</h3>
+    <figure class="request-response">
+      <figcaption>Example Request</figcaption>
+      <code class="language-http">POST /v1/parse HTTP/1.1
+        Host: api.thefifthworld.com
+
+        str=[[Animism]]</code>
+    </figure>
+    <h2>Response</h2>
+    <p>The endpoint should always respond with a <code>200</code> HTTP status and a JSON object.
+      The object has four properties: <code>orig</code> (the original string you provided to
+      parse), <code>html</code> (how the API will parse that string), <code>links</code> (an array
+      of link objects that the parser found in the string), and <code>tags</code> (the tags that
+      the parser identified in the string).</p>
+    <table>
+      <caption>JSON Object</caption>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>orig</code></td>
+          <td><code>string</code></td>
+          <td>The original string that you passed to the endpoint.</td>
+        </tr>
+        <tr>
+          <td><code>html</code></td>
+          <td><code>string</code></td>
+          <td>The HTML that the API parses from that string.</td>
+        </tr>
+        <tr>
+          <td><code>tags</code></td>
+          <td><code>object</code></td>
+          <td>The tags parsed from the string, given as key/value pairs, meaning that
+            each tag name becomes a property of the <code>tags</code> object, with its
+            value set to the value of that tag. For example, <code>[[Tag:Example]]</code>
+            would provide a <code>tags</code> object of <code>{ Tag: 'Example' }</code></td>
+        </tr>
+        <tr>
+          <td><code>links</code></td>
+          <td><code>Link[]</code></td>
+          <td>An array of link objects derived from the parsed string.</td>
+        </tr>
+      </tbody>
+    </table>
+    <table>
+      <caption>Link Object</caption>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>text</code></td>
+        <td><code>string</code></td>
+        <td>The text used in the link.</td>
+      </tr>
+      <tr>
+        <td><code>title</code></td>
+        <td><code>string</code></td>
+        <td>The title of the linked page. This will equal <code>text</code> if
+          the page does not yet exist, or if the string did not specify any
+          other text for the link.</td>
+      </tr>
+      <tr>
+        <td><code>id</code></td>
+        <td><code>number|null</code></td>
+        <td>The unique ID number of the linked page. This will equal <code>null</code>
+          if the page does not exist yet.</td>
+      </tr>
+      <tr>
+        <td><code>path</code></td>
+        <td><code>string</code></td>
+        <td>The unique path of the linked page.</td>
+      </tr>
+      <tr>
+        <td><code>isNew</code></td>
+        <td><code>boolean</code></td>
+        <td>A boolean that equals <code>true</code> if the page does not yet
+          exist.</td>
+      </tr>
+      </tbody>
+    </table>
+    <h3>Example</h3>
+    <figure class="request-response">
+      <figcaption>Example Response</figcaption>
+      <code class="language-js">{
+  "orig": "[[Animism]]",
+  "html": "&lt;p&gt;&lt;a href=\"animism\">Animism&lt;/a&gt;&lt;/p&gt;\n",
+  "tags": {},
+  "links": [
+    {
+      "text": "Animism",
+      "title": "Animism",
+      "id": 130,
+      "path": "/animism",
+      "isNew": false
+    }
+  ]
+}</code>
+    </figure>
+  </main>
+  <footer>
+    <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+    <p class="copyleft">
+      <span class="icons">
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+      </span>
+      <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    </p>
+  </footer>
+  <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>
