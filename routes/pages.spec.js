@@ -993,6 +993,36 @@ describe('Pages API', () => {
     })
   })
 
+  describe('POST /parse', () => {
+    it('parses the text given', async () => {
+      expect.assertions(5)
+      const str = '**bold** _italic_'
+      const res = await request.post('/parse').send({ str })
+      await testUtils.resetTables(db)
+      expect(res.status).toEqual(200)
+      expect(res.body.orig).toEqual(str)
+      expect(res.body.html).toEqual('<p><strong>bold</strong> <em>italic</em></p>\n')
+      expect(res.body.tags).toEqual({})
+      expect(res.body.links).toEqual([])
+    })
+
+    it('parses links', async () => {
+      expect.assertions(9)
+      const str = '[[Test Page]]'
+      const res = await request.post('/parse').send({ str })
+      await testUtils.resetTables(db)
+      expect(res.status).toEqual(200)
+      expect(res.body.orig).toEqual(str)
+      expect(res.body.html).toEqual('<p><a href="/test-page">Test Page</a></p>\n')
+      expect(res.body.tags).toEqual({})
+      expect(res.body.links).toHaveLength(1)
+      expect(res.body.links[0].isNew).toEqual(false)
+      expect(res.body.links[0].path).toEqual('/test-page')
+      expect(res.body.links[0].text).toEqual('Test Page')
+      expect(res.body.links[0].title).toEqual('Test Page')
+    })
+  })
+
   describe('POST /response', () => {
     it('returns the response given', async () => {
       expect.assertions(3)
