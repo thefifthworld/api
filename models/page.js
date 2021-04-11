@@ -482,50 +482,60 @@ class Page {
   static async find (query, searcher, db) {
     const pages = []
     const conditions = []
-    if (query.path) { conditions.push(`path LIKE ${escape(`${query.path}%`)}`) }
-    if (query.title) { conditions.push(`title LIKE ${escape(`%${query.title}%`)}`) }
-    if (query.type) { conditions.push(`type=${escape(query.type)}`) }
+    if (query.path) { conditions.push(`c.path LIKE ${escape(`${query.path}%`)}`) }
+    if (query.title) { conditions.push(`c.title LIKE ${escape(`%${query.title}%`)}`) }
+    if (query.type) { conditions.push(`c.type=${escape(query.type)}`) }
     const limit = query.limit || 10
     const offset = query.offset || 0
     const logic = query.logic && query.logic.toLowerCase() === 'or' ? ' OR ' : ' AND '
-    const clause = conditions.length > 0 ? `WHERE ${conditions.join(logic)}` : ''
-    let order = 'title ASC'
+    let order = 'c.title ASC'
     if (query.order && query.order.toLowerCase() === 'reverse alphabetical') {
-      order = 'title DESC'
+      order = 'c.title DESC'
     } else if (query.order && query.order.toLowerCase() === 'first created') {
-      order = 'created ASC'
+      order = 'c.created ASC'
     } else if (query.order && query.order.toLowerCase() === 'last created') {
-      order = 'created DESC'
+      order = 'c.created DESC'
     } else if (query.order && query.order.toLowerCase() === 'oldest update') {
-      order = 'updated ASC'
+      order = 'c.updated ASC'
     } else if (query.order && query.order.toLowerCase() === 'most recent update') {
-      order = 'updated DESC'
+      order = 'c.updated DESC'
     }
 
-    const q = `SELECT id, title, path, type, created, updated FROM (SELECT p.id, p.title, p.path, p.type, MIN(c.timestamp) AS created, MAX(c.timestamp) AS updated FROM changes c, pages p WHERE c.page=p.id GROUP BY c.page) AS changes ${clause} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset};`
+    const tagPresence = query && query.hasTags && Array.isArray(query.hasTags)
+      ? query.hasTags.map(tag => [ tag ])
+      : []
+    const tagValue = query && query.tags && typeof query.tags === 'object'
+      ? Object.keys(query.tags).map(tag => [ tag, query.tags[tag] ])
+      : []
+    let tagClause = '';
+    if (logic === ' OR ') {
+      tagClause = `LEFT JOIN tags t ON c.id = t.page`
+      const tagConditions = [ ...tagPresence, ...tagValue ]
+      tagConditions.forEach(arr => {
+        if (arr.length > 1) {
+          conditions.push(`(t.tag = ${escape(arr[0])} AND t.value = ${escape(arr[1])})`)
+        } else if (arr.length > 0) {
+          conditions.push(`t.tag = ${escape(arr[0])}`)
+        }
+      })
+    } else {
+      const tagQuery = [ ...tagPresence, ...tagValue ].map((arr, index) => {
+        const alias = `t${index}`
+        if (arr.length > 1) {
+          return `INNER JOIN tags ${alias} ON c.id = ${alias}.page AND ${alias}.tag = ${escape(arr[0])} AND ${alias}.value = ${escape(arr[1])}`
+        } else if (arr.length > 0) {
+          return `INNER JOIN tags ${alias} ON c.id = ${alias}.page AND ${alias}.tag = ${escape(arr[0])}`
+        } else {
+          return null
+        }
+      }).filter(t => t !== null)
+      tagClause = tagQuery.join(' ')
+    }
+
+    const clause = conditions.length > 0 ? `WHERE ${conditions.join(logic)}` : ''
+    const q = `SELECT DISTINCT c.id, c.title, c.path, c.type, c.created, c.updated FROM (SELECT p.id, p.title, p.path, p.type, MIN(c.timestamp) AS created, MAX(c.timestamp) AS updated FROM changes c, pages p WHERE c.page=p.id GROUP BY c.page) AS c ${tagClause} ${clause} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset};`
     const rows = await db.run(q)
     let ids = rows ? rows.map(p => p.id) : null
-
-    // Tags require a little extra work
-    const tags = query.tags ? Object.keys(query.tags) : []
-    if (Array.isArray(tags) && tags.length > 0) {
-      let taggedIDs = null
-      for (const tag of tags) {
-        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)} AND t.value=${escape(query.tags[tag])};`
-        taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
-      }
-      ids = ids.filter(id => taggedIDs.includes(id))
-    }
-
-    // Check for pages that have a tag, regardless of its value
-    if (query.hasTags && Array.isArray(query.hasTags)) {
-      let taggedIDs = null
-      for (const tag of query.hasTags) {
-        const sql = `SELECT DISTINCT p.id FROM pages p LEFT JOIN tags t ON p.id=t.page WHERE t.tag=${escape(tag)};`
-        taggedIDs = await Page.subfind(sql, taggedIDs, logic, db)
-      }
-      ids = ids.filter(id => taggedIDs.includes(id))
-    }
 
     // We have our ID, so load them as pages and return the array
     if (ids === null) ids = []
