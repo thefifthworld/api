@@ -466,7 +466,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?tag=Tag1')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(2)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id ])
     })
 
     it('returns pages that have all of the given tags', async () => {
@@ -518,7 +518,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?type=Test&tag=Tag1:Hello&tag=Tag2:World&logic=or')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(3)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id, r2.body.id, r3.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id, r1.body.id, r3.body.id ])
     })
 
     it('sorts pages alphabetically by default', async () => {
@@ -552,12 +552,12 @@ describe('Pages API', () => {
       const member = await Member.load('normal@thefifthworld.com', db)
       const token = member.generateJWT()
       const r1 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Parent Page', body: 'This is the parent.', msg: 'Initial text' })
-      await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:Hello]] [[Tag2:World]]', parent: r1.body.id, msg: 'Initial text' })
+      const r2 = await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Child Page', body: 'This is the child. [[Tag1:Hello]] [[Tag2:World]]', parent: r1.body.id, msg: 'Initial text' })
       await request.post('/pages').set('Authorization', `Bearer ${token}`).send({ title: 'Second Page', body: 'This is another page. [[Type:Test]]', parent: r1.body.id, permissions: 700, msg: 'Initial text' })
       const actual = await request.get('/pages?path=%2Fparent-page&limit=1')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(1)
-      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id ])
     })
 
     it('can pick up from a given offset', async () => {
@@ -570,7 +570,7 @@ describe('Pages API', () => {
       const actual = await request.get('/pages?path=%2Fparent-page&offset=1')
       expect(actual.status).toEqual(200)
       expect(actual.body).toHaveLength(1)
-      expect(actual.body.map(p => p.id)).toEqual([ r2.body.id ])
+      expect(actual.body.map(p => p.id)).toEqual([ r1.body.id ])
     })
   })
 
@@ -825,10 +825,10 @@ describe('Pages API', () => {
       const res = await request.post('/autocomplete').send({ path: '/test' })
       expect(res.body.found).toEqual(2)
       expect(res.body.pages).toHaveLength(2)
-      expect(res.body.pages[1].id).toBeDefined()
-      expect(typeof res.body.pages[1].id).toEqual('number')
-      expect(res.body.pages[1].path).toEqual('/test-page/child-page')
-      expect(res.body.pages[1].title).toEqual('Child Page')
+      expect(res.body.pages[0].id).toBeDefined()
+      expect(typeof res.body.pages[0].id).toEqual('number')
+      expect(res.body.pages[0].path).toEqual('/test-page/child-page')
+      expect(res.body.pages[0].title).toEqual('Child Page')
     })
 
     it('can limit query by type', async () => {
