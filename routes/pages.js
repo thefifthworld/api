@@ -148,11 +148,19 @@ pages.get('/pages/*', optionalLogIn, loadPage, async (req, res) => {
     if (version && version.content && version.content.body) body = version.content.body
   }
   const parsed = await parser(body, req.page.path, req.user, db)
+
   const read = req.page.checkPermissions(req.user, 4)
   const write = req.page.checkPermissions(req.user, 6)
   const code = req.page.permissions
   req.page.permissions = { read, write, code }
-  res.status(200).json({ page: req.page.export(), markup: parsed.html })
+
+  let data = {}
+  try {
+    const curr = req.page.history.getContent()
+    data = curr && curr.data ? JSON.parse(curr.data) : {}
+  } catch (err) {}
+
+  res.status(200).json({ page: req.page.export(), markup: parsed.html, data })
 })
 
 // GET /templates
