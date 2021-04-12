@@ -80,7 +80,7 @@ const populateMembers = async (db) => {
 const createTestPage = async (Page, Member, db) => {
   await populateMembers(db)
   const editor = await Member.load(2, db)
-  const data = { title: 'Test Page', body: 'This is a test page.' }
+  const data = { title: 'Test Page', body: 'This is a test page.', data: '{ "test": 42 }' }
   return Page.create(data, editor, 'Initial text', db)
 }
 
