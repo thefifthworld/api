@@ -154,6 +154,16 @@ describe('Page', () => {
   })
 
   describe('export', () => {
+    it('surfaces structured data', async () => {
+      expect.assertions(2)
+      await testUtils.createTestPage(Page, Member, db)
+      const page = await Page.get('/test-page', db)
+      const actual = page.export()
+      await testUtils.resetTables(db)
+      expect(actual.data).toBeDefined()
+      expect(actual.data.test).toEqual(42)
+    })
+
     it('exports the page history', async () => {
       expect.assertions(3)
       await testUtils.createTestPage(Page, Member, db)

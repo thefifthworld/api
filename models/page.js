@@ -737,6 +737,17 @@ class Page {
     if (copy && copy.owner) delete copy.owner.email
     delete copy.saved
 
+    // Surfaces structured data
+    if (copy && copy.history && Array.isArray(copy.history) && copy.history.length > 0) {
+      const curr = copy.history[copy.history.length - 1]
+      if (curr && curr.content && curr.content.data) {
+        try {
+          const data = JSON.parse(curr.content.data)
+          if (data) copy.data = data
+        } catch (err) {}
+      }
+    }
+
     // Clean up files
     if (copy && copy.files && Array.isArray(copy.files)) {
       copy.files.forEach(file => {
