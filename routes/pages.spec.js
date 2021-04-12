@@ -723,9 +723,9 @@ describe('Pages API', () => {
 
   describe('GET /pages/*', () => {
     it('returns 200', async () => {
-      expect.assertions(8)
+      expect.assertions(9)
       const res = await request.get('/pages/test-page')
-      const { page, markup } = res.body
+      const { page, markup, data } = res.body
       expect(res.status).toEqual(200)
       expect(page.path).toEqual('/test-page')
       expect(page.title).toEqual('Test Page')
@@ -734,6 +734,7 @@ describe('Pages API', () => {
       expect(page.permissions.write).toEqual(false)
       expect(page.permissions.code).toEqual(774)
       expect(markup).toEqual('<p>This is a test page.</p>\n')
+      expect(data).toEqual({ test: 42 })
     })
 
     it('returns 401 if you don\'t have permission', async () => {
