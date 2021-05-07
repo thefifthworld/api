@@ -462,9 +462,9 @@ class TemplateHandler {
     const match = matches && matches.length > 0 ? matches[0] : null
     if (match) {
       const body = match.history.getBody()
-      const tagged = body.match(/{{Template}}(.+?){{\/Template}}/g)
+      const tagged = body.match(/{{Template}}(.+?){{\/Template}}/gs)
       if (tagged) {
-        let str = tagged[0].substr(12, tagged[0].length - 25)
+        let str = tagged[0].substr(12, tagged[0].length - 25).trim()
         Object.keys(instance).forEach(param => {
           const re = new RegExp(`{{{${param}}}}`, 'g')
           str = str.replace(re, instance[param])
