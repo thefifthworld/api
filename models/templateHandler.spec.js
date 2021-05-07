@@ -650,7 +650,7 @@ describe('TemplateHandler', () => {
       expect.assertions(4)
       await testUtils.populateMembers(db)
       const editor = await Member.load(2, db)
-      await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}Hello world!{{/Template}}' }, editor, 'Making a test template', db)
+      await Page.create({ title: 'TestTemplate', type: 'Template', body: '{{Template}}\n  Hello world!\n{{/Template}}' }, editor, 'Making a test template', db)
       const handler = new TemplateHandler({ page: Page, fileHandler: FileHandler })
       handler.add('TestTemplate')
       await handler.renderDefault('TestTemplate', handler.instances.TestTemplate[0], editor, db)
