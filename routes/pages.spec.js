@@ -53,6 +53,15 @@ describe('Pages API', () => {
       expect(check[0].title).toEqual(res.body.title)
     })
 
+    it('creates a default description', async () => {
+      expect.assertions(1)
+      const member = await Member.load(2, db)
+      const token = member.generateJWT()
+      const data = { title: 'New Page', body: 'This is a new page. [[This is a link]]. This should _remove_ any Markdown, and just look at the **plain text**. Then, based on the plain text, it should find the set of full sentences that will fill 150 characters, but not more than that.', msg: 'Initial text' }
+      const res = await request.post('/pages').set('Authorization', `Bearer ${token}`).send(data)
+      expect(res.body.description).toEqual('This is a new page. This is a link. This should remove any Markdown, and just look at the plain text.')
+    })
+
     it('returns 401 if you\'re not logged in', async () => {
       expect.assertions(2)
       const data = { title: 'New Page', body: 'This is a new page.', msg: 'Initial text' }

@@ -1366,6 +1366,11 @@ describe('Page', () => {
       expect(actual).toEqual('Four hundred years from now, humanity thrives beyond civilization.')
     })
 
+    it('strips out Markdown.', () => {
+      const actual = Page.getDescription('This includes **bolded** and _italicized_ text, and [[links]].')
+      expect(actual).toEqual('This includes bolded and italicized text, and links.')
+    })
+
     it('returns the string if it\'s less than the cutoff.', () => {
       const actual = Page.getDescription('This is less than 150 characters.')
       expect(actual).toEqual('This is less than 150 characters.')
