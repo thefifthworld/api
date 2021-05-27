@@ -14,6 +14,11 @@ describe('parsePlainText', () => {
     expect(actual).toEqual('Hello world\n')
   })
 
+  it('removes links', () => {
+    const actual = parsePlainText('This is a [[link]].', null, db)
+    expect(actual).toEqual('This is a link.\n')
+  })
+
   it('removes tags', () => {
     const actual = parsePlainText('This [[Hello:World]] is [[Hello : Test]] text [[Tag: 1]] outside of tags.\n\nAnd here is a [[Test:true]] second paragraph.', null, db)
     expect(actual).toEqual('This is text outside of tags.\nAnd here is a second paragraph.\n')

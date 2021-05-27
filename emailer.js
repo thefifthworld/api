@@ -1,4 +1,5 @@
-const Mailgun = require('mailgun-js')
+const formData = require('form-data')
+const Mailgun = require('mailgun.js')
 const config = require('./config')
 
 /**
@@ -15,15 +16,19 @@ const config = require('./config')
 const sendEmail = async msg => {
   return new Promise((resolve, reject) => {
     if (msg.to && msg.subject && msg.body) {
-      const mailgun = new Mailgun({ apiKey: config.mailgun.key, domain: config.mailgun.domain })
-      const data = {
-        from: config.mailgun.from,
-        to: msg.to,
+      const { key, domain, from } = config.mailgun
+      const mailgun = new Mailgun(formData)
+      const mg = mailgun.client({ username: 'api', key })
+      mg.messages.create(domain, {
+        from,
+        to: [msg.to],
         subject: msg.subject,
         text: msg.body
-      }
-      mailgun.messages().send(data, err => {
-        if (err) { reject(err) } else { resolve() }
+      }).then(() => {
+        resolve()
+      }).catch(err => {
+        console.error(err)
+        reject(err)
       })
     } else {
       reject(new Error('Message did not include a recipient, subject, and/or body'))
