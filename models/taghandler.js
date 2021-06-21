@@ -76,17 +76,17 @@ class TagHandler {
   static parse (str) {
     const tagHandler = new TagHandler()
     let stripped = str
-    const matches = str.match(/\[\[(.*?):(.*?)\]\]/gm)
+    const matches = str.match(/\[\[(.*?)\]\]/gm)
     if (matches) {
       matches.forEach(match => {
-        stripped = stripped.replace(match, '')
-        const pair = match.substr(2, match.length - 4).split(':').map(el => el.trim())
-        if (pair && pair.length > 1) {
-          tagHandler.add(...pair)
+        const submatch = match.substr(2, match.length - 4).match(/^(.*?):(.*?)$/)
+        if (submatch && submatch.length > 2) {
+          stripped = stripped.replace(match, '')
+          tagHandler.add(submatch[1].trim(), submatch[2].trim())
         }
       })
     }
-    stripped = stripped.replace(/ +/gm, ' ')
+    stripped = stripped.replace(/ +/gm, ' ').trim()
     return { stripped, tagHandler }
   }
 

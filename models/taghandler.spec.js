@@ -141,6 +141,11 @@ describe('TagHandler', () => {
       const actual = TagHandler.parse('This [[Hello:World]] is [[Hello : Test]] text [[Tag: 1]] outside of tags.\n\nAnd here is a [[Test:true]] second paragraph.')
       expect(actual.stripped).toEqual('This is text outside of tags.\n\nAnd here is a second paragraph.')
     })
+
+    it('doesn\'t get greedy', async () => {
+      const actual = TagHandler.parse('[[Link]] has this to say: [[Hello]]! [[Tag:Test]]')
+      expect(actual.stripped).toEqual('[[Link]] has this to say: [[Hello]]!')
+    })
   })
 
   describe('load', () => {
