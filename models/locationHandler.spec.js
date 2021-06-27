@@ -196,6 +196,46 @@ describe('LocationHandler', () => {
     })
   })
 
+  describe('getAtmosphere', () => {
+    it('returns false if it doesn\'t have a legitimate latitude', () => {
+      const handler = new LocationHandler(100, 0)
+      const actual = handler.getAtmosphere()
+      expect(actual).toEqual(false)
+    })
+
+    it('returns the hemisphere it\'s in', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const hemispheres = ['N', 'S']
+      expect(hemispheres).toContain(actual.hemisphere)
+    })
+
+    it('returns the cell it\'s in', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const cells = ['Polar', 'Ferrel', 'Hadley']
+      expect(cells).toContain(actual.cell)
+    })
+
+    it('returns the prevailing barometric pressure', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const barometry = ['H', 'L']
+      expect(barometry).toContain(actual.pressure)
+    })
+
+    it('returns the prevailing winds', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const winds = ['W', 'E']
+      expect(winds).toContain(actual.winds)
+    })
+  })
+
   describe('save', () => {
     it('saves location to the database', async () => {
       expect.assertions(1)

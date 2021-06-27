@@ -7,6 +7,8 @@ const {
   booleanPointInPolygon
 } = require('@turf/turf')
 
+const atmosphericZones = require('../data/atmosphere.json')
+
 class LocationHandler {
   constructor (...args) {
     this.lat = null
@@ -105,6 +107,25 @@ class LocationHandler {
     const area = circle([this.lon, this.lat], 30, { steps: 10, units: 'miles' })
     for (const ocean of oceans) {
       if (booleanIntersects(area, ocean)) return true
+    }
+    return false
+  }
+
+  /**
+   * Find the atmospheric zone that the latitude falls into and return the
+   * object for that zone.
+   * @returns {object|boolean} - The object describing the atmospheric zone
+   *   that the latitude falls into, or `false` if the instance does not have
+   *   a valid latitude.
+   */
+
+  getAtmosphere () {
+    const { lat } = this
+    if (typeof lat === 'number') {
+      for (const zone of atmosphericZones) {
+        const { min, max } = zone
+        if (lat <= max && lat > min) return zone
+      }
     }
     return false
   }
