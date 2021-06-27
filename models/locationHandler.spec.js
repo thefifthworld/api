@@ -236,6 +236,65 @@ describe('LocationHandler', () => {
     })
   })
 
+  describe('getNeighbors', () => {
+    it('returns an array of nearby communities', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+
+      // Create one community with two places
+      const cdata1 = { title: 'Community A', body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Point', body: '[[Location:40.441800, -80.012772]]', parent: c1.id }
+      const pdata2 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      await Page.create(pdata2, editor, 'Initial text', db)
+
+      // Create another community, also with a nearby place
+      const cdata2 = { title: 'Community B', body: '[[Type:Community]]' }
+      const c2 = await Page.create(cdata2, editor, 'Initial text', db)
+      const pdata3 = { title: 'St. Paul\'s Cathedral', body: '[[Location:40.447328, -79.949786]]', parent: c2.id }
+      const pdata4 = { title: 'Carnegie Mellon', body: '[[Location:40.443735, -79.945165]]', parent: c2.id }
+      await Page.create(pdata3, editor, 'Initial text', db)
+      await Page.create(pdata4, editor, 'Initial text', db)
+
+      // Create our place and run the test
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+    })
+
+    it('returns the name of each community', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const title = 'Community A'
+      const cdata1 = { title, body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual[0].name).toEqual(title)
+    })
+
+    it('returns the path for each community', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const cdata1 = { title: 'Community A', body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual[0].path).toEqual('/community-a')
+    })
+  })
+
   describe('save', () => {
     it('saves location to the database', async () => {
       expect.assertions(1)
