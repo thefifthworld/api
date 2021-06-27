@@ -170,6 +170,32 @@ describe('LocationHandler', () => {
     })
   })
 
+  describe('isCoastal', () => {
+    it('returns false if it\'s in the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(66.212, -29.917) // Between Greenland & Iceland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(false)
+    })
+
+    it('returns true if it\'s within 30 miltes of the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(75.261, -25.647) // On Greenland's eastern shore
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(true)
+    })
+
+    it('returns false if it isn\'t within 30 miltes of the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(81.20, -40.54) // Deep in northern Greenland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(false)
+    })
+  })
+
   describe('save', () => {
     it('saves location to the database', async () => {
       expect.assertions(1)
