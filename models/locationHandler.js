@@ -132,20 +132,20 @@ class LocationHandler {
 
   /**
    * Returns an array of objects representing communities that claim places
-   * within 3 kilometers (just under 2 miles) of the place specified.
+   * within 40 kilometers (just under 25 miles) of the place specified.
    * @param {Member} searcher - The person who is making this request.
    * @param {function} Page - The Page class.
    * @param {Pool} db - The database connection.
    * @returns {Promise<[{ name: string, path: string }]>} - A Promise that
    *   resolves with an array of objects representing the communities that
-   *   claim places within 3 km (just under 2 mi) of this location. Each
+   *   claim places within 40 km (just under 25 mi) of this location. Each
    *   object includes a `name` property with the name of that community, and
    *   a `path` property, with the path for that community's page.
    */
 
   async getNeighbors (searcher, Page, db) {
     if (typeof Page.placesNear !== 'function') return []
-    const places = await Page.placesNear([this.lat, this.lon], 3000, searcher, db)
+    const places = await Page.placesNear([this.lat, this.lon], 40000, searcher, db)
 
     // Get community object for each place
     const mapped = places.map(place => {
