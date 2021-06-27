@@ -65,14 +65,17 @@ class LocationHandler {
    * This method returns `true` if the location will be in the ocean in the
    * Fifth World, after the ice caps have melted and the seas have risen by
    * 65m (216 ft).
-   * @returns {Promise<boolean>} - A Promise that returns `true` if the point
+   * @param {[Polygon|MultiPolygon]} oceans - An array of Polygon and
+   *   MultiPolygon objects covering the areas that will be covered by ocean
+   *   in the Fifth World. If left undefined, these will be loaded using the
+   *   LocationHandler.loadSeaLevels method.
+   * @returns {boolean} - A Promise that returns `true` if the point
    *   will be in the ocean in the Fifth World (following the melting of the
    *   ice caps and the resulting rise in sea levels of 65m/216 ft.), or
    *   `false` if it will still be on dry land even after that.
    */
 
-  async isOcean () {
-    const oceans = await LocationHandler.loadSeaLevels()
+  isOcean (oceans) {
     for (const ocean of oceans) {
       if (booleanPointInPolygon([this.lon, this.lat], ocean)) return true
     }
