@@ -524,6 +524,34 @@ describe('TemplateHandler', () => {
       await testUtils.resetTables(db)
       expect(actual.markup).toEqual('<ul><li><a href="/test-page/child-page">Child Page</a></li></ul>')
     })
+
+    it('defaults to alphabetical order', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test Page XYZ', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test Page ABC', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', title: 'Test Page' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page">Test Page</a></li><li><a href="/test-page-abc">Test Page ABC</a></li><li><a href="/test-page-xyz">Test Page XYZ</a></li></ul>')
+    })
+
+    it('uses order given', async () => {
+      expect.assertions(1)
+      await testUtils.createTestPage(Page, Member, db)
+      const member = await Member.load(2, db)
+      await Page.create({ title: 'Test Page XYZ', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Test Page ABC', body: 'This is also a test page.' }, member, 'Initial text', db)
+      await Page.create({ title: 'Something Else', body: 'This is also a test page.' }, member, 'Initial text', db)
+      const actual = { name: 'ListPages', title: 'Test Page', order: 'reverse alphabetical' }
+      const handler = new TemplateHandler({ page: Page })
+      await handler.renderListPages(actual, { member }, db)
+      await testUtils.resetTables(db)
+      expect(actual.markup).toEqual('<ul><li><a href="/test-page-xyz">Test Page XYZ</a></li><li><a href="/test-page-abc">Test Page ABC</a></li><li><a href="/test-page">Test Page</a></li></ul>')
+    })
   })
 
   describe('renderListPagesUsingTemplate', () => {
