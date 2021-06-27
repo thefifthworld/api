@@ -1,0 +1,86 @@
+[
+  {
+    "hemisphere": "N",
+    "cell": "Polar",
+    "pressure": "H",
+    "min": 75,
+    "max": 90
+  },
+  {
+    "hemisphere": "N",
+    "cell": "Polar",
+    "pressure": "L",
+    "min": 60,
+    "max": 75
+  },
+  {
+    "hemisphere": "N",
+    "cell": "Ferrel",
+    "pressure": "L",
+    "min": 45,
+    "max": 60
+  },
+  {
+    "hemisphere": "N",
+    "cell": "Ferrel",
+    "pressure": "H",
+    "min": 30,
+    "max": 45
+  },
+  {
+    "hemisphere": "N",
+    "cell": "Hadley",
+    "pressure": "H",
+    "min": 15,
+    "max": 30
+  },
+  {
+    "hemisphere": "N",
+    "cell": "Hadley",
+    "pressure": "L",
+    "min": 0,
+    "max": 15
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Hadley",
+    "pressure": "L",
+    "min": -15,
+    "max": 0
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Hadley",
+    "pressure": "H",
+    "min": -30,
+    "max": -15
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Ferrel",
+    "pressure": "H",
+    "min": -45,
+    "max": -30
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Ferrel",
+    "pressure": "L",
+    "min": -60,
+    "max": -45
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Polar",
+    "pressure": "L",
+    "min": -75,
+    "max": -60
+  },
+  {
+    "hemisphere": "S",
+    "cell": "Polar",
+    "pressure": "H",
+    "min": -90,
+    "max": -75
+  }
+]
