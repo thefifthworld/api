@@ -73,12 +73,11 @@ class LocationHandler {
    * 65m (216 ft).
    * @param {[Polygon|MultiPolygon]} oceans - An array of Polygon and
    *   MultiPolygon objects covering the areas that will be covered by ocean
-   *   in the Fifth World. If left undefined, these will be loaded using the
-   *   LocationHandler.loadSeaLevels method.
-   * @returns {boolean} - A Promise that returns `true` if the point
-   *   will be in the ocean in the Fifth World (following the melting of the
-   *   ice caps and the resulting rise in sea levels of 65m/216 ft.), or
-   *   `false` if it will still be on dry land even after that.
+   *   in the Fifth World.
+   * @returns {boolean} - `true` if the point will be in the ocean in the Fifth
+   *   World (following the melting of the ice caps and the resulting rise in
+   *   sea levels of 65m/216 ft.), or `false` if it will still be on dry land
+   *   even after that.
    */
 
   isOcean (oceans) {
