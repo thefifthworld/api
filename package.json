@@ -24,6 +24,7 @@
   ],
   "main": "index.js",
   "dependencies": {
+    "@turf/boolean-intersects": "^6.4.0",
     "@turf/boolean-point-in-polygon": "^6.4.0",
     "@turf/circle": "^6.4.0",
     "aws-sdk": "^2.822.0",
