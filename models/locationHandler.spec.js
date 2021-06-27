@@ -169,4 +169,12 @@ describe('LocationHandler', () => {
       expect(actual.lon).toBeCloseTo(-80.012778, 3)
     })
   })
+
+  describe('loadSeaLevels', () => {
+    it('loads polygons for sea level data', async () => {
+      expect.assertions(1)
+      const polygons = await LocationHandler.loadSeaLevels()
+      expect(polygons.length).toBeGreaterThan(2000)
+    })
+  })
 })

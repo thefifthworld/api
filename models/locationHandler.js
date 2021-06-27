@@ -1,3 +1,6 @@
+const fs = require('fs')
+const { polygon, multiPolygon } = require('@turf/turf')
+
 class LocationHandler {
   constructor (...args) {
     this.lat = null
@@ -139,6 +142,41 @@ class LocationHandler {
       }
     }
     return val
+  }
+
+  /**
+   * Load our sea level data from GeoJSON files into an array of Turf.js
+   * Polygon and MultiPolygon objects.
+   * @returns {Promise<[Polygon, MultiPolygon]>} - A Promise that resolves with
+   *   an array of Turf.js Polygon and MultiPolygon objects covering the oceans
+   *   after a sea level rise of 65m (216'), as we would expect if the ice caps
+   *   were to completely melt.
+   */
+
+  static async loadSeaLevels () {
+    // Load all GeoJSON files and parse them
+    const bases = ['antarctica', 'greenland']
+    for (let i = 1; i < 55; i++) bases.push(i.toString().padStart(2, '0'))
+    const files = bases.map(base => `./data/sealevel/${base}.geojson`)
+    const contents = []
+    for (const file of files) {
+      const content = await fs.promises.readFile(file, 'utf8')
+      contents.push(content)
+    }
+    const geojsons = contents.map(content => JSON.parse(content))
+
+    // Create polygons from GeoJSON data
+    let polygons = []
+    for (const geojson of geojsons) {
+      const types = ['Polygon', 'MultiPolygon']
+      const objects = geojson.features.filter(feat => feat.geometry && types.includes(feat.geometry.type))
+      const poly = objects.map(obj => {
+        const fn = obj.geometry.type === 'MultiPolygon' ? multiPolygon : polygon
+        return fn(obj.geometry.coordinates, obj.properties)
+      })
+      polygons = [...polygons, ...poly]
+    }
+    return polygons
   }
 }
 
