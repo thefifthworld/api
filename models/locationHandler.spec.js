@@ -144,6 +144,29 @@ describe('LocationHandler', () => {
     })
   })
 
+  describe('isOcean', () => {
+    it('returns true if given coords in the ocean today', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(66.212, -29.917) // Between Greenland & Iceland
+      const actual = await handler.isOcean()
+      expect(actual).toEqual(true)
+    })
+
+    it('returns true if given coords that will be in the ocean after the ice caps melt', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(76.939, -43.233) // In the middle of Greenland
+      const actual = await handler.isOcean()
+      expect(actual).toEqual(true)
+    })
+
+    it('returns false if given coords that will be on land even after the ice caps melt', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(75.170, -29.311) // Highlands in eastern Greenland
+      const actual = await handler.isOcean()
+      expect(actual).toEqual(false)
+    })
+  })
+
   describe('save', () => {
     it('saves location to the database', async () => {
       expect.assertions(1)
