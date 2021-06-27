@@ -252,6 +252,10 @@ class TemplateHandler {
    *   criteria. (Default: `and`)
    * @param instance.limit {?number} - The maximum number of results to return.
    *   (Default: 10)
+   * @param instance.order {?string=} - How the pages should be ordered. Valid
+   *   options are `alphabetical`, `reverse alphabetical`, `first created`,
+   *   `last created`, `oldest update`, and `most recent update`
+   *   (Default: `alphabetical`).
    * @param options {object} - Options necessary for rendering templates.
    * @param options.member {Member} - The member requesting this rendering.
    * @param db {Pool} - The database connection.
@@ -273,6 +277,7 @@ class TemplateHandler {
     if (instance.type) query.type = instance.type
     if (instance.logic) query.logic = instance.logic
     if (instance.limit) query.limit = parseInt(instance.limit)
+    if (instance.order) query.order = instance.order
 
     if (instance.tags) {
       const split = instance.tags.split(';').map(pair => pair.trim().split(':').map(el => el.trim()))
