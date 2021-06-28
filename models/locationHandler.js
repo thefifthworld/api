@@ -1,3 +1,14 @@
+const fs = require('fs')
+const {
+  circle,
+  multiPolygon,
+  polygon,
+  booleanIntersects,
+  booleanPointInPolygon
+} = require('@turf/turf')
+
+const atmosphericZones = require('../data/atmosphere.json')
+
 class LocationHandler {
   constructor (...args) {
     this.lat = null
@@ -56,6 +67,107 @@ class LocationHandler {
       this.setLat(lat)
       this.setLon(lon)
     }
+  }
+
+  /**
+   * This method returns `true` if the location will be in the ocean in the
+   * Fifth World, after the ice caps have melted and the seas have risen by
+   * 65m (216 ft).
+   * @param {[Polygon|MultiPolygon]} oceans - An array of Polygon and
+   *   MultiPolygon objects covering the areas that will be covered by ocean
+   *   in the Fifth World.
+   * @returns {boolean} - `true` if the point will be in the ocean in the Fifth
+   *   World (following the melting of the ice caps and the resulting rise in
+   *   sea levels of 65m/216 ft.), or `false` if it will still be on dry land
+   *   even after that.
+   */
+
+  isOcean (oceans) {
+    for (const ocean of oceans) {
+      if (booleanPointInPolygon([this.lon, this.lat], ocean)) return true
+    }
+    return false
+  }
+
+  /**
+   * This method returns `true` if the location will be within 30 miles of the
+   * ocean in the Fifth World, after the ice caps have melted and the seas have
+   * risen by 65m (216 ft).
+   * @param {[Polygon|MultiPolygon]} oceans - An array of Polygon and
+   *   MultiPolygon objects covering the areas that will be covered by ocean
+   *   in the Fifth World.
+   * @returns {boolean} - `true` if the point will be within 30 miles of the
+   *   ocean in the Fifth World (following the melting of the ice caps and the
+   *   resulting rise in sea levels of 65m/216 ft.), or `false` if it will
+   *   still be more than 30 miles from the nearest
+   */
+
+  isCoastal (oceans) {
+    if (this.isOcean(oceans)) return false
+    const area = circle([this.lon, this.lat], 30, { steps: 10, units: 'miles' })
+    for (const ocean of oceans) {
+      if (booleanIntersects(area, ocean)) return true
+    }
+    return false
+  }
+
+  /**
+   * Find the atmospheric zone that the latitude falls into and return the
+   * object for that zone.
+   * @returns {object|boolean} - The object describing the atmospheric zone
+   *   that the latitude falls into, or `false` if the instance does not have
+   *   a valid latitude.
+   */
+
+  getAtmosphere () {
+    const { lat } = this
+    if (typeof lat === 'number') {
+      for (const zone of atmosphericZones) {
+        const { min, max } = zone
+        if (lat <= max && lat > min) return zone
+      }
+    }
+    return false
+  }
+
+  /**
+   * Returns an array of objects representing communities that claim places
+   * within 40 kilometers (just under 25 miles) of the place specified.
+   * @param {Member} searcher - The person who is making this request.
+   * @param {function} Page - The Page class.
+   * @param {Pool} db - The database connection.
+   * @returns {Promise<[{ name: string, path: string }]>} - A Promise that
+   *   resolves with an array of objects representing the communities that
+   *   claim places within 40 km (just under 25 mi) of this location. Each
+   *   object includes a `name` property with the name of that community, and
+   *   a `path` property, with the path for that community's page.
+   */
+
+  async getNeighbors (searcher, Page, db) {
+    if (typeof Page.placesNear !== 'function') return []
+    const places = await Page.placesNear([this.lat, this.lon], 40000, searcher, db)
+
+    // Get community object for each place
+    const mapped = places.map(place => {
+      const reverse = [...place.lineage].reverse()
+      for (const ancestor of reverse) {
+        if (ancestor.type === 'Community') {
+          return {
+            name: ancestor.title,
+            path: ancestor.path
+          }
+        }
+      }
+      return false
+    })
+
+    // Dedupe array
+    const communities = []
+    for (const obj of mapped) {
+      const paths = communities.map(c => c.path)
+      if (!paths.includes(obj.path)) communities.push(obj)
+    }
+    return communities
   }
 
   /**
@@ -139,6 +251,41 @@ class LocationHandler {
       }
     }
     return val
+  }
+
+  /**
+   * Load our sea level data from GeoJSON files into an array of Turf.js
+   * Polygon and MultiPolygon objects.
+   * @returns {Promise<[Polygon, MultiPolygon]>} - A Promise that resolves with
+   *   an array of Turf.js Polygon and MultiPolygon objects covering the oceans
+   *   after a sea level rise of 65m (216'), as we would expect if the ice caps
+   *   were to completely melt.
+   */
+
+  static async loadSeaLevels () {
+    // Load all GeoJSON files and parse them
+    const bases = ['antarctica', 'greenland']
+    for (let i = 1; i < 55; i++) bases.push(i.toString().padStart(2, '0'))
+    const files = bases.map(base => `./data/sealevel/${base}.geojson`)
+    const contents = []
+    for (const file of files) {
+      const content = await fs.promises.readFile(file, 'utf8')
+      contents.push(content)
+    }
+    const geojsons = contents.map(content => JSON.parse(content))
+
+    // Create polygons from GeoJSON data
+    let polygons = []
+    for (const geojson of geojsons) {
+      const types = ['Polygon', 'MultiPolygon']
+      const objects = geojson.features.filter(feat => feat.geometry && types.includes(feat.geometry.type))
+      const poly = objects.map(obj => {
+        const fn = obj.geometry.type === 'MultiPolygon' ? multiPolygon : polygon
+        return fn(obj.geometry.coordinates, obj.properties)
+      })
+      polygons = [...polygons, ...poly]
+    }
+    return polygons
   }
 }
 

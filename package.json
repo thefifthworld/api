@@ -24,6 +24,7 @@
   ],
   "main": "index.js",
   "dependencies": {
+    "@turf/turf": "^6.4.0",
     "aws-sdk": "^2.822.0",
     "axios": "^0.21.1",
     "bcrypt": "^5.0.0",

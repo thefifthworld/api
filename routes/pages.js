@@ -1,5 +1,6 @@
 const express = require('express')
 const LinkHandler = require('../models/linkhandler')
+const LocationHandler = require('../models/locationHandler')
 const TemplateHandler = require('../models/templateHandler')
 const Page = require('../models/page')
 const { loadPage, requireLogIn, optionalLogIn } = require('../security')
@@ -249,6 +250,29 @@ pages.post('/parse', async (req, res) => {
 pages.post('/response', async (req, res) => {
   await db.run(`INSERT INTO responses (form, data) VALUES (${escape(req.body.form)}, ${escape(req.body.data)});`)
   res.status(200).json(Object.assign({}, { name: req.body.form }, JSON.parse(req.body.data)))
+})
+
+// GET /geo/:lat/:lon
+pages.get('/geo/:lat/:lon', async (req, res) => {
+  const { lat, lon } = req.params
+  const pt = new LocationHandler(lat, lon)
+  if (pt.lat === false || pt.lon === false) {
+    res.sendStatus(500)
+  } else {
+    const oceans = await LocationHandler.loadSeaLevels()
+    const zone = pt.getAtmosphere()
+    const data = {
+      coords: [pt.lat, pt.lon],
+      isOcean: pt.isOcean(oceans),
+      isCoastal: pt.isCoastal(oceans),
+      nearbyCommunities: await pt.getNeighbors(req.user, Page, db),
+      hemisphere: zone.hemisphere,
+      cell: zone.cell,
+      pressure: zone.pressure,
+      winds: zone.winds
+    }
+    res.status(200).json(data)
+  }
 })
 
 module.exports = pages

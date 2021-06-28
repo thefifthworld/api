@@ -144,6 +144,157 @@ describe('LocationHandler', () => {
     })
   })
 
+  describe('isOcean', () => {
+    it('returns true if given coords in the ocean today', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(66.212, -29.917) // Between Greenland & Iceland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isOcean(oceans)
+      expect(actual).toEqual(true)
+    })
+
+    it('returns true if given coords that will be in the ocean after the ice caps melt', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(76.939, -43.233) // In the middle of Greenland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isOcean(oceans)
+      expect(actual).toEqual(true)
+    })
+
+    it('returns false if given coords that will be on land even after the ice caps melt', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(75.170, -29.311) // Highlands in eastern Greenland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isOcean(oceans)
+      expect(actual).toEqual(false)
+    })
+  })
+
+  describe('isCoastal', () => {
+    it('returns false if it\'s in the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(66.212, -29.917) // Between Greenland & Iceland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(false)
+    })
+
+    it('returns true if it\'s within 30 miles of the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(75.261, -25.647) // On Greenland's eastern shore
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(true)
+    })
+
+    it('returns false if it isn\'t within 30 miles of the ocean', async () => {
+      expect.assertions(1)
+      const handler = new LocationHandler(81.20, -40.54) // Deep in northern Greenland
+      const oceans = await LocationHandler.loadSeaLevels()
+      const actual = handler.isCoastal(oceans)
+      expect(actual).toEqual(false)
+    })
+  })
+
+  describe('getAtmosphere', () => {
+    it('returns false if it doesn\'t have a legitimate latitude', () => {
+      const handler = new LocationHandler(100, 0)
+      const actual = handler.getAtmosphere()
+      expect(actual).toEqual(false)
+    })
+
+    it('returns the hemisphere it\'s in', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const hemispheres = ['N', 'S']
+      expect(hemispheres).toContain(actual.hemisphere)
+    })
+
+    it('returns the cell it\'s in', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const cells = ['Polar', 'Ferrel', 'Hadley']
+      expect(cells).toContain(actual.cell)
+    })
+
+    it('returns the prevailing barometric pressure', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const barometry = ['H', 'L']
+      expect(barometry).toContain(actual.pressure)
+    })
+
+    it('returns the prevailing winds', () => {
+      const lat = Math.floor(Math.random() * 180) + 1 - 90
+      const handler = new LocationHandler(lat, 0)
+      const actual = handler.getAtmosphere()
+      const winds = ['W', 'E']
+      expect(winds).toContain(actual.winds)
+    })
+  })
+
+  describe('getNeighbors', () => {
+    it('returns an array of nearby communities', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+
+      // Create one community with two places
+      const cdata1 = { title: 'Community A', body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Point', body: '[[Location:40.441800, -80.012772]]', parent: c1.id }
+      const pdata2 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      await Page.create(pdata2, editor, 'Initial text', db)
+
+      // Create another community, also with a nearby place
+      const cdata2 = { title: 'Community B', body: '[[Type:Community]]' }
+      const c2 = await Page.create(cdata2, editor, 'Initial text', db)
+      const pdata3 = { title: 'St. Paul\'s Cathedral', body: '[[Location:40.447328, -79.949786]]', parent: c2.id }
+      const pdata4 = { title: 'Carnegie Mellon', body: '[[Location:40.443735, -79.945165]]', parent: c2.id }
+      await Page.create(pdata3, editor, 'Initial text', db)
+      await Page.create(pdata4, editor, 'Initial text', db)
+
+      // Create our place and run the test
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual).toHaveLength(2)
+    })
+
+    it('returns the name of each community', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const title = 'Community A'
+      const cdata1 = { title, body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual[0].name).toEqual(title)
+    })
+
+    it('returns the path for each community', async () => {
+      expect.assertions(1)
+      await testUtils.populateMembers(db)
+      const editor = await Member.load(2, db)
+      const cdata1 = { title: 'Community A', body: '[[Type:Community]]' }
+      const c1 = await Page.create(cdata1, editor, 'Initial text', db)
+      const pdata1 = { title: 'The Cathedral of Learning', body: '[[Location:40.444364, -79.953106]]', parent: c1.id }
+      await Page.create(pdata1, editor, 'Initial text', db)
+      const handler = new LocationHandler(40.443069, -79.950037)
+      const actual = await handler.getNeighbors(editor, Page, db)
+      await testUtils.resetTables(db)
+      expect(actual[0].path).toEqual('/community-a')
+    })
+  })
+
   describe('save', () => {
     it('saves location to the database', async () => {
       expect.assertions(1)
@@ -167,6 +318,14 @@ describe('LocationHandler', () => {
       expect(actual).toBeInstanceOf(LocationHandler)
       expect(actual.lat).toBeCloseTo(40.441823, 3)
       expect(actual.lon).toBeCloseTo(-80.012778, 3)
+    })
+  })
+
+  describe('loadSeaLevels', () => {
+    it('loads polygons for sea level data', async () => {
+      expect.assertions(1)
+      const polygons = await LocationHandler.loadSeaLevels()
+      expect(polygons.length).toBeGreaterThan(2000)
     })
   })
 })
