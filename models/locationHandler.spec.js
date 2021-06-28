@@ -179,7 +179,7 @@ describe('LocationHandler', () => {
       expect(actual).toEqual(false)
     })
 
-    it('returns true if it\'s within 30 miltes of the ocean', async () => {
+    it('returns true if it\'s within 30 miles of the ocean', async () => {
       expect.assertions(1)
       const handler = new LocationHandler(75.261, -25.647) // On Greenland's eastern shore
       const oceans = await LocationHandler.loadSeaLevels()
@@ -187,7 +187,7 @@ describe('LocationHandler', () => {
       expect(actual).toEqual(true)
     })
 
-    it('returns false if it isn\'t within 30 miltes of the ocean', async () => {
+    it('returns false if it isn\'t within 30 miles of the ocean', async () => {
       expect.assertions(1)
       const handler = new LocationHandler(81.20, -40.54) // Deep in northern Greenland
       const oceans = await LocationHandler.loadSeaLevels()
