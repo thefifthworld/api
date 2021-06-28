@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GET /get/{lat}/{lon}</title>
+    <link rel="icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg" />
+    <link rel=”mask-icon” href=”https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/icons/favicon.svg” color=”#000000" />
+    <link rel="apple-touch-icon" href="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/apple-touch-icon.png" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/style.css" />
+    <link rel="stylesheet" media="all" href="https://design.thefifthworld.com/css/prism.css" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="This endpoint returns information about a given location." />
+  </head>
+  <body class="thefifthworld">
+  <header>
+    <h1 class="logo">
+      <a href="https://thefifthworld.com">
+        <img src="https://thefifthworld.s3.us-east-2.stackpathstorage.com/design/img/wordmark.black.svg" alt="The Fifth World" />
+      </a>
+    </h1>
+  </header>
+  <main>
+    <ul class="breadcrumbs">
+      <li><a href="../../index.html">API Documentation</a></li>
+      <li><a href="../index.html">Reference</a></li>
+      <li><a href="index.html">Pages API</a></li>
+      <li class="current">Get geographical information</li>
+    </ul>
+    <h1>Get geographical information</h1>
+    <p>This endpoint returns information about a given location.</p>
+    <h2>Request</h2>
+    <table>
+      <caption>Path Parameters</caption>
+      <thead>
+        <tr>
+          <th>Query Parameters</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>lat</code></td>
+          <td>The latitude of the location you want to know more about.</td>
+        </tr>
+        <tr>
+          <td><code>lon</code></td>
+          <td>The longitude of the location you want to know more about.</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Examples</h3>
+    <figure class="request-response">
+      <figcaption>Example Request</figcaption>
+      <code class="language-http">GET /v1/geo/51.178889/-1.826111 HTTP/1.1
+Host: api.thefifthworld.com</code>
+    </figure>
+    <h2>Response</h2>
+    <p>If you don&rsquo;t provide a latitude and longitude, the API responds with a <code>500</code>
+      HTTP response. If you do provide both a latitude and a longitude, the endpoint responds with a
+      <code>200</code> HTTP status and a JSON object providing information about the location.</p>
+    <table>
+      <caption>Location Information Object</caption>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="white-space: nowrap;"><code>coords</code></td>
+          <td style="white-space: nowrap;"><code>[number]</code></td>
+          <td>This array provides back the coordinates given, with the latitude first and the longitude second.</td>
+        </tr>
+        <tr>
+          <td style="white-space: nowrap;"><code>isOcean</code></td>
+          <td style="white-space: nowrap;"><code>boolean</code></td>
+          <td>In the Fifth World, the ice caps have melted, resulting in 65 meters (or approximately 216 feet)
+            of sea level rise. If the given location lies in the ocean (even if it lies on dry land today), this
+            property will equal <code>true</code>.</td>
+        </tr>
+        <tr>
+          <td style="white-space: nowrap;"><code>isCoastal</code></td>
+          <td style="white-space: nowrap;"><code>boolean</code></td>
+          <td>In the Fifth World, the ice caps have melted, resulting in 65 meters (or approximately 216 feet)
+            of sea level rise. If the given location lies within 10 miles of the ocean (even if it doesn&rsquo;t
+            today), this property will equal <code>true</code>.</td>
+        </tr>
+        <tr>
+          <td style="white-space: nowrap;"><code>nearbyCommunities</code></td>
+          <td style="white-space: nowrap;"><code>[object]</code></td>
+          <td>This property provides an array of objects listing the communities that lay claim to places within
+            40 kilometers (just under 25 miles) of the given location. Each object has two properties, both strings:
+            <code>name</code> (which provides the name of the community) and <code>path</code> (which provides the
+            community&rsquo;s unique path on the wiki).</td>
+        </tr>
+        <tr>
+          <td><code>hemisphere</code></td>
+          <td><code>string</code></td>
+          <td>This property will equal <code>N</code> if your location lies within the northern hemisphere, or
+            <code>S</code> if it lies within the southern hemisphere.</td>
+        </tr>
+        <tr>
+          <td><code>cell</code></td>
+          <td><code>string</code></td>
+          <td>This property will name the atmospheric circulation cell that your location lies within: either
+            <code>Polar</code>, <code>Ferrel</code>, or <code>Hadley</code>.</td>
+        </tr>
+        <tr>
+          <td><code>pressure</code></td>
+          <td><code>string</code></td>
+          <td>This property indicates if your location lies within an area of generally high barometric
+            pressure, where air generally rises (<code>H</code>), or an area of generally low barometric
+            pressure, where air generally descends (<code>L</code>).</td>
+        </tr>
+        <tr>
+          <td><code>winds</code></td>
+          <td><code>string</code></td>
+          <td>This property indicates the prevailing winds in your location &mdash; westerly (<code>W</code>)
+            or easterly (<code>E</code>).</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Example</h3>
+    <figure class="request-response">
+      <figcaption>Example Response</figcaption>
+      <code class="language-js">{
+  coords: [ 51.178889, -1.826111 ],
+  isOcean: false,
+  isCoastal: true,
+  nearbyCommunities: [],
+  hemisphere: 'N',
+  cell: 'Ferrel',
+  pressure: 'L',
+  winds: 'W'
+}</code>
+    </figure>
+  </main>
+  <footer>
+    <p><em>The Fifth World</em> exists thanks to the generosity of our supporters, partners, and friends on Patreon. <a href="https://www.patreon.com/thefifthworld">Would you like to join them and become part of our growing community?</a></p>
+    <p class="copyleft">
+      <span class="icons">
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/cc.svg" alt="Creative Commons" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/by.svg" alt="Attribution" />
+        <img src="https://s3.amazonaws.com/thefifthworld/website/images/sa.svg" alt="Share-Alike" />
+      </span>
+      <em>The Fifth World</em> is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    </p>
+  </footer>
+  <script src="https://design.thefifthworld.com/js/bundle.js"></script>
+  </body>
+</html>

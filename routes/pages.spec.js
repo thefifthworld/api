@@ -1051,4 +1051,92 @@ describe('Pages API', () => {
       expect(check).toHaveLength(1)
     })
   })
+
+  describe('GET /geo/:lat/:lon', () => {
+    it('returns HTTP 200', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/0/0')
+      expect(res.status).toEqual(200)
+    }, 8000)
+
+    it('returns HTTP 500 if not given proper coordinates', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/bonnie/clyde')
+      expect(res.status).toEqual(500)
+    }, 8000)
+
+    it('returns the coordinates given', async () => {
+      expect.assertions(1)
+      const lat = (Math.random() * 180) - 90
+      const lon = (Math.random() * 360) - 180
+      const res = await request.get(`/geo/${lat}/${lon}`)
+      expect(res.body.coords).toEqual([lat, lon])
+    }, 8000)
+
+    it('tells you if the point is in the ocean', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/66.212/-29.917')
+      expect(res.body.isOcean).toEqual(true)
+    }, 8000)
+
+    it('tells you if the point isn\'t in the ocean', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/75.261/-25.647')
+      expect(res.body.isOcean).toEqual(false)
+    }, 8000)
+
+    it('tells you if the point is near the coast', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/75.261/-25.647')
+      expect(res.body.isCoastal).toEqual(true)
+    }, 8000)
+
+    it('tells you if the point isn\'t near the coast', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/81.20/-40.54')
+      expect(res.body.isCoastal).toEqual(false)
+    }, 8000)
+
+    it('provides an array of nearby communities', async () => {
+      expect.assertions(1)
+      const res = await request.get('/geo/81.20/-40.54')
+      expect(res.body.nearbyCommunities).toEqual([])
+    }, 8000)
+
+    it('returns the north/south hemisphere the point is in', async () => {
+      expect.assertions(1)
+      const lat = (Math.random() * 180) - 90
+      const lon = (Math.random() * 360) - 180
+      const res = await request.get(`/geo/${lat}/${lon}`)
+      const hemisphere = lat > 0 ? 'N' : 'S'
+      expect(res.body.hemisphere).toEqual(hemisphere)
+    }, 8000)
+
+    it('returns the atmospheric circulation cell that the point is in', async () => {
+      expect.assertions(1)
+      const lat = (Math.random() * 180) - 90
+      const lon = (Math.random() * 360) - 180
+      const res = await request.get(`/geo/${lat}/${lon}`)
+      const cells = ['Polar', 'Ferrel', 'Hadley']
+      expect(cells).toContain(res.body.cell)
+    }, 8000)
+
+    it('returns the prevailing barometric pressure for that point', async () => {
+      expect.assertions(1)
+      const lat = (Math.random() * 180) - 90
+      const lon = (Math.random() * 360) - 180
+      const res = await request.get(`/geo/${lat}/${lon}`)
+      const pressures = ['H', 'L']
+      expect(pressures).toContain(res.body.pressure)
+    }, 8000)
+
+    it('returns the prevailing winds for that point', async () => {
+      expect.assertions(1)
+      const lat = (Math.random() * 180) - 90
+      const lon = (Math.random() * 360) - 180
+      const res = await request.get(`/geo/${lat}/${lon}`)
+      const winds = ['W', 'E']
+      expect(winds).toContain(res.body.winds)
+    }, 8000)
+  })
 })
