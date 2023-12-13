@@ -2,8 +2,8 @@ const { Remarkable } = require('remarkable')
 const RemarkableHeaders = require('remarkable-header-ids')
 const Page = require('../models/page')
 const FileHandler = require('../models/fileHandler')
-const LinkHandler = require('../models/linkhandler')
-const TagHandler = require('../models/taghandler')
+const LinkHandler = require('../models/linkHandler')
+const TagHandler = require('../models/tagHandler')
 const TemplateHandler = require('../models/templateHandler')
 
 /**

@@ -5,7 +5,7 @@ const testUtils = require('../test-utils')
 
 const Member = require('./member')
 const Page = require('./page')
-const TagHandler = require('./taghandler')
+const TagHandler = require('./tagHandler')
 
 describe('TagHandler', () => {
   afterAll(() => { db.end() })
