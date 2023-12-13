@@ -1,5 +1,5 @@
 const express = require('express')
-const LinkHandler = require('../models/linkhandler')
+const LinkHandler = require('../models/linkHandler')
 const LocationHandler = require('../models/locationHandler')
 const TemplateHandler = require('../models/templateHandler')
 const Page = require('../models/page')
