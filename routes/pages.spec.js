@@ -15,23 +15,21 @@ describe('Pages API', () => {
 
   beforeAll(async () => { server = await api.listen(8888) })
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     request = supertest(server)
     await testUtils.resetTables(db)
     await testUtils.createTestPage(Page, Member, db)
-    done()
   })
 
-  afterEach(async done => {
+  afterEach(async () => {
     await testUtils.resetTables(db)
-    done()
   })
 
-  afterAll(done => {
+  afterAll(() => {
     server.close(() => {
       api.closeDB(() => {
         api.close(() => {
-          db.close(done)
+          db.close()
         })
       })
     })
@@ -84,7 +82,7 @@ describe('Pages API', () => {
 
       expect(res.status).toEqual(200)
       expect(check.status).toEqual(200)
-      expect(file.name.substr(file.name.length - 4)).toEqual('.txt')
+      expect(file.name.substring(file.name.length - 4)).toEqual('.txt')
       expect(file.name.startsWith('uploads/test.')).toEqual(true)
       expect(file.mime).toEqual('text/plain')
       expect(file.readableSize).toEqual('13 B')
@@ -777,7 +775,7 @@ describe('Pages API', () => {
       await FileHandler.remove(page.files[0].name, db)
       expect(res.status).toEqual(200)
       expect(res.body.page.files).toHaveLength(1)
-      expect(res.body.page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
+      expect(res.body.page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/uploads/test.`)).toEqual(true)
       expect(res.body.page.files[0].readableSize).toEqual('13 B')
     })
   })

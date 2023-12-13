@@ -9,10 +9,10 @@ describe('API', () => {
 
   beforeAll(async () => { server = await api.listen(8888) })
   beforeEach(() => { request = supertest(server) })
-  afterAll(done => {
+  afterAll(() => {
     server.close(() => {
       api.closeDB(() => {
-        api.close(done)
+        api.close()
       })
     })
   })

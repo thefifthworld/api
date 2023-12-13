@@ -704,7 +704,7 @@ describe('Page', () => {
       await testUtils.resetTables(db)
       expect(page.files).toHaveLength(1)
       expect(page.files[0].mime).toEqual('text/plain')
-      expect(page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/uploads/test.`)).toEqual(true)
+      expect(page.files[0].urls.full.startsWith(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/uploads/test.`)).toEqual(true)
       expect(page.files[0].readableSize).toEqual('13 B')
       expect([ 200, 500 ]).toContain(check.status)
     })

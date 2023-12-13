@@ -14,22 +14,20 @@ describe('Members API', () => {
   let request = {}
 
   beforeAll(async () => { server = await api.listen(8888) })
-  beforeEach(async done => {
+  beforeEach(async () => {
     request = supertest(server)
     await testUtils.populateMembers(db)
-    done()
   })
 
-  afterEach(async done => {
+  afterEach(async () => {
     await testUtils.resetTables(db)
-    done()
   })
 
-  afterAll(done => {
+  afterAll(() => {
     server.close(() => {
       api.closeDB(() => {
         api.close(() => {
-          db.close(done)
+          db.close()
         })
       })
     })

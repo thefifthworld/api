@@ -38,8 +38,8 @@ describe('FileHandler', () => {
       expect(actual.page).toEqual(obj.page)
       expect(actual.timestamp).toEqual(obj.timestamp)
       expect(actual.uploader).toEqual(obj.uploader)
-      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.png`)
-      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.thumb.png`)
+      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/test.png`)
+      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/test.thumb.png`)
     })
 
     it('captures mimetype', () => {
@@ -61,8 +61,8 @@ describe('FileHandler', () => {
 
       const actual = new FileHandler(obj)
       expect(actual.urls).toBeDefined()
-      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.png`)
-      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.thumb.png`)
+      expect(actual.urls.full).toEqual(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/test.png`)
+      expect(actual.urls.thumbnail).toEqual(`https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/test.thumb.png`)
     })
   })
 
@@ -122,7 +122,7 @@ describe('FileHandler', () => {
       expect(handler.page).toEqual(3)
       expect(handler.uploader).toEqual(4)
       expect(fileCheckBefore.status).toEqual(200)
-      expect(thumbnailCheckBefore.status).toEqual(404)
+      expect(thumbnailCheckBefore.status).toEqual(403)
     })
 
     it('handles art uploads that need a thumbnail', async () => {
@@ -258,7 +258,7 @@ describe('FileHandler', () => {
   describe('getURL', () => {
     it('returns a URL', () => {
       const actual = FileHandler.getURL('test.jpg')
-      const expected = `https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/test.jpg`
+      const expected = `https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/test.jpg`
       expect(actual).toEqual(expected)
     })
   })

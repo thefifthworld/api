@@ -191,7 +191,7 @@ class FileHandler {
 
   static instantiateS3 () {
     return new aws.S3({
-      endpoint: `https://s3.${config.aws.region}.stackpathstorage.com`,
+      endpoint: `https://s3.${config.aws.region}.amazonaws.com`,
       accessKeyId: config.aws.key,
       secretAccessKey: config.aws.secret
     })
@@ -248,7 +248,7 @@ class FileHandler {
    */
 
   static getURL (key) {
-    return `https://${config.aws.bucket}.s3.${config.aws.region}.stackpathstorage.com/${key}`
+    return `https://${config.aws.bucket}.s3-${config.aws.region}.amazonaws.com/${key}`
   }
 
   /**
